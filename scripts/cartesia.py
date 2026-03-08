@@ -42,13 +42,15 @@ def configure(api_key: str, voice_map: dict = None):
 
 
 def synthesize_script(turns: list[tuple[str, str]], output_path: Path,
-                      voice_map: dict = None) -> dict:
+                      voice_map: dict = None,
+                      on_progress: callable = None) -> dict:
     """Synthesize a parsed script into an MP3 file.
 
     Args:
         turns: List of (speaker, text) tuples
         output_path: Path for the output MP3 file
         voice_map: Optional speaker->voice_id mapping (overrides configure())
+        on_progress: Optional callback(turn_num, total_turns, speaker) for status updates
 
     Returns:
         Usage dict with character count and duration info
@@ -63,6 +65,9 @@ def synthesize_script(turns: list[tuple[str, str]], output_path: Path,
         voice_id = voices.get(speaker, list(voices.values())[0])
         chunks = _chunk_text(text)
         logger.info(f"[AUDIO] Turn {i+1}/{len(turns)}: {speaker} ({len(chunks)} chunk(s), {len(text)} chars)")
+
+        if on_progress:
+            on_progress(i + 1, len(turns), speaker)
 
         turn_pcm = _synthesize_turn(voice_id, chunks)
         all_pcm.extend(turn_pcm)

@@ -4,6 +4,7 @@ import logging
 import os
 import smtplib
 import subprocess
+import urllib.parse
 import urllib.request
 import urllib.error
 from email.mime.multipart import MIMEMultipart
@@ -81,31 +82,45 @@ def _send_email_smtp(subject: str, html_body: str, email_cfg: dict):
 
 
 def _send_email_agentmail(subject: str, html_body: str, email_cfg: dict):
-    """Send email via AgentMail API."""
+    """Send email via AgentMail API.
+
+    Requires an AgentMail inbox. Config:
+      agentmail.api_key_env: env var name for API key
+      agentmail.inbox_id: sender inbox (e.g. "ai-digest@agentmail.to")
+    """
     am_cfg = email_cfg.get("agentmail", {})
     api_key_env = am_cfg.get("api_key_env", "AGENTMAIL_API_KEY")
     api_key = os.environ.get(api_key_env, "")
-    from_addr = am_cfg.get("from", "")
+    inbox_id = am_cfg.get("inbox_id", "")
     to_addr = email_cfg.get("to", "")
+
+    if not api_key:
+        raise RuntimeError(f"AgentMail API key not set (env: {api_key_env})")
+    if not inbox_id:
+        raise RuntimeError("AgentMail inbox_id not configured")
+
+    # URL-encode the inbox_id (contains @)
+    encoded_inbox = urllib.parse.quote(inbox_id, safe="")
+    url = f"https://api.agentmail.to/v0/inboxes/{encoded_inbox}/messages/send"
 
     payload = json.dumps({
         "to": to_addr,
-        "from": from_addr,
         "subject": subject,
+        "text": "See HTML version of this email.",
         "html": html_body,
     }).encode()
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}",
     }
-    req = urllib.request.Request(
-        "https://api.agentmail.to/v0/emails",
-        data=payload, headers=headers
-    )
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        if resp.status not in (200, 201):
-            raise RuntimeError(f"AgentMail API error: {resp.status}")
-    logger.info("[DELIVER] Email sent via AgentMail")
+    req = urllib.request.Request(url, data=payload, headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            result = json.loads(resp.read())
+            logger.info(f"[DELIVER] Email sent via AgentMail (message_id: {result.get('message_id', 'unknown')})")
+    except urllib.error.HTTPError as e:
+        err_body = e.read().decode(errors="replace")
+        raise RuntimeError(f"AgentMail API error {e.code}: {err_body[:500]}") from e
 
 
 # ── Notification Delivery ───────────────────────────────────────────────────

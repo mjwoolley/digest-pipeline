@@ -33,7 +33,8 @@ def parse_script(script_text: str, speaker_tags: list[str] = None) -> list[tuple
 
 
 def synthesize_script(turns: list[tuple[str, str]], output_path: Path,
-                      voice_map: dict = None) -> dict:
+                      voice_map: dict = None,
+                      on_progress: callable = None) -> dict:
     """Synthesize a parsed script into an MP3 file.
 
     Writes audio incrementally to a WAV file to avoid accumulating
@@ -43,6 +44,7 @@ def synthesize_script(turns: list[tuple[str, str]], output_path: Path,
         turns: List of (speaker, text) tuples
         output_path: Path for the output MP3 file
         voice_map: Optional speaker->voice_name mapping (overrides defaults)
+        on_progress: Optional callback(turn_num, total_turns, speaker) for status updates
 
     Returns:
         Usage dict with total_chars, total_turns, duration_seconds
@@ -64,6 +66,9 @@ def synthesize_script(turns: list[tuple[str, str]], output_path: Path,
         for i, (speaker, text) in enumerate(turns):
             voice = voices.get(speaker, list(voices.values())[0])
             logger.info(f"[AUDIO] Turn {i+1}/{len(turns)}: {speaker} ({len(text)} chars)")
+
+            if on_progress:
+                on_progress(i + 1, len(turns), speaker)
 
             generator = _pipeline(text, voice=voice, speed=1.0)
             for _, _, audio in generator:

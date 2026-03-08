@@ -110,17 +110,29 @@ def main():
         mp3_path = audio_dir / f"{date}.mp3"
         voice_map = get_voice_map(config, tts_backend)
 
+        # Progress callback: notify every 10 turns
+        _audio_start = time.time()
+        def _on_tts_progress(turn_num, total, speaker):
+            if turn_num == 1 or turn_num % 10 == 0 or turn_num == total:
+                elapsed = time.time() - _audio_start
+                delivery.send_progress(
+                    "AUDIO",
+                    f"TTS: turn {turn_num}/{total} ({speaker}) — {elapsed:.0f}s elapsed",
+                    config)
+
         t0 = time.time()
         if tts_backend == "kokoro":
             import kokoro_tts
             kokoro_tts.configure()
             audio_usage = kokoro_tts.synthesize_script(turns, mp3_path,
-                                                       voice_map=voice_map)
+                                                       voice_map=voice_map,
+                                                       on_progress=_on_tts_progress)
         else:
             cartesia_key = _load_cartesia_key()
             cartesia.configure(cartesia_key, voice_map=voice_map)
             audio_usage = cartesia.synthesize_script(turns, mp3_path,
-                                                     voice_map=voice_map)
+                                                     voice_map=voice_map,
+                                                     on_progress=_on_tts_progress)
         audio_duration = time.time() - t0
 
         swap_usage = _get_swap_usage()

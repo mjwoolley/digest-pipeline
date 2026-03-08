@@ -96,19 +96,40 @@ def _fmt_tokens(n: int) -> str:
 
 # ── Source Batching ──────────────────────────────────────────────────────────
 
-def batch_sources(sources: list[dict]) -> list[list[dict]]:
+MAX_SOURCE_CHARS = 50_000  # Truncate any single source to ~12K tokens
+
+
+def batch_sources(sources: list[dict], max_chars_per_batch: int = 200_000) -> list[list[dict]]:
     """Group sources into batches for extract calls.
-    Simple strategy: split non-empty sources into roughly equal batches of ~6."""
-    non_empty = [s for s in sources if s.get("content", "").strip()]
+    Truncates oversized sources and splits by content size to stay within
+    LLM context limits (~4 chars/token, 200K chars ≈ 50K tokens)."""
+    non_empty = []
+    for s in sources:
+        content = s.get("content", "").strip()
+        if not content:
+            continue
+        if len(content) > MAX_SOURCE_CHARS:
+            s = {**s, "content": content[:MAX_SOURCE_CHARS]}
+        non_empty.append(s)
+
     if not non_empty:
         return []
 
-    batch_size = max(1, len(non_empty) // 3)
     batches = []
-    for i in range(0, len(non_empty), batch_size):
-        batch = non_empty[i:i + batch_size]
-        if batch:
-            batches.append(batch)
+    current_batch = []
+    current_chars = 0
+
+    for s in non_empty:
+        content_len = len(s.get("content", ""))
+        if current_batch and current_chars + content_len > max_chars_per_batch:
+            batches.append(current_batch)
+            current_batch = []
+            current_chars = 0
+        current_batch.append(s)
+        current_chars += content_len
+
+    if current_batch:
+        batches.append(current_batch)
     return batches
 
 
