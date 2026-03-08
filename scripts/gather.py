@@ -1,0 +1,452 @@
+#!/usr/bin/env python3
+"""
+Stage 1: Gather raw content from all sources (concurrent).
+Usage:
+  - CLI: python3 gather.py --config /path/to/config.json [work_dir]
+  - Import: from gather import gather_all
+"""
+import json
+import logging
+import re
+import subprocess
+import sys
+import os
+import xml.etree.ElementTree as ET
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timedelta, timezone
+from html.parser import HTMLParser
+from pathlib import Path
+
+logger = logging.getLogger("digest")
+
+MAX_CONCURRENT = 6
+
+
+# ── Credential loading ──────────────────────────────────────────────────────
+
+def load_secrets(secrets_file: Path):
+    """Load key=value pairs from secrets.env if vars aren't already set."""
+    if secrets_file.exists():
+        for line in secrets_file.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            key, _, value = line.partition("=")
+            if key and value and key not in os.environ:
+                os.environ[key] = value
+
+
+# ── Source fetchers ──────────────────────────────────────────────────────────
+
+def _fetch_twitter(account: str, auth_token: str, ct0: str) -> dict:
+    """Fetch tweets for a single account."""
+    name = f"@{account}"
+    env = {**os.environ, "AUTH_TOKEN": auth_token, "CT0": ct0}
+    try:
+        result = subprocess.run(
+            ["bird", "search", f"from:{account}", "-n", "10"],
+            capture_output=True, text=True, env=env, timeout=30
+        )
+        content = result.stdout.strip() if result.returncode == 0 else ""
+        if not content:
+            logger.warning(f"[GATHER] {name}: empty or failed")
+        else:
+            logger.info(f"[GATHER] {name}: OK")
+        return {"name": name, "type": "twitter", "key": f"twitter-{account}",
+                "content": content}
+    except Exception as e:
+        logger.warning(f"[GATHER] {name}: {e}")
+        return {"name": name, "type": "twitter", "key": f"twitter-{account}",
+                "content": ""}
+
+
+def _fetch_newsletter(key: str, nl: dict, gmail_account: str,
+                      gmail_pw: str) -> dict:
+    """Fetch a newsletter via Gmail."""
+    name = nl["name"]
+    env = {**os.environ, "GOG_KEYRING_PASSWORD": gmail_pw}
+    try:
+        search = subprocess.run(
+            ["gog", "gmail", "messages", "search",
+             f"from:{nl['gmail_from']} newer_than:{nl['lookback']}",
+             "--max", "1", "--account", gmail_account, "--plain"],
+            capture_output=True, text=True, env=env, timeout=30
+        )
+        lines = [l for l in search.stdout.strip().split("\n")
+                 if l and not l.startswith("ID")]
+        if not lines:
+            logger.info(f"[GATHER] {name}: no recent issue")
+            return {"name": name, "type": "newsletter", "key": f"nl-{key}",
+                    "content": ""}
+        msg_id = lines[0].split("\t")[0]
+        read = subprocess.run(
+            ["gog", "gmail", "read", msg_id, "--account", gmail_account],
+            capture_output=True, text=True, env=env, timeout=30
+        )
+        content = "\n".join(read.stdout.split("\n")[:300])
+        logger.info(f"[GATHER] {name}: OK")
+        return {"name": name, "type": "newsletter", "key": f"nl-{key}",
+                "content": content}
+    except Exception as e:
+        logger.warning(f"[GATHER] {name}: {e}")
+        return {"name": name, "type": "newsletter", "key": f"nl-{key}",
+                "content": ""}
+
+
+def _fetch_blog(key: str, blog: dict) -> dict:
+    """Fetch and parse a blog RSS feed."""
+    name = blog["name"]
+    try:
+        result = subprocess.run(
+            ["curl", "-sL", "--max-time", "10", blog["feed_url"]],
+            capture_output=True, text=True, timeout=15
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            logger.warning(f"[GATHER] {name}: fetch failed")
+            return {"name": name, "type": "blog", "key": f"blog-{key}",
+                    "content": ""}
+
+        parsed = parse_rss_recent(result.stdout)
+        if parsed is not None:
+            content = parsed
+            logger.info(f"[GATHER] {name}: OK (XML parsed)")
+        else:
+            content = "\n".join(result.stdout.split("\n")[:300])
+            logger.info(f"[GATHER] {name}: OK (raw truncated)")
+        return {"name": name, "type": "blog", "key": f"blog-{key}",
+                "content": content}
+    except Exception as e:
+        logger.warning(f"[GATHER] {name}: {e}")
+        return {"name": name, "type": "blog", "key": f"blog-{key}",
+                "content": ""}
+
+
+# ── RSS parsing ──────────────────────────────────────────────────────────────
+
+def parse_rss_recent(xml_text, hours=24):
+    """Parse RSS/Atom XML, return only entries from the last `hours` hours.
+    Falls back to raw truncation if parsing fails."""
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
+    entries = []
+    try:
+        root = ET.fromstring(xml_text)
+    except ET.ParseError:
+        return None
+
+    ns = {
+        "atom": "http://www.w3.org/2005/Atom",
+        "dc": "http://purl.org/dc/elements/1.1/",
+    }
+
+    # Try Atom format
+    for entry in root.findall(".//atom:entry", ns):
+        updated = entry.findtext("atom:updated", "", ns)
+        published = entry.findtext("atom:published", "", ns)
+        title = entry.findtext("atom:title", "", ns)
+        link_el = entry.find("atom:link", ns)
+        link = link_el.get("href", "") if link_el is not None else ""
+        content = (entry.findtext("atom:content", "", ns)
+                   or entry.findtext("atom:summary", "", ns) or "")
+        date_str = updated or published
+        if date_str and _parse_date(date_str) and _parse_date(date_str) < cutoff:
+            continue
+        entries.append(f"TITLE: {title}\nLINK: {link}\n{content[:2000]}\n---")
+
+    # Try RSS 2.0 format
+    if not entries:
+        for item in root.findall(".//item"):
+            pub_date = (item.findtext("pubDate", "")
+                        or item.findtext("dc:date", "", ns))
+            title = item.findtext("title", "")
+            link = item.findtext("link", "")
+            desc = item.findtext("description", "") or ""
+            content_encoded = item.findtext(
+                "{http://purl.org/rss/1.0/modules/content/}encoded", "") or ""
+            body = content_encoded or desc
+            if pub_date and _parse_date(pub_date) and _parse_date(pub_date) < cutoff:
+                continue
+            entries.append(f"TITLE: {title}\nLINK: {link}\n{body[:2000]}\n---")
+
+    return "\n".join(entries) if entries else ""
+
+
+def _parse_date(date_str):
+    """Best-effort parse of RSS/Atom date strings."""
+    for fmt in [
+        "%Y-%m-%dT%H:%M:%S%z",
+        "%Y-%m-%dT%H:%M:%SZ",
+        "%a, %d %b %Y %H:%M:%S %z",
+        "%a, %d %b %Y %H:%M:%S GMT",
+        "%Y-%m-%dT%H:%M:%S.%f%z",
+    ]:
+        try:
+            dt = datetime.strptime(date_str.strip(), fmt)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt
+        except ValueError:
+            continue
+    return None
+
+
+# ── GitHub Trending HTML parsing ─────────────────────────────────────────────
+
+class TrendingParser(HTMLParser):
+    """Parse GitHub Trending HTML into a list of repo dicts."""
+
+    def __init__(self):
+        super().__init__()
+        self.repos = []
+        self._current = None
+        self._in_h2 = False
+        self._in_link = False
+        self._in_desc = False
+        self._in_lang = False
+        self._in_stars = False
+        self._text_buf = ""
+
+    def handle_starttag(self, tag, attrs):
+        attrs_dict = dict(attrs)
+        classes = attrs_dict.get("class", "")
+
+        if tag == "article" and "Box-row" in classes:
+            self._current = {"owner": "", "repo": "", "description": "",
+                             "language": "", "stars": 0, "url": ""}
+        elif self._current is not None:
+            if tag == "h2" and "h3" in classes:
+                self._in_h2 = True
+            elif tag == "a" and self._in_h2:
+                href = attrs_dict.get("href", "")
+                parts = [p for p in href.split("/") if p]
+                if len(parts) >= 2:
+                    self._current["owner"] = parts[0]
+                    self._current["repo"] = parts[1]
+                    self._current["url"] = f"https://github.com/{parts[0]}/{parts[1]}"
+                self._in_link = True
+            elif tag == "p" and "col-9" in classes:
+                self._in_desc = True
+                self._text_buf = ""
+            elif tag == "span" and attrs_dict.get("itemprop") == "programmingLanguage":
+                self._in_lang = True
+                self._text_buf = ""
+            elif tag == "span" and "d-inline-block" in classes and "float-sm-right" in classes:
+                self._in_stars = True
+                self._text_buf = ""
+
+    def handle_endtag(self, tag):
+        if tag == "article" and self._current is not None:
+            self.repos.append(self._current)
+            self._current = None
+        elif tag == "h2":
+            self._in_h2 = False
+        elif tag == "a" and self._in_link:
+            self._in_link = False
+        elif tag == "p" and self._in_desc:
+            self._current["description"] = self._text_buf.strip()
+            self._in_desc = False
+        elif tag == "span" and self._in_lang:
+            self._current["language"] = self._text_buf.strip()
+            self._in_lang = False
+        elif tag == "span" and self._in_stars:
+            m = re.search(r"([\d,]+)\s+stars?\s+(today|this\s+week|this\s+month)", self._text_buf)
+            if m:
+                self._current["stars"] = int(m.group(1).replace(",", ""))
+            self._in_stars = False
+
+    def handle_data(self, data):
+        if self._in_desc or self._in_lang or self._in_stars:
+            self._text_buf += data
+
+
+def _fetch_readme(owner: str, repo: str) -> str:
+    """Fetch first 3000 chars of a repo's README via raw.githubusercontent.com."""
+    try:
+        result = subprocess.run(
+            ["curl", "-sL", "--max-time", "5",
+             f"https://raw.githubusercontent.com/{owner}/{repo}/HEAD/README.md"],
+            capture_output=True, text=True, timeout=8
+        )
+        if result.returncode == 0 and "404" not in result.stdout[:20]:
+            return result.stdout[:3000]
+    except Exception:
+        pass
+    return ""
+
+
+def parse_github_trending(html: str, min_stars: int, keywords: list[str]) -> str:
+    """Parse GitHub Trending HTML and filter by stars + AI keywords.
+    Fetches READMEs for richer keyword matching.
+    Returns formatted string matching RSS convention."""
+    parser = TrendingParser()
+    parser.feed(html)
+
+    entries = []
+    for repo in parser.repos:
+        if repo["stars"] < min_stars:
+            continue
+        readme = _fetch_readme(repo["owner"], repo["repo"])
+        combined = (repo["description"] + " " + readme).lower()
+        if not any(re.search(r'\b' + re.escape(kw) + r'\b', combined)
+                   for kw in keywords):
+            continue
+        lang = f" [{repo['language']}]" if repo["language"] else ""
+        readme_excerpt = readme[:500].strip()
+        parts = [
+            f"TITLE: {repo['owner']}/{repo['repo']}{lang}",
+            f"LINK: {repo['url']}",
+            f"Stars this week: {repo['stars']}",
+            repo["description"],
+        ]
+        if readme_excerpt:
+            parts.append(readme_excerpt)
+        parts.append("---")
+        entries.append("\n".join(parts))
+    return "\n".join(entries)
+
+
+def _fetch_github_trending(cfg: dict) -> dict:
+    """Fetch GitHub Trending page and extract AI-relevant repos."""
+    name = cfg["name"]
+    try:
+        result = subprocess.run(
+            ["curl", "-sL", "--max-time", "10", cfg["url"]],
+            capture_output=True, text=True, timeout=15
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            logger.warning(f"[GATHER] {name}: fetch failed")
+            return {"name": name, "type": "github_trending",
+                    "key": "github-trending", "content": ""}
+
+        content = parse_github_trending(
+            result.stdout, cfg["min_stars_week"], cfg["ai_keywords"])
+        if content:
+            logger.info(f"[GATHER] {name}: OK")
+        else:
+            logger.info(f"[GATHER] {name}: no matching repos")
+        return {"name": name, "type": "github_trending",
+                "key": "github-trending", "content": content}
+    except Exception as e:
+        logger.warning(f"[GATHER] {name}: {e}")
+        return {"name": name, "type": "github_trending",
+                "key": "github-trending", "content": ""}
+
+
+# ── Main gather function ────────────────────────────────────────────────────
+
+def gather_all(work_dir: Path = None, sources_config: dict = None) -> list[dict]:
+    """Gather content from all sources concurrently.
+
+    Args:
+        work_dir: Directory for debug output files
+        sources_config: Sources section from config.json. If None, looks for
+                        sources.json in the old location (backward compat).
+
+    Returns list of dicts: {name, type, key, content}.
+    """
+    if sources_config is None:
+        # Backward compat: load from sources.json
+        skill_dir = Path(__file__).parent.parent
+        sources_file = skill_dir / "sources.json"
+        secrets_file = skill_dir / "sources-secrets.env"
+        load_secrets(secrets_file)
+        sources_config = json.load(open(sources_file))
+
+    auth_token = os.environ.get("AUTH_TOKEN", "")
+    ct0 = os.environ.get("CT0", "")
+    gmail_account = sources_config.get("gmail", {}).get("account", "")
+    gmail_pw = os.environ.get("GOG_KEYRING_PASSWORD", "")
+
+    if not auth_token or not ct0:
+        logger.warning("[GATHER] Twitter credentials not found")
+    if not gmail_pw:
+        logger.warning("[GATHER] GOG_KEYRING_PASSWORD not found")
+
+    futures = {}
+    results = []
+
+    with ThreadPoolExecutor(max_workers=MAX_CONCURRENT) as pool:
+        # Twitter
+        if "twitter" in sources_config:
+            for account in sources_config["twitter"]["accounts"]:
+                f = pool.submit(_fetch_twitter, account, auth_token, ct0)
+                futures[f] = f"twitter-{account}"
+
+        # Newsletters
+        if "newsletters" in sources_config:
+            for key, nl in sources_config["newsletters"].items():
+                f = pool.submit(_fetch_newsletter, key, nl, gmail_account, gmail_pw)
+                futures[f] = f"nl-{key}"
+
+        # Blogs
+        if "blogs" in sources_config:
+            for key, blog in sources_config["blogs"].items():
+                f = pool.submit(_fetch_blog, key, blog)
+                futures[f] = f"blog-{key}"
+
+        # Research (treated as blogs)
+        if "research" in sources_config:
+            for key, blog in sources_config["research"].items():
+                f = pool.submit(_fetch_blog, key, blog)
+                futures[f] = f"blog-{key}"
+
+        # GitHub Trending
+        if "github_trending" in sources_config:
+            gh_cfg = sources_config["github_trending"]
+            f = pool.submit(_fetch_github_trending, gh_cfg)
+            futures[f] = "github-trending"
+
+        for future in as_completed(futures):
+            try:
+                result = future.result()
+                results.append(result)
+            except Exception as e:
+                logger.error(f"[GATHER] {futures[future]}: unexpected error: {e}")
+
+    # Write debug files if work_dir provided
+    if work_dir:
+        work_dir.mkdir(exist_ok=True)
+        for r in results:
+            out = work_dir / f"raw-{r['key']}.txt"
+            out.write_text(r.get("content", ""))
+
+    # Sort by key for deterministic ordering
+    results.sort(key=lambda r: r["key"])
+
+    non_empty = sum(1 for r in results if r.get("content", "").strip())
+    logger.info(f"[GATHER] Done: {non_empty}/{len(results)} sources with content")
+
+    return results
+
+
+# ── CLI entry point ──────────────────────────────────────────────────────────
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO,
+                        format="[%(asctime)s] [%(levelname)s] %(message)s")
+
+    # Parse args
+    config_path = None
+    work = None
+    for arg in sys.argv[1:]:
+        if arg == "--config":
+            continue
+        if config_path is None and arg.endswith(".json"):
+            config_path = arg
+        elif work is None:
+            work = Path(arg)
+
+    sources = None
+    if config_path:
+        from config import load_config
+        cfg = load_config(config_path)
+        sources = cfg.get("sources")
+
+    if work is None:
+        work = Path("/tmp/digest-gather")
+
+    results = gather_all(work, sources_config=sources)
+    print(f"\nGather complete. {len(results)} sources.")
+    for r in results:
+        size = len(r.get("content", ""))
+        status = "OK" if size > 0 else "empty"
+        print(f"  {r['key']}: {size} bytes [{status}]")

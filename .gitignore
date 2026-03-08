@@ -1,0 +1,17 @@
+# Secrets
+*.env
+secrets.*
+
+# Python
+__pycache__/
+*.pyc
+
+# Runtime data (lives outside the repo)
+archive/
+logs/
+*.log
+*.mp3
+*.wav
+
+# OS
+.DS_Store
