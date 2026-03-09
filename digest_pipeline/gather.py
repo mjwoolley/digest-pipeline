@@ -5,6 +5,9 @@ Usage:
   - CLI: python3 gather.py --config /path/to/config.json [work_dir]
   - Import: from gather import gather_all
 """
+import email
+import email.policy
+import imaplib
 import json
 import logging
 import re
@@ -60,30 +63,46 @@ def _fetch_twitter(account: str, auth_token: str, ct0: str) -> dict:
                 "content": ""}
 
 
-def _fetch_newsletter(key: str, nl: dict, gmail_account: str,
-                      gmail_pw: str) -> dict:
-    """Fetch a newsletter via Gmail."""
+def _fetch_newsletter(key: str, nl: dict, imap_host: str,
+                      imap_email: str, imap_password: str) -> dict:
+    """Fetch a newsletter via IMAP.
+
+    Connects to the IMAP server, searches for recent emails matching the
+    sender address, and returns the plain-text body of the most recent match.
+    """
     name = nl["name"]
-    env = {**os.environ, "GOG_KEYRING_PASSWORD": gmail_pw}
+    sender = nl["from"]
+    lookback_days = nl.get("lookback_days", 1)
+    since_date = (datetime.now(timezone.utc) - timedelta(days=lookback_days)).strftime("%d-%b-%Y")
+
     try:
-        search = subprocess.run(
-            ["gog", "gmail", "messages", "search",
-             f"from:{nl['gmail_from']} newer_than:{nl['lookback']}",
-             "--max", "1", "--account", gmail_account, "--plain"],
-            capture_output=True, text=True, env=env, timeout=30
-        )
-        lines = [l for l in search.stdout.strip().split("\n")
-                 if l and not l.startswith("ID")]
-        if not lines:
+        conn = imaplib.IMAP4_SSL(imap_host)
+        conn.login(imap_email, imap_password)
+        conn.select("INBOX", readonly=True)
+
+        # Search for recent messages from the sender
+        status, msg_ids = conn.search(None, f'(FROM "{sender}" SINCE {since_date})')
+        if status != "OK" or not msg_ids[0]:
+            conn.logout()
             logger.info(f"[GATHER] {name}: no recent issue")
             return {"name": name, "type": "newsletter", "key": f"nl-{key}",
                     "content": ""}
-        msg_id = lines[0].split("\t")[0]
-        read = subprocess.run(
-            ["gog", "gmail", "read", msg_id, "--account", gmail_account],
-            capture_output=True, text=True, env=env, timeout=30
-        )
-        content = "\n".join(read.stdout.split("\n")[:300])
+
+        # Fetch the most recent match
+        latest_id = msg_ids[0].split()[-1]
+        status, msg_data = conn.fetch(latest_id, "(RFC822)")
+        conn.logout()
+
+        if status != "OK":
+            logger.warning(f"[GATHER] {name}: fetch failed")
+            return {"name": name, "type": "newsletter", "key": f"nl-{key}",
+                    "content": ""}
+
+        msg = email.message_from_bytes(msg_data[0][1], policy=email.policy.default)
+        content = _extract_email_text(msg)
+        # Truncate to first 300 lines
+        content = "\n".join(content.split("\n")[:300])
+
         logger.info(f"[GATHER] {name}: OK")
         return {"name": name, "type": "newsletter", "key": f"nl-{key}",
                 "content": content}
@@ -91,6 +110,30 @@ def _fetch_newsletter(key: str, nl: dict, gmail_account: str,
         logger.warning(f"[GATHER] {name}: {e}")
         return {"name": name, "type": "newsletter", "key": f"nl-{key}",
                 "content": ""}
+
+
+def _extract_email_text(msg: email.message.Message) -> str:
+    """Extract plain text from an email message.
+
+    Prefers text/plain parts. Falls back to text/html with tags stripped.
+    """
+    # Try plain text first
+    body = msg.get_body(preferencelist=("plain",))
+    if body:
+        return body.get_content()
+
+    # Fall back to HTML with tags stripped
+    body = msg.get_body(preferencelist=("html",))
+    if body:
+        html = body.get_content()
+        # Simple tag stripping — good enough for newsletter extraction
+        text = re.sub(r'<style[^>]*>.*?</style>', '', html, flags=re.DOTALL)
+        text = re.sub(r'<script[^>]*>.*?</script>', '', text, flags=re.DOTALL)
+        text = re.sub(r'<[^>]+>', ' ', text)
+        text = re.sub(r'\s+', ' ', text).strip()
+        return text
+
+    return ""
 
 
 def _fetch_blog(key: str, blog: dict) -> dict:
@@ -353,13 +396,17 @@ def gather_all(work_dir: Path = None, sources_config: dict = None) -> list[dict]
 
     auth_token = os.environ.get("AUTH_TOKEN", "")
     ct0 = os.environ.get("CT0", "")
-    gmail_account = sources_config.get("gmail", {}).get("account", "")
-    gmail_pw = os.environ.get("GOG_KEYRING_PASSWORD", "")
+
+    # IMAP config for newsletters
+    imap_cfg = sources_config.get("newsletters", {}).get("imap", {})
+    imap_host = imap_cfg.get("host", "imap.gmail.com")
+    imap_email = imap_cfg.get("email", "")
+    imap_password = os.environ.get("IMAP_PASSWORD", "")
 
     if not auth_token or not ct0:
         logger.warning("[GATHER] Twitter credentials not found")
-    if not gmail_pw:
-        logger.warning("[GATHER] GOG_KEYRING_PASSWORD not found")
+    if "newsletters" in sources_config and not imap_password:
+        logger.warning("[GATHER] IMAP_PASSWORD not found")
 
     futures = {}
     results = []
@@ -373,8 +420,10 @@ def gather_all(work_dir: Path = None, sources_config: dict = None) -> list[dict]
 
         # Newsletters
         if "newsletters" in sources_config:
-            for key, nl in sources_config["newsletters"].items():
-                f = pool.submit(_fetch_newsletter, key, nl, gmail_account, gmail_pw)
+            nl_sources = sources_config["newsletters"].get("sources", {})
+            for key, nl in nl_sources.items():
+                f = pool.submit(_fetch_newsletter, key, nl,
+                                imap_host, imap_email, imap_password)
                 futures[f] = f"nl-{key}"
 
         # Blogs
@@ -437,7 +486,7 @@ if __name__ == "__main__":
 
     sources = None
     if config_path:
-        from config import load_config
+        from digest_pipeline.config import load_config
         cfg = load_config(config_path)
         sources = cfg.get("sources")
 

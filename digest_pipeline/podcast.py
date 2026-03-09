@@ -1,20 +1,17 @@
 """Podcast pipeline: generate a two-host audio podcast from a daily digest."""
-import json
 import logging
+import os
 import sys
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
-PIPELINE_DIR = Path(__file__).parent.parent
-sys.path.insert(0, str(PIPELINE_DIR / "scripts"))
-
-from config import load_config, render_prompt, get_voice_map, get_speaker_tags
-import cartesia
-import llm
-import log
-import delivery
+from .config import load_config, render_prompt, get_voice_map, get_speaker_tags
+from . import cartesia
+from . import llm
+from . import log
+from . import delivery
 
 
 def main():
@@ -122,7 +119,7 @@ def main():
 
         t0 = time.time()
         if tts_backend == "kokoro":
-            import kokoro_tts
+            from . import kokoro_tts
             kokoro_tts.configure()
             audio_usage = kokoro_tts.synthesize_script(turns, mp3_path,
                                                        voice_map=voice_map,
@@ -188,12 +185,11 @@ def _get_swap_usage() -> str:
 
 
 def _load_cartesia_key() -> str:
-    """Load Cartesia API key from auth-profiles.json."""
-    data = json.loads(llm.AUTH_PROFILES.read_text())
-    profile = data["profiles"].get("cartesia:default")
-    if not profile:
-        raise RuntimeError("No cartesia:default profile in auth-profiles.json")
-    return profile["token"]
+    """Load Cartesia API key from environment variable."""
+    key = os.environ.get("CARTESIA_API_KEY")
+    if not key:
+        raise RuntimeError("CARTESIA_API_KEY environment variable not set")
+    return key
 
 
 if __name__ == "__main__":

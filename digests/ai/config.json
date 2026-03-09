@@ -1,0 +1,188 @@
+{
+  "digest": {
+    "name": "AI Daily Digest",
+    "tagline": "AI DIGEST",
+    "emoji": "⚡",
+    "tone": "informed, direct, slightly opinionated"
+  },
+  "categories": [
+    {
+      "id": "model-release",
+      "label": "Model Releases",
+      "emoji": "🚀",
+      "description": "Major new models or capability upgrades (GPT/Claude/Gemini releases, benchmark improvements, reasoning models, multimodal upgrades)"
+    },
+    {
+      "id": "dev-tools",
+      "label": "Developer Tools",
+      "emoji": "🛠️",
+      "description": "Tools that help people build AI systems (Claude Code, OpenClaw, LangChain, MCP tools, agent frameworks, coding copilots)"
+    },
+    {
+      "id": "infra-platform",
+      "label": "Infrastructure & Platforms",
+      "emoji": "🏗️",
+      "description": "Infrastructure for deploying AI (inference engines, GPU infrastructure, vector databases, model hosting, AI cloud platforms)"
+    },
+    {
+      "id": "research",
+      "label": "Research & Techniques",
+      "emoji": "🔬",
+      "description": "Papers or new technical approaches (agent architectures, reasoning techniques, training methods, evaluation methods)"
+    },
+    {
+      "id": "applications",
+      "label": "Applications & Products",
+      "emoji": "📱",
+      "description": "AI applied to real-world products (new AI apps, consumer tools, enterprise deployments, AI assistants)"
+    },
+    {
+      "id": "industry",
+      "label": "Industry & Business",
+      "emoji": "💼",
+      "description": "Market moves and ecosystem changes (funding rounds, partnerships, regulation, company strategy)"
+    },
+    {
+      "id": "other",
+      "label": "Other",
+      "emoji": "🌐",
+      "description": "Anything that doesn't fit the above categories"
+    }
+  ],
+  "podcast": {
+    "enabled": true,
+    "name": "AI Daily Brief",
+    "hosts": [
+      {
+        "tag": "ALEX",
+        "role": "The technical host. Digs into architecture, benchmarks, and implementation details. Enthusiastic about engineering breakthroughs.",
+        "voice_kokoro": "am_michael",
+        "voice_cartesia": "794f9389-aac1-45b6-b726-9d9369183238"
+      },
+      {
+        "tag": "SARAH",
+        "role": "The big-picture host. Focuses on strategy, industry impact, and what it means for practitioners. Asks the \"so what?\" questions.",
+        "voice_kokoro": "af_heart",
+        "voice_cartesia": "a0e99841-438c-4a64-b679-ae501e7d6091"
+      }
+    ],
+    "tts_backend": "kokoro"
+  },
+  "delivery": {
+    "email": {
+      "method": "agentmail",
+      "to": "mwoolley2@gmail.com",
+      "agentmail": {
+        "api_key_env": "AGENTMAIL_API_KEY",
+        "inbox_id": "mjw_openclaw@agentmail.to"
+      }
+    },
+    "notify": {
+      "method": "telegram",
+      "telegram": {
+        "bot_token_env": "TELEGRAM_BOT_TOKEN",
+        "chat_id_env": "TELEGRAM_CHAT_ID"
+      }
+    }
+  },
+  "llm": {
+    "provider": "openrouter"
+  },
+  "sources": {
+    "twitter": {
+      "accounts": [
+        "claudeai",
+        "openclaw",
+        "bcherny",
+        "adocomplete",
+        "dejavucoder",
+        "zenoware",
+        "simonw",
+        "karpathy"
+      ],
+      "lookback": "36h",
+      "max_per_account": 8
+    },
+    "newsletters": {
+      "imap": {
+        "host": "imap.gmail.com",
+        "email": "mwoolley2@gmail.com"
+      },
+      "sources": {
+        "bens_bites": {
+          "name": "Ben's Bites",
+          "from": "bensbites@substack.com",
+          "lookback_days": 1
+        },
+        "rundown_ai": {
+          "name": "The Rundown AI",
+          "from": "news@daily.therundown.ai",
+          "lookback_days": 1
+        },
+        "builder_methods": {
+          "name": "Builder Methods",
+          "from": "brian@buildermethods.com",
+          "lookback_days": 1
+        }
+      }
+    },
+    "blogs": {
+      "simon_willison": {
+        "name": "Simon Willison",
+        "feed_url": "https://simonwillison.net/atom/everything/",
+        "description": "AI/LLM thinker — prompt engineering, agent patterns, tooling"
+      },
+      "the_ai_engineer": {
+        "name": "The AI Engineer",
+        "feed_url": "https://theaiengineer.substack.com/feed",
+        "description": "Deep technical explainers on AI engineering — MCP, agents, coding tools"
+      },
+      "latent_space": {
+        "name": "Latent Space",
+        "feed_url": "https://www.latent.space/feed",
+        "description": "Deep AI engineering commentary and ecosystem analysis"
+      },
+      "one_useful_thing": {
+        "name": "One Useful Thing",
+        "feed_url": "https://www.oneusefulthing.org/feed",
+        "description": "Practical AI research and usage insights"
+      },
+      "openai_blog": {
+        "name": "OpenAI Blog",
+        "feed_url": "https://openai.com/blog/rss.xml",
+        "description": "Model releases and product launches"
+      },
+      "anthropic_blog": {
+        "name": "Anthropic News",
+        "feed_url": "https://www.anthropic.com/news/rss.xml",
+        "description": "Claude model releases, research, and tooling"
+      },
+      "google_ai_blog": {
+        "name": "Google AI Blog",
+        "feed_url": "https://blog.google/technology/ai/rss/",
+        "description": "Gemini and DeepMind updates"
+      },
+      "mistral_blog": {
+        "name": "Mistral AI",
+        "feed_url": "https://mistral.ai/news/rss.xml",
+        "description": "Open-weight model announcements"
+      },
+      "huggingface_blog": {
+        "name": "Hugging Face Blog",
+        "feed_url": "https://huggingface.co/blog/feed.xml",
+        "description": "Open-source models and ecosystem tools"
+      },
+      "the_new_stack": {
+        "name": "The New Stack",
+        "feed_url": "https://thenewstack.io/feed/",
+        "description": "AI infrastructure and developer ecosystem"
+      }
+    },
+    "github_trending": {
+      "name": "GitHub Trending",
+      "url": "https://github.com/trending?since=weekly",
+      "min_stars_week": 200,
+      "ai_keywords": ["ai", "llm", "agent", "rag", "mcp", "transformer"]
+    }
+  }
+}

@@ -5,10 +5,15 @@ secrets.*
 # Python
 __pycache__/
 *.pyc
+*.egg-info/
+dist/
+build/
+.venv/
+uv.lock
 
-# Runtime data (lives outside the repo)
-archive/
-logs/
+# Runtime data
+digests/*/archive/
+digests/*/logs/
 *.log
 *.mp3
 *.wav

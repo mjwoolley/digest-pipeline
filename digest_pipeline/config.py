@@ -19,10 +19,10 @@ def load_config(config_path: str) -> dict:
 
     config = json.loads(path.read_text())
     config["_data_root"] = path.parent
-    config["_pipeline_dir"] = Path(__file__).resolve().parent.parent
+    config["_pipeline_dir"] = Path(__file__).resolve().parent
 
-    # Load secrets.env from data_root if it exists
-    secrets_file = config["_data_root"] / "secrets.env"
+    # Load secrets.env from project root (repo root) if it exists
+    secrets_file = config["_pipeline_dir"].parent / "secrets.env"
     if secrets_file.exists():
         for line in secrets_file.read_text().splitlines():
             line = line.strip()

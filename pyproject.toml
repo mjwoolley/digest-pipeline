@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "digest-pipeline"
+version = "0.1.0"
+description = "Automated news aggregation and podcast generation pipeline"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = []
+
+[project.optional-dependencies]
+kokoro = ["numpy", "kokoro"]
+dev = ["pytest"]
+
+[project.scripts]
+digest-pipeline = "digest_pipeline.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["digest_pipeline"]

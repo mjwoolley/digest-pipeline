@@ -10,7 +10,7 @@ def setup_logger(date: str, logs_dir: Path = None) -> logging.Logger:
     Format: [TIMESTAMP] [LEVEL] [STAGE] message
     """
     if logs_dir is None:
-        logs_dir = Path(__file__).parent.parent / "logs"
+        logs_dir = Path.cwd() / "logs"
     logs_dir.mkdir(parents=True, exist_ok=True)
 
     logger = logging.getLogger("digest")

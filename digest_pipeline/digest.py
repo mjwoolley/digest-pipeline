@@ -23,15 +23,12 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
-PIPELINE_DIR = Path(__file__).parent.parent
-sys.path.insert(0, str(PIPELINE_DIR / "scripts"))
-
-from config import load_config, render_prompt
-from log import setup_logger
-import llm
-import delivery
-from gather import gather_all
-from cluster import cluster_articles, embedding_text
+from .config import load_config, render_prompt
+from .log import setup_logger
+from . import llm
+from . import delivery
+from .gather import gather_all
+from .cluster import cluster_articles, embedding_text
 
 # ── Token Tracking ───────────────────────────────────────────────────────────
 

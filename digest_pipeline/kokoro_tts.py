@@ -4,7 +4,7 @@ import subprocess
 import numpy as np
 from pathlib import Path
 
-import cartesia  # reuse parse_script
+from . import cartesia  # reuse parse_script
 
 logger = logging.getLogger("digest")
 

@@ -4,13 +4,10 @@ import logging
 import time
 import urllib.request
 import urllib.error
-from pathlib import Path
 
 logger = logging.getLogger("digest")
 
 # ── Configuration ────────────────────────────────────────────────────────────
-
-AUTH_PROFILES = Path.home() / ".openclaw/agents/main/agent/auth-profiles.json"
 
 # Provider config: set via configure()
 _provider = "openrouter"  # "openrouter" or "anthropic"
@@ -57,13 +54,20 @@ def configure(provider: str = "openrouter"):
 
 
 def _load_keys() -> dict[str, str]:
-    """Load API keys from auth-profiles.json."""
-    data = json.loads(AUTH_PROFILES.read_text())
+    """Load API keys from environment variables (set via secrets.env at repo root).
+
+    Environment variables:
+        OPENROUTER_API_KEY — OpenRouter API key
+        ANTHROPIC_API_KEY  — Anthropic API key
+    """
+    import os
     keys = {}
-    for profile_id, profile in data["profiles"].items():
-        prov = profile.get("provider", "")
-        if prov and "default" in profile_id:
-            keys[prov] = profile["token"]
+
+    if os.environ.get("OPENROUTER_API_KEY"):
+        keys["openrouter"] = os.environ["OPENROUTER_API_KEY"]
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        keys["anthropic"] = os.environ["ANTHROPIC_API_KEY"]
+
     return keys
 
 
