@@ -173,14 +173,15 @@ def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
     try:
         podcast_cfg = config.get("podcast", {})
         digest_cfg = config.get("digest", {})
-        repo = podcast_cfg.get("repo", "mjwoolley/digest-pipeline")
-        branch = podcast_cfg.get("branch", "master")
         # Derive relative path from data_root to podcasts_dir for URL construction
         data_root = config["_data_root"]
         rel_podcasts = podcasts_dir.relative_to(data_root.parent.parent)
 
-        base_url = f"https://raw.githubusercontent.com/{repo}/{branch}/{rel_podcasts}"
-        feed_url = f"https://raw.githubusercontent.com/{repo}/{branch}/{rel_podcasts.parent}/podcast.xml"
+        # Use GitHub Pages for proper MIME types (audio/mpeg for MP3s)
+        pages_base = podcast_cfg.get("pages_base_url",
+                                      "https://mjwoolley.github.io/digest-pipeline")
+        base_url = f"{pages_base}/{rel_podcasts}"
+        feed_url = f"{pages_base}/{rel_podcasts.parent}/podcast.xml"
 
         title = podcast_cfg.get("name", digest_cfg.get("name", "Daily Brief"))
         description = podcast_cfg.get("description",

@@ -4,27 +4,27 @@
     <title>AI Daily Brief</title>
     <description>AI-generated podcast from AI Daily Brief</description>
     <language>en</language>
-    <link>https://raw.githubusercontent.com/mjwoolley/digest-pipeline/master/digests/ai/podcast.xml</link>
+    <link>https://mjwoolley.github.io/digest-pipeline/digests/ai/podcast.xml</link>
     <itunes:author>AI Daily Brief</itunes:author>
     <itunes:explicit>false</itunes:explicit>
     <itunes:category text="Technology" />
     <item>
       <title>AI Daily Brief — 2026-03-09</title>
       <pubDate>Mon, 09 Mar 2026 12:00:00 +0000</pubDate>
-      <guid isPermaLink="true">https://raw.githubusercontent.com/mjwoolley/digest-pipeline/master/digests/ai/podcasts/2026-03-09.mp3</guid>
-      <enclosure url="https://raw.githubusercontent.com/mjwoolley/digest-pipeline/master/digests/ai/podcasts/2026-03-09.mp3" length="12882093" type="audio/mpeg" />
+      <guid isPermaLink="true">https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-09.mp3</guid>
+      <enclosure url="https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-09.mp3" length="12882093" type="audio/mpeg" />
     </item>
     <item>
       <title>AI Daily Brief — 2026-03-08</title>
       <pubDate>Sun, 08 Mar 2026 12:00:00 +0000</pubDate>
-      <guid isPermaLink="true">https://raw.githubusercontent.com/mjwoolley/digest-pipeline/master/digests/ai/podcasts/2026-03-08.mp3</guid>
-      <enclosure url="https://raw.githubusercontent.com/mjwoolley/digest-pipeline/master/digests/ai/podcasts/2026-03-08.mp3" length="12341421" type="audio/mpeg" />
+      <guid isPermaLink="true">https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-08.mp3</guid>
+      <enclosure url="https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-08.mp3" length="12341421" type="audio/mpeg" />
     </item>
     <item>
       <title>AI Daily Brief — 2026-03-07</title>
       <pubDate>Sat, 07 Mar 2026 12:00:00 +0000</pubDate>
-      <guid isPermaLink="true">https://raw.githubusercontent.com/mjwoolley/digest-pipeline/master/digests/ai/podcasts/2026-03-07.mp3</guid>
-      <enclosure url="https://raw.githubusercontent.com/mjwoolley/digest-pipeline/master/digests/ai/podcasts/2026-03-07.mp3" length="14531373" type="audio/mpeg" />
+      <guid isPermaLink="true">https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-07.mp3</guid>
+      <enclosure url="https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-07.mp3" length="14531373" type="audio/mpeg" />
     </item>
   </channel>
 </rss>
