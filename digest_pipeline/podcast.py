@@ -3,8 +3,10 @@ import logging
 import os
 import sys
 import time
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from email.utils import format_datetime
 from pathlib import Path
 
 from .config import load_config, render_prompt, get_voice_map, get_speaker_tags
@@ -48,17 +50,16 @@ def main():
         print("Podcast disabled in config")
         return
 
-    archive_dir = data_root / "archive"
-    audio_dir = archive_dir / "audio"
+    podcasts_dir = data_root / "podcasts"
 
     logger = log.setup_logger(date, data_root / "logs")
     logger.info(f"[PODCAST] Starting for {date} (dry_run={dry_run})")
 
-    audio_dir.mkdir(parents=True, exist_ok=True)
+    podcasts_dir.mkdir(parents=True, exist_ok=True)
 
     try:
         # ── Stage 7: SCRIPTGEN ──────────────────────────────────────────
-        digest_path = archive_dir / f"{date}.md"
+        digest_path = data_root / f"{date}.md"
         if not digest_path.exists():
             raise FileNotFoundError(f"No digest found: {digest_path}")
 
@@ -80,7 +81,7 @@ def main():
         scriptgen_duration = time.time() - t0
 
         # Save script
-        script_path = audio_dir / f"{date}.txt"
+        script_path = podcasts_dir / f"{date}.txt"
         script_path.write_text(script_text)
         logger.info(f"[SCRIPTGEN] Script saved: {script_path} ({len(script_text)} chars, {scriptgen_duration:.1f}s)")
 
@@ -104,7 +105,7 @@ def main():
             return
 
         # ── Stage 8: AUDIO ──────────────────────────────────────────────
-        mp3_path = audio_dir / f"{date}.mp3"
+        mp3_path = podcasts_dir / f"{date}.mp3"
         voice_map = get_voice_map(config, tts_backend)
 
         # Progress callback: notify every 10 turns
@@ -153,6 +154,8 @@ def main():
             delivery.send_progress("DELIVER",
                                    f"Podcast delivered ({deliver_duration:.1f}s)",
                                    config)
+            # Generate/update RSS feed
+            _update_rss_feed(podcasts_dir, date, audio_usage, config, logger)
         else:
             logger.error("[DELIVER] Audio send failed")
             delivery.send_alert("DELIVER", "Failed to send podcast audio",
@@ -162,6 +165,79 @@ def main():
         logger.error(f"[PODCAST] Fatal error: {e}", exc_info=True)
         delivery.send_alert("PODCAST", str(e)[:500], config)
         sys.exit(1)
+
+
+def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
+                     config: dict, logger: logging.Logger) -> None:
+    """Generate/update podcast RSS feed XML from all episodes in podcasts_dir."""
+    try:
+        podcast_cfg = config.get("podcast", {})
+        digest_cfg = config.get("digest", {})
+        repo = podcast_cfg.get("repo", "mjwoolley/digest-pipeline")
+        branch = podcast_cfg.get("branch", "master")
+        # Derive relative path from data_root to podcasts_dir for URL construction
+        data_root = config["_data_root"]
+        rel_podcasts = podcasts_dir.relative_to(data_root.parent.parent)
+
+        base_url = f"https://raw.githubusercontent.com/{repo}/{branch}/{rel_podcasts}"
+        feed_url = f"https://raw.githubusercontent.com/{repo}/{branch}/{rel_podcasts.parent}/podcast.xml"
+
+        title = podcast_cfg.get("name", digest_cfg.get("name", "Daily Brief"))
+        description = podcast_cfg.get("description",
+                                       f"AI-generated podcast from {title}")
+        language = podcast_cfg.get("language", "en")
+
+        # Collect all episodes
+        episodes = []
+        for mp3 in sorted(podcasts_dir.glob("*.mp3"), reverse=True):
+            ep_date = mp3.stem  # e.g. "2026-03-09"
+            try:
+                ep_dt = datetime.strptime(ep_date, "%Y-%m-%d").replace(
+                    hour=12, tzinfo=timezone.utc)
+            except ValueError:
+                continue
+            size = mp3.stat().st_size
+            episodes.append({
+                "date": ep_date,
+                "dt": ep_dt,
+                "filename": mp3.name,
+                "size": size,
+            })
+
+        if not episodes:
+            logger.warning("[RSS] No episodes found, skipping feed generation")
+            return
+
+        # Build XML
+        ITUNES_NS = "http://www.itunes.com/dtds/podcast-1.0.dtd"
+        ET.register_namespace("itunes", ITUNES_NS)
+        rss = ET.Element("rss", version="2.0")
+        channel = ET.SubElement(rss, "channel")
+        ET.SubElement(channel, "title").text = title
+        ET.SubElement(channel, "description").text = description
+        ET.SubElement(channel, "language").text = language
+        ET.SubElement(channel, "link").text = feed_url
+        ET.SubElement(channel, "{http://www.itunes.com/dtds/podcast-1.0.dtd}author").text = title
+        ET.SubElement(channel, "{http://www.itunes.com/dtds/podcast-1.0.dtd}explicit").text = "false"
+
+        for ep in episodes:
+            item = ET.SubElement(channel, "item")
+            ET.SubElement(item, "title").text = f"{title} — {ep['date']}"
+            ET.SubElement(item, "pubDate").text = format_datetime(ep["dt"])
+            ET.SubElement(item, "guid", isPermaLink="true").text = (
+                f"{base_url}/{ep['filename']}")
+            ET.SubElement(item, "enclosure",
+                          url=f"{base_url}/{ep['filename']}",
+                          length=str(ep["size"]),
+                          type="audio/mpeg")
+
+        tree = ET.ElementTree(rss)
+        ET.indent(tree, space="  ")
+        xml_path = podcasts_dir.parent / "podcast.xml"
+        tree.write(xml_path, encoding="unicode", xml_declaration=True)
+        logger.info(f"[RSS] Feed updated: {xml_path} ({len(episodes)} episodes)")
+    except Exception as e:
+        logger.error(f"[RSS] Feed generation failed: {e}", exc_info=True)
 
 
 def _get_swap_usage() -> str:

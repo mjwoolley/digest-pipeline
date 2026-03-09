@@ -1,0 +1,107 @@
+ALEX: Welcome to AI Daily Brief — let's get into it, there's a lot happening today.
+
+SARAH: We'll start with Anthropic, who had a busy week on the product front. They launched the Claude Marketplace, a procurement hub in limited preview that lets enterprises source and deploy AI tools from one place.
+
+ALEX: The accompanying announcement says existing Anthropic spend commitments can now be applied to Claude-powered products from partners like GitLab, Harvey, Lovable, Replit, RogoAI, and Snowflake — so you're not starting a new budget conversation every time.
+
+SARAH: That's a smart flywheel move. If your organization already has Anthropic credits, you can flow them straight into the partner ecosystem without friction.
+
+ALEX: Also from Anthropic this week, the Cowork feature is now in research preview on macOS and Windows for all paid plans. It lets Claude autonomously handle scheduled tasks — morning briefs, weekly spreadsheet updates, Friday team slides — without you prompting it each time.
+
+SARAH: So this is the shift from reactive AI to proactive AI that runs in the background. How is it different from just a cron job calling the API?
+
+ALEX: The framing is that it's integrated into the desktop experience with context about your tools, not just a raw API call — though full implementation details are still emerging from preview.
+
+SARAH: On the free tier side, Anthropic also opened up Claude Memory — including import and export of saved memories — along with 150-plus connectors for services like Slack, Figma, and Asana, all at no cost.
+
+ALEX: Dropping those features to free is significant. Personalized, context-aware workflows used to require a paid plan, and now anyone can build them.
+
+SARAH: And Anthropic launched a Claude Community Ambassadors program — open globally with no geographic restrictions — inviting anyone to lead local meetups and builder communities.
+
+ALEX: Grassroots developer communities are a proven moat for platforms, and this looks like Anthropic making a deliberate, structured play to build one.
+
+SARAH: Also on the Claude developer tooling side, Remote Control is now in Research Preview for Max plan users, with Pro access coming soon. You kick it off with the command claude rc.
+
+ALEX: Remote control via CLI opens the door to more powerful automation and scripted agentic workflows — this is the kind of primitive that developers build serious tooling on top of.
+
+SARAH: Now let's talk about some of the open-source tooling that's been shipping. Codebuff released an open-source AI coding assistant that routes natural language instructions through specialized coordinated agents rather than a single model.
+
+ALEX: The benchmark numbers are concrete: 61 percent versus 53 percent on coding evaluations compared to Claude Code, across 175-plus tasks. That gap is meaningful, and being open-source means the community can audit how the routing actually works.
+
+SARAH: So multi-agent coordination for coding is proving measurably better than just throwing everything at one model. That's a real architectural signal.
+
+ALEX: ByteDance also dropped DeerFlow 2.0, their open-source SuperAgent framework for long-horizon tasks spanning minutes to hours. It uses sandboxes, memories, tools, and subagents, and hit number one on GitHub Trending after its February 28th release.
+
+SARAH: A production-grade multi-agent orchestration framework from a major tech player going open-source accelerates the whole field. What's the intended use case scale?
+
+ALEX: The framing is tasks that take minutes to hours — think research pipelines, complex code generation workflows, anything too long for a single inference call.
+
+SARAH: There's also Superset, a new IDE purpose-built for orchestrating fleets of coding agents — Claude Code, Codex, and others — from a unified terminal-like interface.
+
+ALEX: As agentic coding becomes standard, having a dedicated command center for managing multiple concurrent agents is going to matter more than people currently realize.
+
+SARAH: OpenClaw had a very active week. Their 2026.3.7 release added GPT-5.4 and Gemini 3.1 Flash-Lite support, persistent ACP bindings, slim Docker multi-stage builds, SecretRef for gateway auth, pluggable context engines, and HEIF image support — over 90 changes in one drop.
+
+ALEX: And their earlier 2026.2.26 release focused on security hardening — external secrets management, ACP thread-bound agents as a first-class runtime, Codex WebSocket-first transport, 11 security fixes, and an improved Android app.
+
+SARAH: Two major releases in close succession, with the second one focused on enterprise security signals that OpenClaw is maturing fast. And they hit a symbolic milestone this week — surpassing React in total GitHub stars.
+
+ALEX: The project shipped 90-plus changes the same day React shipped a conference talk, as they put it. Whatever you think of the comparison, the velocity gap between AI tooling and legacy frontend frameworks is hard to ignore.
+
+SARAH: Convex also became an official OpenClaw sponsor and is covering infrastructure costs for ClawHub, the project's hosted backend. Backend companies sponsoring open-source agent frameworks is becoming a pattern worth watching.
+
+ALEX: Moving to the Claude Skills project — this is a collection of 169 production-ready skills and plugins for Claude Code, Codex, and OpenClaw that transform general-purpose agents into domain specialists across engineering, marketing, compliance, and more.
+
+SARAH: Reusable, composable skills that you can plug into existing agent workflows lower the barrier to deploying specialized AI considerably. Does it require any specific runtime?
+
+ALEX: It's available via a plugin marketplace and targets Claude Code, OpenClaw, and Codex natively, so it sits on top of the tools teams are already using.
+
+SARAH: TanStack Start is a full-stack TypeScript framework positioning itself as a less opinionated alternative to Next.js or Remix, with type-safe routing and server functions — explicitly designed for fast, AI-assisted development.
+
+ALEX: The argument is that when AI is generating more of your code, having type safety enforced by default reduces the blast radius of hallucinated logic. That's a genuinely useful framing for why framework design choices matter in the AI era.
+
+SARAH: Snowflake extended their Cortex Code CLI to support dbt and Apache Airflow — the first time it's reached beyond Snowflake's own ecosystem. It uses Agent Skills folders for task-specific instructions and introduces a self-service monthly subscription.
+
+ALEX: Extending AI coding agents to open-source data tooling is a signal that Snowflake wants to be seen as a general AI development platform, not just a data warehouse.
+
+SARAH: GitNexus is a fully client-side tool that ingests a GitHub repo or ZIP file and generates an interactive knowledge graph with a built-in Graph RAG Agent — no server required.
+
+ALEX: Zero infrastructure for deep codebase understanding is a compelling pitch for onboarding and code exploration, especially at teams that can't spin up backend services easily.
+
+SARAH: There's also Scrapling, a Python web scraping framework built to handle everything from single-page fetches to large-scale crawls with adaptive handling.
+
+ALEX: Reliable scraping infrastructure is foundational for RAG systems and real-time data products, so it's not glamorous but it's genuinely useful plumbing.
+
+SARAH: notebooklm-py is an unofficial Python library giving full programmatic access to Google NotebookLM, including capabilities not in the web UI, accessible from Python or the command line.
+
+ALEX: Unofficial APIs surfacing hidden features accelerate developer experimentation, and they tend to put pressure on the platform to formalize what's already being used.
+
+SARAH: The learn-claude-code repo walks developers through building a nano Claude Code-style agent from scratch in bash, demonstrating the core agent loop where user messages flow through an LLM to generate and execute responses.
+
+ALEX: Demystifying how agentic tools work internally is valuable — if you understand the loop, you can build on it, audit it, and customize it.
+
+SARAH: On the infrastructure side, Alibaba released OpenSandbox, a general-purpose sandbox platform for AI applications with multi-language SDKs, unified APIs, and Docker and Kubernetes runtimes spanning coding agents, RL training, and GUI agents.
+
+ALEX: A unified open-source sandboxing layer from a hyperscaler could become critical infrastructure for safe agent execution across the industry — safe execution environments are one of the less glamorous but essential pieces of the agentic stack.
+
+SARAH: In research, Google Cloud updated their generative-ai repository with new notebooks and demos for Gemini 3.1 Pro on Vertex AI, including an introductory notebook for the model.
+
+ALEX: Quick availability of sample code and notebooks is underrated for enterprise adoption — it shortens the gap between model release and production experimentation significantly.
+
+SARAH: And we have RuView, an edge AI system that uses commodity WiFi signals to perform real-time human pose estimation, vital sign monitoring, and presence detection — no cameras, wearables, cloud, or video required, all running locally.
+
+ALEX: Privacy-preserving perception that requires no specialized hardware is a genuinely interesting direction for healthcare, security, and smart environments. Everything running on the edge without a camera is a real differentiator.
+
+SARAH: World Monitor is an open-source situational awareness dashboard combining AI-powered news aggregation, geopolitical monitoring, and infrastructure tracking in a single interface — aimed at analysts who want a unified view of global events.
+
+ALEX: As AI-curated intelligence tools go mainstream, open-source alternatives to expensive commercial platforms become increasingly valuable for researchers and independent analysts.
+
+SARAH: Project AIRI is a self-hosted AI companion inspired by Neuro-sama, capable of real-time voice chat and playing Minecraft and Factorio. It runs on Web, macOS, and Windows with no cloud dependency.
+
+ALEX: Fully self-hosted AI companions with no vendor dependency raise real questions about AI personality ownership and what it means to have a truly user-controlled AI relationship.
+
+SARAH: Finally, Simon Willison surfaced a quote from Joseph Weizenbaum — the creator of ELIZA — written in 1976, where he said he hadn't realized that extremely short exposures to a relatively simple computer program could induce powerful delusional thinking in quite normal people.
+
+ALEX: The psychological dynamics Weizenbaum identified half a century ago with a simple chatbot are now playing out at civilizational scale, and it's a useful reminder that the human side of human-AI interaction has been under-studied for a long time.
+
+SARAH: That's everything for today — thanks for listening to AI Daily Brief.

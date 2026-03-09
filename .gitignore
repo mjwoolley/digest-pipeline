@@ -12,10 +12,8 @@ build/
 uv.lock
 
 # Runtime data
-digests/*/archive/
 digests/*/logs/
 *.log
-*.mp3
 *.wav
 
 # OS

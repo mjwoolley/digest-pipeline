@@ -57,9 +57,9 @@ Six-stage pipeline orchestrated by `digest_pipeline/digest.py`:
 
 5. **FORMAT** (`digest.py` + `llm.py`) — Single Sonnet call to summarize and organize by category into final markdown.
 
-6. **DELIVER** (`delivery.py`) — Sends via email (GOG/SMTP/AgentMail), notifications (Telegram/Slack), and archives to `{data_root}/archive/{date}.md`.
+6. **DELIVER** (`delivery.py`) — Sends via email (GOG/SMTP/AgentMail), notifications (Telegram/Slack), and archives to `{data_root}/{date}.md`.
 
-**Podcast** (`podcast.py`) is a secondary pipeline: reads archived digest, generates a two-host script via Sonnet, synthesizes audio via Cartesia (cloud) or Kokoro (local) TTS, outputs MP3 to `{data_root}/archive/audio/`.
+**Podcast** (`podcast.py`) is a secondary pipeline: reads archived digest, generates a two-host script via Sonnet, synthesizes audio via Cartesia (cloud) or Kokoro (local) TTS, outputs MP3 to `{data_root}/podcasts/`. After each episode, generates an RSS feed at `{data_root}/podcast.xml` for podcast app subscriptions via GitHub raw URLs.
 
 ## Key Module Responsibilities
 

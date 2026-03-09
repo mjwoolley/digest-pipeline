@@ -36,12 +36,12 @@ def test_batch_sources_empty_sources_filtered():
 
 
 def test_batch_sources_oversized_truncation():
-    long_content = "x" * 100_000
+    long_content = "x" * 600_000
     sources = [{"name": "big", "content": long_content}]
     batches = batch_sources(sources)
     assert len(batches) == 1
-    # MAX_SOURCE_CHARS is 50_000
-    assert len(batches[0][0]["content"]) == 50_000
+    # MAX_SOURCE_CHARS is 500_000
+    assert len(batches[0][0]["content"]) == 500_000
 
 
 def test_batch_sources_empty_input():

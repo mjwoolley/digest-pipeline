@@ -15,6 +15,7 @@ Usage:
   python3 scripts/digest.py --config /path/to/config.json --dry-run
 """
 import json
+import logging
 import re
 import sys
 import time
@@ -93,7 +94,9 @@ def _fmt_tokens(n: int) -> str:
 
 # ── Source Batching ──────────────────────────────────────────────────────────
 
-MAX_SOURCE_CHARS = 50_000  # Truncate any single source to ~12K tokens
+MAX_SOURCE_CHARS = 500_000  # Truncate any single source to ~125K tokens
+
+logger = logging.getLogger("digest")
 
 
 def batch_sources(sources: list[dict], max_chars_per_batch: int = 200_000) -> list[list[dict]]:
@@ -106,6 +109,7 @@ def batch_sources(sources: list[dict], max_chars_per_batch: int = 200_000) -> li
         if not content:
             continue
         if len(content) > MAX_SOURCE_CHARS:
+            logger.info(f"[EXTRACT] Truncated {s['name']}: {len(content):,} -> {MAX_SOURCE_CHARS:,} chars")
             s = {**s, "content": content[:MAX_SOURCE_CHARS]}
         non_empty.append(s)
 
@@ -261,6 +265,10 @@ def main():
 
         # 4. Extract: batched Haiku calls
         logger.info("[PIPELINE] Stage: EXTRACT")
+        empty_sources = [s for s in sources if not s.get("content", "").strip()]
+        if empty_sources:
+            empty_names = [s["name"] for s in empty_sources]
+            logger.info(f"[EXTRACT] Skipped {len(empty_sources)} empty sources: {empty_names}")
         extract_prompt = render_prompt("extract_normalize.md", config)
         batches = batch_sources(sources)
         all_articles = []
@@ -280,9 +288,17 @@ def main():
             logger.info(f"[EXTRACT] Batch {i}: {len(articles)} articles, "
                          f"{dur:.1f}s")
             if not dry_run:
+                # Count articles per source
+                article_counts = {}
+                for a in articles:
+                    src = a.get("source", "unknown")
+                    article_counts[src] = article_counts.get(src, 0) + 1
+                source_lines = "\n".join(
+                    f"  {s['name']}: {len(s.get('content', '')):,} chars → {article_counts.get(s['name'], 0)} articles"
+                    for s in batch)
                 delivery.send_progress(
                     f"Extract (Batch {i}/{len(batches)})",
-                    f"Articles found: {len(articles)}",
+                    f"Articles found: {len(articles)}\n{source_lines}",
                     config, {**usage, "duration": dur}
                 )
 
@@ -400,11 +416,10 @@ def main():
                 config
             )
 
-        # Archive
-        archive_dir = data_root / "archive"
-        archive_dir.mkdir(exist_ok=True)
-        (archive_dir / f"{date}.md").write_text(final_digest)
-        logger.info(f"[DELIVER] Archived to {archive_dir / f'{date}.md'}")
+        # Archive digest to data_root (e.g. digests/ai/2026-03-09.md)
+        digest_path = data_root / f"{date}.md"
+        digest_path.write_text(final_digest)
+        logger.info(f"[DELIVER] Archived to {digest_path}")
 
         # 10. Report
         total_dur = time.time() - start_time
