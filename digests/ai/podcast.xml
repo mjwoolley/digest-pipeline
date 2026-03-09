@@ -7,6 +7,7 @@
     <link>https://raw.githubusercontent.com/mjwoolley/digest-pipeline/master/digests/ai/podcast.xml</link>
     <itunes:author>AI Daily Brief</itunes:author>
     <itunes:explicit>false</itunes:explicit>
+    <itunes:category text="Technology" />
     <item>
       <title>AI Daily Brief — 2026-03-09</title>
       <pubDate>Mon, 09 Mar 2026 12:00:00 +0000</pubDate>

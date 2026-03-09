@@ -219,6 +219,13 @@ def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
         ET.SubElement(channel, "link").text = feed_url
         ET.SubElement(channel, "{http://www.itunes.com/dtds/podcast-1.0.dtd}author").text = title
         ET.SubElement(channel, "{http://www.itunes.com/dtds/podcast-1.0.dtd}explicit").text = "false"
+        image_url = podcast_cfg.get("image_url", "")
+        if image_url:
+            ET.SubElement(channel, "{http://www.itunes.com/dtds/podcast-1.0.dtd}image",
+                          href=image_url)
+        category = podcast_cfg.get("category", "Technology")
+        ET.SubElement(channel, "{http://www.itunes.com/dtds/podcast-1.0.dtd}category",
+                      text=category)
 
         for ep in episodes:
             item = ET.SubElement(channel, "item")
