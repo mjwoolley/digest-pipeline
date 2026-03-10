@@ -8,10 +8,9 @@ version = "0.1.0"
 description = "Automated news aggregation and podcast generation pipeline"
 requires-python = ">=3.11"
 license = "MIT"
-dependencies = []
+dependencies = ["numpy", "kokoro"]
 
 [project.optional-dependencies]
-kokoro = ["numpy", "kokoro"]
 dev = ["pytest"]
 
 [project.scripts]

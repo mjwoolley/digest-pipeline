@@ -46,10 +46,16 @@ def _fetch_twitter(account: str, auth_token: str, ct0: str) -> dict:
     name = f"@{account}"
     env = {**os.environ, "AUTH_TOKEN": auth_token, "CT0": ct0}
     try:
-        result = subprocess.run(
-            ["bird", "search", f"from:{account}", "-n", "10"],
-            capture_output=True, text=True, env=env, timeout=30
-        )
+        try:
+            result = subprocess.run(
+                ["bird", "search", f"from:{account}", "-n", "10"],
+                capture_output=True, text=True, env=env, timeout=30
+            )
+        except FileNotFoundError:
+            raise RuntimeError(
+                "'bird' CLI not found. Install with: npm install -g bird "
+                "(see https://github.com/nichochar/bird)"
+            )
         content = result.stdout.strip() if result.returncode == 0 else ""
         if not content:
             logger.warning(f"[GATHER] {name}: empty or failed")
@@ -140,10 +146,16 @@ def _fetch_blog(key: str, blog: dict) -> dict:
     """Fetch and parse a blog RSS feed."""
     name = blog["name"]
     try:
-        result = subprocess.run(
-            ["curl", "-sL", "--max-time", "10", blog["feed_url"]],
-            capture_output=True, text=True, timeout=15
-        )
+        try:
+            result = subprocess.run(
+                ["curl", "-sL", "--max-time", "10", blog["feed_url"]],
+                capture_output=True, text=True, timeout=15
+            )
+        except FileNotFoundError:
+            raise RuntimeError(
+                "'curl' not found. Install with: apt install curl (Linux) "
+                "or brew install curl (macOS)"
+            )
         if result.returncode != 0 or not result.stdout.strip():
             logger.warning(f"[GATHER] {name}: fetch failed")
             return {"name": name, "type": "blog", "key": f"blog-{key}",

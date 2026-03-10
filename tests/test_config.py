@@ -18,30 +18,30 @@ def test_get_voice_map_normal():
     config = {
         "podcast": {
             "hosts": [
-                {"tag": "ALEX", "voice_cartesia": "cart-id-1", "voice_kokoro": "kok-id-1"},
-                {"tag": "SARAH", "voice_cartesia": "cart-id-2", "voice_kokoro": "kok-id-2"},
+                {"tag": "ALEX", "voice_kokoro": "kok-id-1"},
+                {"tag": "SARAH", "voice_kokoro": "kok-id-2"},
             ]
         }
     }
-    result = get_voice_map(config, "cartesia")
-    assert result == {"ALEX": "cart-id-1", "SARAH": "cart-id-2"}
+    result = get_voice_map(config, "kokoro")
+    assert result == {"ALEX": "kok-id-1", "SARAH": "kok-id-2"}
 
 
 def test_get_voice_map_missing_voice_key():
     config = {
         "podcast": {
             "hosts": [
-                {"tag": "ALEX", "voice_cartesia": "cart-id-1"},
-                {"tag": "SARAH"},  # missing voice_cartesia
+                {"tag": "ALEX", "voice_kokoro": "kok-id-1"},
+                {"tag": "SARAH"},  # missing voice_kokoro
             ]
         }
     }
-    result = get_voice_map(config, "cartesia")
-    assert result == {"ALEX": "cart-id-1"}
+    result = get_voice_map(config, "kokoro")
+    assert result == {"ALEX": "kok-id-1"}
 
 
 def test_get_voice_map_no_podcast():
-    assert get_voice_map({}, "cartesia") == {}
+    assert get_voice_map({}, "kokoro") == {}
 
 
 # ── get_speaker_tags ─────────────────────────────────────────────────────────

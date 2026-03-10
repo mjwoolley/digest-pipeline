@@ -14,9 +14,6 @@ uv pip install -e .
 
 # Or with pip
 pip install -e .
-
-# With Kokoro local TTS support
-uv pip install -e ".[kokoro]"
 ```
 
 ## Running the Pipeline
@@ -59,7 +56,7 @@ Six-stage pipeline orchestrated by `digest_pipeline/digest.py`:
 
 6. **DELIVER** (`delivery.py`) — Sends via email (GOG/SMTP/AgentMail), notifications (Telegram/Slack), and archives to `{data_root}/{date}.md`.
 
-**Podcast** (`podcast.py`) is a secondary pipeline: reads archived digest, generates a two-host script via Sonnet, synthesizes audio via Cartesia (cloud) or Kokoro (local) TTS, outputs MP3 to `{data_root}/podcasts/`. After each episode, generates an RSS feed at `{data_root}/podcast.xml` for podcast app subscriptions via GitHub raw URLs.
+**Podcast** (`podcast.py`) is a secondary pipeline: reads archived digest, generates a two-host script via Sonnet, synthesizes audio via Kokoro (local) TTS, outputs MP3 to `{data_root}/podcasts/`. After each episode, generates an RSS feed at `{data_root}/podcast.xml` for podcast app subscriptions via GitHub raw URLs.
 
 ## Key Module Responsibilities
 
@@ -71,7 +68,6 @@ Six-stage pipeline orchestrated by `digest_pipeline/digest.py`:
 | `digest_pipeline/cluster.py` | Embedding-based cosine similarity clustering |
 | `digest_pipeline/delivery.py` | Email/notification delivery, progress updates during pipeline |
 | `digest_pipeline/podcast.py` | Script generation + TTS audio synthesis |
-| `digest_pipeline/cartesia.py` | Cartesia cloud TTS client (multi-chunk with context continuity) |
 | `digest_pipeline/kokoro_tts.py` | Kokoro-82M local TTS (streaming WAV, memory-efficient) |
 | `digest_pipeline/config.py` | Config JSON loading, prompt templating, voice mapping |
 | `digest_pipeline/log.py` | File + console logging, 30-day auto-cleanup |
@@ -85,10 +81,9 @@ All configuration is external via a JSON file passed with `--config`. Key sectio
 Required keys in `secrets.env` (at repo root):
 - `OPENROUTER_API_KEY` — OpenRouter API key (for LLM and embeddings)
 - `ANTHROPIC_API_KEY` — Anthropic API key (if using `"provider": "anthropic"` in config)
-- `CARTESIA_API_KEY` — Cartesia API key (if using Cartesia TTS backend for podcast)
 
 ## External Dependencies
 
 - **CLI tools**: `curl`, `ffmpeg`, `bird` (Twitter)
-- **APIs**: OpenRouter or Anthropic (LLM), OpenAI embeddings (via OpenRouter), Cartesia (TTS), Telegram/Slack (notifications)
-- **Python packages**: `numpy`, `kokoro` (both only for Kokoro TTS backend — install with `pip install -e ".[kokoro]"`)
+- **APIs**: OpenRouter or Anthropic (LLM), OpenAI embeddings (via OpenRouter), Telegram/Slack (notifications)
+- **Python packages**: `numpy`, `kokoro` (installed automatically via `pip install -e .`)

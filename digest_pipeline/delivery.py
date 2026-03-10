@@ -41,16 +41,21 @@ def _send_email_gog(subject: str, html_body: str, email_cfg: dict):
     password = os.environ.get(pw_env, "")
 
     env = {**os.environ, pw_env: password}
-    result = subprocess.run(
-        ["gog", "gmail", "send",
+    try:
+        result = subprocess.run(
+            ["gog", "gmail", "send",
          "--to", email_cfg.get("to", account),
          "--subject", subject,
          "--body", "See HTML version of this email.",
          "--body-html", html_body,
          "--account", account,
-         "--no-input"],
-        capture_output=True, text=True, timeout=30, env=env
-    )
+             "--no-input"],
+            capture_output=True, text=True, timeout=30, env=env
+        )
+    except FileNotFoundError:
+        raise RuntimeError(
+            "'gog' CLI not found. Install with: go install github.com/nichochar/gog@latest"
+        )
     if result.returncode != 0:
         raise RuntimeError(f"GOG email failed: {result.stderr}")
     logger.info("[DELIVER] Email sent via GOG")

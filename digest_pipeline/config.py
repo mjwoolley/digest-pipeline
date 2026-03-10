@@ -82,7 +82,7 @@ def get_voice_map(config: dict, backend: str) -> dict:
 
     Args:
         config: Full config dict
-        backend: "kokoro" or "cartesia"
+        backend: TTS backend name (e.g. "kokoro")
 
     Returns:
         Dict like {"ALEX": "am_michael", "SARAH": "af_heart"}

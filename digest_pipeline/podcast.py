@@ -1,6 +1,6 @@
 """Podcast pipeline: generate a two-host audio podcast from a daily digest."""
 import logging
-import os
+import subprocess
 import sys
 import time
 import xml.etree.ElementTree as ET
@@ -10,10 +10,50 @@ from email.utils import format_datetime
 from pathlib import Path
 
 from .config import load_config, render_prompt, get_voice_map, get_speaker_tags
-from . import cartesia
 from . import llm
 from . import log
 from . import delivery
+
+
+# Default speaker tags for parse_script when none are provided
+_DEFAULT_SPEAKERS = ["ALEX", "SARAH"]
+
+
+def parse_script(script_text: str, speaker_tags: list[str] = None) -> list[tuple[str, str]]:
+    """Parse a script with SPEAKER: tags into (speaker, text) turns.
+
+    Args:
+        script_text: Raw script text
+        speaker_tags: Valid speaker tags (e.g. ["ALEX", "SARAH"]).
+                      If None, uses default speakers.
+    """
+    if speaker_tags is None:
+        speaker_tags = _DEFAULT_SPEAKERS
+
+    turns = []
+    current_speaker = None
+    current_lines = []
+
+    for line in script_text.strip().split("\n"):
+        line = line.strip()
+        if not line:
+            continue
+
+        for speaker in speaker_tags:
+            if line.startswith(f"{speaker}:"):
+                if current_speaker and current_lines:
+                    turns.append((current_speaker, " ".join(current_lines)))
+                current_speaker = speaker
+                current_lines = [line[len(speaker) + 1:].strip()]
+                break
+        else:
+            if current_speaker:
+                current_lines.append(line)
+
+    if current_speaker and current_lines:
+        turns.append((current_speaker, " ".join(current_lines)))
+
+    return turns
 
 
 def main():
@@ -44,7 +84,6 @@ def main():
     data_root = config["_data_root"]
     podcast_cfg = config.get("podcast", {})
     provider = config.get("llm", {}).get("provider", "openrouter")
-    tts_backend = podcast_cfg.get("tts_backend", "kokoro")
 
     if not podcast_cfg.get("enabled", True):
         print("Podcast disabled in config")
@@ -87,7 +126,7 @@ def main():
 
         # Parse and validate
         speaker_tags = get_speaker_tags(config)
-        turns = cartesia.parse_script(script_text, speaker_tags=speaker_tags)
+        turns = parse_script(script_text, speaker_tags=speaker_tags)
         if not turns:
             raise ValueError("Script parsing produced no turns")
         logger.info(f"[SCRIPTGEN] Parsed {len(turns)} turns")
@@ -106,7 +145,7 @@ def main():
 
         # ── Stage 8: AUDIO ──────────────────────────────────────────────
         mp3_path = podcasts_dir / f"{date}.mp3"
-        voice_map = get_voice_map(config, tts_backend)
+        voice_map = get_voice_map(config, "kokoro")
 
         # Progress callback: notify every 10 turns
         _audio_start = time.time()
@@ -119,25 +158,18 @@ def main():
                     config)
 
         t0 = time.time()
-        if tts_backend == "kokoro":
-            from . import kokoro_tts
-            kokoro_tts.configure()
-            audio_usage = kokoro_tts.synthesize_script(turns, mp3_path,
-                                                       voice_map=voice_map,
-                                                       on_progress=_on_tts_progress)
-        else:
-            cartesia_key = _load_cartesia_key()
-            cartesia.configure(cartesia_key, voice_map=voice_map)
-            audio_usage = cartesia.synthesize_script(turns, mp3_path,
-                                                     voice_map=voice_map,
-                                                     on_progress=_on_tts_progress)
+        from . import kokoro_tts
+        kokoro_tts.configure()
+        audio_usage = kokoro_tts.synthesize_script(turns, mp3_path,
+                                                   voice_map=voice_map,
+                                                   on_progress=_on_tts_progress)
         audio_duration = time.time() - t0
 
         swap_usage = _get_swap_usage()
         logger.info(f"[AUDIO] Complete in {audio_duration:.1f}s: {audio_usage}")
         delivery.send_progress("AUDIO",
                                f"{audio_usage['duration_seconds']:.0f}s audio in {audio_duration:.0f}s wall time\n"
-                               f"TTS backend: {tts_backend}, chars: {audio_usage['total_chars']:,}\n"
+                               f"TTS backend: kokoro, chars: {audio_usage['total_chars']:,}\n"
                                f"Swap: {swap_usage}",
                                config)
 
@@ -156,6 +188,8 @@ def main():
                                    config)
             # Generate/update RSS feed
             _update_rss_feed(podcasts_dir, date, audio_usage, config, logger)
+            # Publish podcast files to git remote (for RSS feed / GitHub Pages)
+            _git_publish(podcasts_dir, date, config, logger)
         else:
             logger.error("[DELIVER] Audio send failed")
             delivery.send_alert("DELIVER", "Failed to send podcast audio",
@@ -248,6 +282,63 @@ def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
         logger.error(f"[RSS] Feed generation failed: {e}", exc_info=True)
 
 
+def _git_publish(podcasts_dir: Path, date: str, config: dict,
+                 logger: logging.Logger) -> None:
+    """Commit and push podcast MP3, script, and RSS feed to the git remote.
+
+    This makes the new episode available via GitHub Pages for podcast app
+    subscriptions. Failures are logged but non-fatal.
+    """
+    try:
+        data_root = config["_data_root"]
+        repo_root = data_root.parent.parent
+
+        mp3_file = podcasts_dir / f"{date}.mp3"
+        txt_file = podcasts_dir / f"{date}.txt"
+        xml_file = data_root / "podcast.xml"
+
+        # Stage only the podcast-related files that exist
+        files_to_add = [f for f in [mp3_file, txt_file, xml_file] if f.exists()]
+        if not files_to_add:
+            logger.warning("[GIT] No podcast files to publish")
+            return
+
+        rel_paths = [str(f.relative_to(repo_root)) for f in files_to_add]
+
+        subprocess.run(
+            ["git", "add"] + rel_paths,
+            cwd=repo_root, capture_output=True, text=True, check=True, timeout=30
+        )
+
+        result = subprocess.run(
+            ["git", "diff", "--cached", "--quiet"],
+            cwd=repo_root, capture_output=True, timeout=10
+        )
+        if result.returncode == 0:
+            logger.info("[GIT] No changes to commit")
+            return
+
+        subprocess.run(
+            ["git", "commit", "-m", f"Add podcast episode {date}"],
+            cwd=repo_root, capture_output=True, text=True, check=True, timeout=30
+        )
+
+        push_result = subprocess.run(
+            ["git", "push"],
+            cwd=repo_root, capture_output=True, text=True, timeout=60
+        )
+        if push_result.returncode == 0:
+            logger.info(f"[GIT] Podcast {date} published to remote")
+            delivery.send_progress("PUBLISH",
+                                   f"Podcast {date} pushed to git", config)
+        else:
+            logger.error(f"[GIT] Push failed: {push_result.stderr[:300]}")
+            delivery.send_alert("PUBLISH",
+                                f"Git push failed: {push_result.stderr[:200]}", config)
+    except Exception as e:
+        logger.error(f"[GIT] Publish failed: {e}", exc_info=True)
+
+
 def _get_swap_usage() -> str:
     """Return swap usage summary like '1.7G / 4.0G (43%)'."""
     try:
@@ -266,14 +357,6 @@ def _get_swap_usage() -> str:
         return f"{used_gb:.1f}G / {total_gb:.1f}G ({pct:.0f}%)"
     except Exception:
         return "unknown"
-
-
-def _load_cartesia_key() -> str:
-    """Load Cartesia API key from environment variable."""
-    key = os.environ.get("CARTESIA_API_KEY")
-    if not key:
-        raise RuntimeError("CARTESIA_API_KEY environment variable not set")
-    return key
 
 
 if __name__ == "__main__":

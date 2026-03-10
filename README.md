@@ -8,7 +8,7 @@ Automated news aggregation and podcast generation. Orginally created to produce 
 
 Fetches content from all the sources, deduplicates with LLM-powered clustering, and delivers a formatted daily digest with links back to the source(s). You can even generate your own personal AI-generated podcast based on generated digest so that you can listen to it instead of reading it!
 
-Final delivery of the digest and the podcast can be to your email inbox or telegram. 
+Final delivery of the digest and the podcast can be to your email inbox or telegram.
 
 ## How it works
 
@@ -30,7 +30,7 @@ flowchart TD
     DL --> AR[Archive]
 
     AR --> SG[7. Script Generation — Sonnet LLM writes podcast script]
-    SG --> AU[8. Audio Synthesis — Cartesia or Kokoro TTS]
+    SG --> AU[8. Audio Synthesis — Kokoro TTS]
     AU -->|MP3| TG
 ```
 
@@ -46,7 +46,7 @@ flowchart TD
 **Podcast pipeline** (optional, runs after digest):
 
 1. **Script generation** — Sonnet writes a two-host conversational script from the digest
-2. **Audio synthesis** — TTS via Cartesia (cloud) or Kokoro-82M (local, zero-cost)
+2. **Audio synthesis** — TTS via Kokoro-82M (local, zero-cost)
 3. **Delivery** — Sends MP3 via Telegram
 
 ## Installation
@@ -54,14 +54,13 @@ flowchart TD
 Requires Python 3.11+.
 
 ```bash
-# Install with uv (recommended)
-uv pip install -e .
+# Quick setup (creates venv, installs deps, checks for system tools)
+./setup.sh
 
-# Or with pip
+# Or manually:
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -e .
-
-# With local TTS support (Kokoro-82M)
-uv pip install -e ".[kokoro]"
 ```
 
 ### External tools
@@ -146,8 +145,8 @@ All configuration lives in a single JSON file. The config file's parent director
     "name": "Daily Brief",
     "tts_backend": "kokoro",
     "hosts": [
-      { "tag": "ALEX", "role": "Main host", "voice_kokoro": "am_michael", "voice_cartesia": "..." },
-      { "tag": "SARAH", "role": "Co-host", "voice_kokoro": "af_heart", "voice_cartesia": "..." }
+      { "tag": "ALEX", "role": "Main host", "voice_kokoro": "am_michael" },
+      { "tag": "SARAH", "role": "Co-host", "voice_kokoro": "af_heart" }
     ]
   },
   "llm": {
@@ -158,7 +157,7 @@ All configuration lives in a single JSON file. The config file's parent director
 
 ### Secrets
 
-API keys and passwords are loaded from a `secrets.env` file in `data_root` (the config file's parent directory). Environment variables that are already set take precedence.
+API keys and passwords are loaded from a `secrets.env` file at the repository root (the `digest_pipeline/` package's parent directory). Environment variables that are already set take precedence.
 
 ```env
 # For newsletter fetching (Gmail: use an App Password)
@@ -180,7 +179,6 @@ digest_pipeline/
   cluster.py         # Embedding-based cosine similarity clustering
   delivery.py        # Email, Telegram/Slack notifications, archiving
   podcast.py         # Script generation + TTS synthesis
-  cartesia.py        # Cartesia cloud TTS client
   kokoro_tts.py      # Kokoro-82M local TTS (streaming, memory-efficient)
   config.py          # Config loading, prompt templating
   log.py             # File + console logging, 30-day auto-cleanup
@@ -189,7 +187,6 @@ digest_pipeline/
 
 ## Key design decisions
 
-- **Zero runtime dependencies** — Core pipeline uses only Python stdlib (`urllib`, `json`, `subprocess`, etc.). `numpy` and `kokoro` are optional for local TTS.
 - **No ML frameworks for clustering** — Pure Python cosine similarity with running centroid averages. No sklearn/scipy needed.
 - **Batched LLM calls** — Sources are batched by character count (max 200K chars/batch, ~50K tokens) to stay within context limits while minimizing API calls.
 - **Streaming TTS** — Kokoro backend writes audio incrementally to disk to avoid accumulating all samples in memory (important for low-RAM servers).

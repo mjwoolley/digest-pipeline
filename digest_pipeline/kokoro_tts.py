@@ -4,8 +4,6 @@ import subprocess
 import numpy as np
 from pathlib import Path
 
-from . import cartesia  # reuse parse_script
-
 logger = logging.getLogger("digest")
 
 SAMPLE_RATE = 24000
@@ -25,11 +23,6 @@ def configure():
     from kokoro import KPipeline
     _pipeline = KPipeline(lang_code='a')
     logger.info("[KOKORO] Pipeline initialized")
-
-
-def parse_script(script_text: str, speaker_tags: list[str] = None) -> list[tuple[str, str]]:
-    """Parse script — delegates to cartesia module."""
-    return cartesia.parse_script(script_text, speaker_tags=speaker_tags)
 
 
 def synthesize_script(turns: list[tuple[str, str]], output_path: Path,
@@ -116,7 +109,13 @@ def _convert_to_mp3(wav_path: Path, mp3_path: Path):
         "-codec:a", "libmp3lame", "-b:a", "128k",
         str(mp3_path),
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    except FileNotFoundError:
+        raise RuntimeError(
+            "'ffmpeg' not found. Install with: apt install ffmpeg (Linux) "
+            "or brew install ffmpeg (macOS)"
+        )
     if result.returncode != 0:
         raise RuntimeError(f"ffmpeg failed: {result.stderr[:500]}")
     logger.info(f"[AUDIO] MP3 written: {mp3_path} ({mp3_path.stat().st_size / 1024 / 1024:.1f} MB)")
