@@ -12,12 +12,13 @@ EXTRA_ARGS="${@:2}"
 
 echo "[$(date -u '+%Y-%m-%d %H:%M:%S')] Starting digest pipeline: $CONFIG"
 
-# Prefer installed CLI, fall back to module execution
-if command -v digest-pipeline &>/dev/null; then
+# Prefer .venv CLI, fall back to system CLI, then module execution
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -x "$SCRIPT_DIR/.venv/bin/digest-pipeline" ]; then
+    "$SCRIPT_DIR/.venv/bin/digest-pipeline" "$CONFIG" $EXTRA_ARGS 2>&1
+elif command -v digest-pipeline &>/dev/null; then
     digest-pipeline "$CONFIG" $EXTRA_ARGS 2>&1
 else
-    # Use local .venv python if available, otherwise system python3
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     if [ -f "$SCRIPT_DIR/.venv/bin/python3" ]; then
         PYTHON="$SCRIPT_DIR/.venv/bin/python3"
     else
