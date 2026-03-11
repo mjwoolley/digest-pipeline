@@ -93,6 +93,9 @@ def _chat_openrouter(messages: list[dict], model: str,
         "Authorization": f"Bearer {_keys['openrouter']}",
     }
     data = _request_with_retry(OPENROUTER_URL, payload, headers)
+    finish_reason = data["choices"][0].get("finish_reason", "")
+    if finish_reason == "length":
+        logger.warning(f"[LLM] Output truncated (hit max_tokens={max_tokens})")
     text = data["choices"][0]["message"]["content"]
     usage = data.get("usage", {})
     usage["cost"] = _calc_cost(model, usage)
@@ -126,6 +129,8 @@ def _chat_anthropic(messages: list[dict], model: str,
         "anthropic-version": "2023-06-01",
     }
     data = _request_with_retry(ANTHROPIC_URL, payload, headers)
+    if data.get("stop_reason") == "max_tokens":
+        logger.warning(f"[LLM] Output truncated (hit max_tokens={max_tokens})")
     text = data["content"][0]["text"]
     usage = {
         "input_tokens": data["usage"]["input_tokens"],
@@ -186,7 +191,7 @@ def extract_normalize(sources_batch: list[dict], date: str,
         {"role": "system", "content": f"Today's date: {date}"},
         {"role": "user", "content": prompt},
     ]
-    text, usage = chat(messages, model, max_tokens=8192)
+    text, usage = chat(messages, model, max_tokens=65536)
     articles = _parse_json_array(text)
     return articles, usage
 

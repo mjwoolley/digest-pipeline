@@ -1,0 +1,41 @@
+ALEX: Welcome to AI Daily Brief — let's get into it.
+
+SARAH: We're starting with something that feels like a milestone. Latent Space is covering what they're calling "Autoresearch: Sparks of Recursive Self-Improvement" — LLMs can now fully autonomously train smaller LLMs, no human intervention required.
+
+ALEX: The framing is an "AutoML moment," and the concern is that if AI systems can iteratively improve their own successors, capability gains could start compounding faster than current assumptions account for.
+
+SARAH: So the question isn't just whether it works, but how quickly the loop accelerates once it's running.
+
+ALEX: Next up, OpenAI published details on something called IH-Challenge — that's Instruction Hierarchy Challenge — a training approach designed to teach frontier models to prioritize trusted instructions over adversarial ones, directly targeting prompt injection attacks.
+
+SARAH: This is a safety primitive that matters a lot as agents start taking real-world actions. If a model can be hijacked mid-task by a malicious input, everything downstream breaks.
+
+ALEX: Right, and OpenAI is framing robust instruction hierarchy as a currently underbuilt part of the stack — so this is an acknowledgment that the gap is real.
+
+SARAH: On the developer tools side, Simon Willison has a piece arguing that AI coding tools should be used to raise code quality, not just ship faster. He outlines agentic engineering patterns for refactoring, API design, and code consolidation.
+
+ALEX: The core tension he's identifying is that the industry default is velocity, but using AI to accelerate technical debt accumulation just means the debt compounds faster.
+
+SARAH: Which is a useful corrective when everyone's incentive is to move quick and worry about the codebase later.
+
+ALEX: There's also a deep-dive from The AI Engineer on function calling — how LLMs act rather than just describe actions — and it gets into the production pain points that don't usually get covered.
+
+SARAH: What kind of numbers are we talking?
+
+ALEX: Fifty-eight tools can consume around fifty-five thousand tokens, argument extraction fails in messy ways, and error handling is inconsistent across providers. The piece frames MCP as the emerging standardization layer to address that fragmentation.
+
+SARAH: So if you're building agents in production, the token costs and failure modes here are things you need to actually plan for, not discover later.
+
+ALEX: Shifting to applications — The New Stack has a practical walkthrough for running a private AI server on Debian or Ubuntu, accessible via browser or GUI tools like Ollama, Alpaca, or Msty. Fully local, no third-party API involved.
+
+SARAH: Self-hosted AI is becoming genuinely viable for individuals and organizations that have privacy or compliance reasons to keep data off external APIs.
+
+ALEX: And the guide is hands-on enough to actually get you there, which matters when the barrier has historically been setup complexity.
+
+SARAH: Now for the story that's going to get a lot of attention. Amazon's retail tech leadership convened what insiders called an urgent escalation after AI-assisted production changes were blamed for four high-impact outages in a single week.
+
+ALEX: Four outages in one week is not a normal operational tempo, and the fact that it turned a routine weekly tech sync into an emergency deep-dive says something about how seriously they're taking it.
+
+SARAH: This is a high-profile, real-world signal that AI-generated code in production pipelines carries systemic risk — and most organizations haven't built the guardrails yet to manage it. That's your story to watch.
+
+ALEX: That's everything for today — see you tomorrow.

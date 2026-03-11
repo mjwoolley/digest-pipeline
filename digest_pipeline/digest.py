@@ -364,6 +364,43 @@ def main():
         (work_dir / "deduped.json").write_text(
             json.dumps(deduped, indent=2))
 
+        # 7b. Cross-day dedup: skip articles seen in last 5 days
+        logger.info("[PIPELINE] Stage: CROSS-DAY DEDUP")
+        t0 = time.time()
+        from .seen_articles import load_history, save_today, filter_seen
+
+        history = load_history(data_root, date, lookback_days=5)
+        texts = [embedding_text(a) for a in deduped]
+        embeds, cross_usage = llm.embed(texts)
+        cross_dur = time.time() - t0
+
+        tracker.add("CrossDedup", "text-embedding-3-small",
+                     cross_usage, cross_dur)
+
+        if history:
+            pre_count = len(deduped)
+            deduped, skipped, embeds = filter_seen(
+                deduped, embeds, history, threshold=0.85)
+            logger.info(f"[CROSS-DEDUP] Skipped {len(skipped)} previously "
+                        f"seen articles ({pre_count} -> {len(deduped)})")
+            if not dry_run:
+                delivery.send_progress(
+                    "CrossDedup",
+                    f"Skipped {len(skipped)} repeats "
+                    f"({pre_count} -> {len(deduped)})",
+                    config, {**cross_usage, "duration": cross_dur}
+                )
+        else:
+            logger.info("[CROSS-DEDUP] No history found, saving today's embeddings")
+            if not dry_run:
+                delivery.send_progress(
+                    "CrossDedup",
+                    f"No history — saved {len(deduped)} embeddings",
+                    config, {**cross_usage, "duration": cross_dur}
+                )
+
+        save_today(data_root, date, deduped, embeds)
+
         # 8. Format: 1 Sonnet call
         logger.info("[PIPELINE] Stage: FORMAT")
         t0 = time.time()
