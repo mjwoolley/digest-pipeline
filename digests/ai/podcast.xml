@@ -1,33 +1,34 @@
 <?xml version='1.0' encoding='utf-8'?>
 <rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" version="2.0">
   <channel>
-    <title>AI Daily Brief</title>
-    <description>AI-generated podcast from AI Daily Brief</description>
+    <title>The AI Daily Roundup</title>
+    <description>AI-generated podcast from The AI Daily Roundup</description>
     <language>en</language>
     <link>https://mjwoolley.github.io/digest-pipeline/digests/ai/podcast.xml</link>
-    <itunes:author>AI Daily Brief</itunes:author>
+    <itunes:author>The AI Daily Roundup</itunes:author>
     <itunes:explicit>false</itunes:explicit>
+    <itunes:image href="https://mjwoolley.github.io/digest-pipeline/digests/ai/podcast-logo.png" />
     <itunes:category text="Technology" />
     <item>
-      <title>AI Daily Brief — 2026-03-10</title>
+      <title>The AI Daily Roundup — 2026-03-10</title>
       <pubDate>Tue, 10 Mar 2026 12:00:00 +0000</pubDate>
       <guid isPermaLink="true">https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-10.mp3</guid>
       <enclosure url="https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-10.mp3" length="20019501" type="audio/mpeg" />
     </item>
     <item>
-      <title>AI Daily Brief — 2026-03-09</title>
+      <title>The AI Daily Roundup — 2026-03-09</title>
       <pubDate>Mon, 09 Mar 2026 12:00:00 +0000</pubDate>
       <guid isPermaLink="true">https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-09.mp3</guid>
       <enclosure url="https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-09.mp3" length="12882093" type="audio/mpeg" />
     </item>
     <item>
-      <title>AI Daily Brief — 2026-03-08</title>
+      <title>The AI Daily Roundup — 2026-03-08</title>
       <pubDate>Sun, 08 Mar 2026 12:00:00 +0000</pubDate>
       <guid isPermaLink="true">https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-08.mp3</guid>
       <enclosure url="https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-08.mp3" length="12341421" type="audio/mpeg" />
     </item>
     <item>
-      <title>AI Daily Brief — 2026-03-07</title>
+      <title>The AI Daily Roundup — 2026-03-07</title>
       <pubDate>Sat, 07 Mar 2026 12:00:00 +0000</pubDate>
       <guid isPermaLink="true">https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-07.mp3</guid>
       <enclosure url="https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-07.mp3" length="14531373" type="audio/mpeg" />
