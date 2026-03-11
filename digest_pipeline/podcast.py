@@ -175,7 +175,7 @@ def main():
 
         # ── Stage 9: DELIVER ────────────────────────────────────────────
         t0 = time.time()
-        podcast_name = podcast_cfg.get("name", "Daily Brief")
+        podcast_name = podcast_cfg.get("name", "The AI Daily Roundup")
         caption = f"{podcast_name} — {date}"
         success = delivery.send_audio(str(mp3_path), caption=caption,
                                       config=config)
@@ -217,7 +217,7 @@ def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
         base_url = f"{pages_base}/{rel_podcasts}"
         feed_url = f"{pages_base}/{rel_podcasts.parent}/podcast.xml"
 
-        title = podcast_cfg.get("name", digest_cfg.get("name", "Daily Brief"))
+        title = podcast_cfg.get("name", digest_cfg.get("name", "The AI Daily Roundup"))
         description = podcast_cfg.get("description",
                                        f"AI-generated podcast from {title}")
         language = podcast_cfg.get("language", "en")

@@ -62,7 +62,7 @@ def render_prompt(template_name: str, config: dict, extra_vars: dict = None) -> 
         "SECTIONS": _render_sections(categories),
         "DIGEST_HEADER": f"{digest.get('emoji', '📰')} {digest.get('tagline', 'DIGEST')}",
         "TONE": digest.get("tone", ""),
-        "PODCAST_NAME": podcast.get("name", "Daily Brief"),
+        "PODCAST_NAME": podcast.get("name", "The AI Daily Roundup"),
         "HOSTS": _render_hosts(podcast.get("hosts", [])),
     }
 

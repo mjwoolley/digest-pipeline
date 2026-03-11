@@ -51,7 +51,8 @@
   ],
   "podcast": {
     "enabled": true,
-    "name": "AI Daily Brief",
+    "name": "The AI Daily Roundup",
+    "image_url": "https://mjwoolley.github.io/digest-pipeline/digests/ai/podcast-logo.png",
     "hosts": [
       {
         "tag": "ALEX",
