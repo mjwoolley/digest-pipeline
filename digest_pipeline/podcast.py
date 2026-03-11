@@ -1,5 +1,6 @@
 """Podcast pipeline: generate a two-host audio podcast from a daily digest."""
 import logging
+import re
 import subprocess
 import sys
 import time
@@ -188,6 +189,7 @@ def main():
                                    config)
             # Generate/update RSS feed
             _update_rss_feed(podcasts_dir, date, audio_usage, config, logger)
+            _update_landing_page(podcasts_dir, config, logger)
             # Publish podcast files to git remote (for RSS feed / GitHub Pages)
             _git_publish(podcasts_dir, date, config, logger)
         else:
@@ -251,7 +253,8 @@ def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
         ET.SubElement(channel, "title").text = title
         ET.SubElement(channel, "description").text = description
         ET.SubElement(channel, "language").text = language
-        ET.SubElement(channel, "link").text = feed_url
+        landing_url = f"{pages_base}/{rel_podcasts.parent}/"
+        ET.SubElement(channel, "link").text = landing_url
         ET.SubElement(channel, "{http://www.itunes.com/dtds/podcast-1.0.dtd}author").text = title
         ET.SubElement(channel, "{http://www.itunes.com/dtds/podcast-1.0.dtd}explicit").text = "false"
         image_url = podcast_cfg.get("image_url", "")
@@ -282,6 +285,57 @@ def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
         logger.error(f"[RSS] Feed generation failed: {e}", exc_info=True)
 
 
+def _update_landing_page(podcasts_dir: Path, config: dict,
+                         logger: logging.Logger) -> None:
+    """Update the landing page index.html with the latest episode list."""
+    try:
+        data_root = config["_data_root"]
+        podcast_cfg = config.get("podcast", {})
+        pages_base = podcast_cfg.get("pages_base_url",
+                                      "https://mjwoolley.github.io/digest-pipeline")
+        rel_podcasts = podcasts_dir.relative_to(data_root.parent.parent)
+        base_url = f"{pages_base}/{rel_podcasts}"
+
+        index_path = data_root / "index.html"
+        if not index_path.exists():
+            logger.warning("[LANDING] index.html not found, skipping update")
+            return
+
+        # Collect episodes
+        episodes = []
+        for mp3 in sorted(podcasts_dir.glob("*.mp3"), reverse=True):
+            ep_date = mp3.stem
+            try:
+                datetime.strptime(ep_date, "%Y-%m-%d")
+            except ValueError:
+                continue
+            episodes.append(ep_date)
+
+        # Build episode HTML
+        ep_html_lines = []
+        for ep_date in episodes:
+            ep_html_lines.append(
+                f'  <div class="episode">\n'
+                f'    <div class="ep-title">{ep_date}</div>\n'
+                f'    <audio controls preload="none" '
+                f'src="{base_url}/{ep_date}.mp3"></audio>\n'
+                f'  </div>'
+            )
+        ep_block = "\n".join(ep_html_lines)
+
+        html = index_path.read_text()
+        html = re.sub(
+            r'<!-- EPISODES_START -->.*?<!-- EPISODES_END -->',
+            f'<!-- EPISODES_START -->\n{ep_block}\n  <!-- EPISODES_END -->',
+            html,
+            flags=re.DOTALL,
+        )
+        index_path.write_text(html)
+        logger.info(f"[LANDING] Updated index.html with {len(episodes)} episodes")
+    except Exception as e:
+        logger.error(f"[LANDING] Landing page update failed: {e}", exc_info=True)
+
+
 def _git_publish(podcasts_dir: Path, date: str, config: dict,
                  logger: logging.Logger) -> None:
     """Commit and push podcast MP3, script, and RSS feed to the git remote.
@@ -296,9 +350,11 @@ def _git_publish(podcasts_dir: Path, date: str, config: dict,
         mp3_file = podcasts_dir / f"{date}.mp3"
         txt_file = podcasts_dir / f"{date}.txt"
         xml_file = data_root / "podcast.xml"
+        html_file = data_root / "index.html"
 
         # Stage only the podcast-related files that exist
-        files_to_add = [f for f in [mp3_file, txt_file, xml_file] if f.exists()]
+        files_to_add = [f for f in [mp3_file, txt_file, xml_file, html_file]
+                        if f.exists()]
         if not files_to_add:
             logger.warning("[GIT] No podcast files to publish")
             return

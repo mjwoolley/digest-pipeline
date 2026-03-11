@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The AI Daily Roundup</title>
+<style>
+  :root {
+    --bg: #0b1120;
+    --card: #131b2e;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --border: #1e293b;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+  .hero {
+    text-align: center;
+    padding: 3rem 1.5rem 2rem;
+    background: linear-gradient(180deg, #0f1a30 0%, var(--bg) 100%);
+  }
+  .hero img {
+    width: 160px;
+    height: 160px;
+    border-radius: 24px;
+    box-shadow: 0 8px 32px rgba(56, 189, 248, 0.2);
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.75rem;
+  }
+  .hero .tagline {
+    font-size: 1.1rem;
+    color: var(--muted);
+    max-width: 520px;
+    margin: 0 auto 2rem;
+  }
+  .subscribe-btn {
+    display: inline-block;
+    padding: 0.75rem 2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #0b1120;
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+    border-radius: 50px;
+    transition: opacity 0.2s;
+  }
+  .subscribe-btn:hover { opacity: 0.85; }
+  .rss-hint {
+    display: block;
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .rss-hint a { color: var(--accent); text-decoration: none; }
+  .rss-hint a:hover { text-decoration: underline; }
+
+  .hosts {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 1rem 1.5rem 2.5rem;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .host {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    flex: 1;
+    min-width: 240px;
+    max-width: 300px;
+  }
+  .host .name {
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 0.25rem;
+  }
+  .host .role {
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  .section-title {
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+
+  .episodes {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 1.5rem 3rem;
+  }
+  .episode {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .episode .ep-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  .episode audio {
+    width: 100%;
+    height: 40px;
+    border-radius: 8px;
+  }
+
+  .about {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 1.5rem 3rem;
+    text-align: center;
+  }
+  .about p {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+  }
+
+  footer {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <img src="podcast-logo.png" alt="The AI Daily Roundup logo">
+  <h1>The AI Daily Roundup</h1>
+  <p class="tagline">Your daily briefing on the most important AI news &mdash; model releases, developer tools, research breakthroughs, and industry moves &mdash; delivered as a quick two-host conversation.</p>
+  <a class="subscribe-btn" href="podcast.xml">Subscribe via RSS</a>
+  <span class="rss-hint">Copy the <a href="podcast.xml">RSS feed link</a> into your podcast app</span>
+</div>
+
+<div class="hosts">
+  <div class="host">
+    <div class="name">Alex</div>
+    <div class="role">The technical host. Digs into architecture, benchmarks, and implementation details.</div>
+  </div>
+  <div class="host">
+    <div class="name">Sarah</div>
+    <div class="role">The big-picture host. Focuses on strategy, industry impact, and the &ldquo;so what?&rdquo; questions.</div>
+  </div>
+</div>
+
+<div class="episodes">
+  <h2 class="section-title">Recent Episodes</h2>
+  <!-- EPISODES_START -->
+  <div class="episode">
+    <div class="ep-title">2026-03-10</div>
+    <audio controls preload="none" src="https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-10.mp3"></audio>
+  </div>
+  <div class="episode">
+    <div class="ep-title">2026-03-09</div>
+    <audio controls preload="none" src="https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-09.mp3"></audio>
+  </div>
+  <div class="episode">
+    <div class="ep-title">2026-03-08</div>
+    <audio controls preload="none" src="https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-08.mp3"></audio>
+  </div>
+  <div class="episode">
+    <div class="ep-title">2026-03-07</div>
+    <audio controls preload="none" src="https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-07.mp3"></audio>
+  </div>
+  <!-- EPISODES_END -->
+</div>
+
+<div class="about">
+  <h2 class="section-title">About</h2>
+  <p>The AI Daily Roundup is an AI-generated podcast. Content is gathered from Twitter, newsletters, blogs, and GitHub trending, then processed through an LLM pipeline into a two-host conversational script. Audio is synthesized locally using Kokoro TTS.</p>
+  <p>New episodes are published daily.</p>
+</div>
+
+<footer>
+  The AI Daily Roundup &middot; AI-generated podcast
+</footer>
+
+</body>
+</html>

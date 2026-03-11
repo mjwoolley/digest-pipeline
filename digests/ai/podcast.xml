@@ -4,7 +4,7 @@
     <title>The AI Daily Roundup</title>
     <description>AI-generated podcast from The AI Daily Roundup</description>
     <language>en</language>
-    <link>https://mjwoolley.github.io/digest-pipeline/digests/ai/podcast.xml</link>
+    <link>https://mjwoolley.github.io/digest-pipeline/digests/ai/</link>
     <itunes:author>The AI Daily Roundup</itunes:author>
     <itunes:explicit>false</itunes:explicit>
     <itunes:image href="https://mjwoolley.github.io/digest-pipeline/digests/ai/podcast-logo.png" />
