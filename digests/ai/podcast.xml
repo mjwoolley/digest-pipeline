@@ -10,6 +10,12 @@
     <itunes:image href="https://mjwoolley.github.io/digest-pipeline/digests/ai/podcast-logo.png" />
     <itunes:category text="Technology" />
     <item>
+      <title>The AI Daily Roundup — 2026-03-12</title>
+      <pubDate>Thu, 12 Mar 2026 12:00:00 +0000</pubDate>
+      <guid isPermaLink="true">https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-12.mp3</guid>
+      <enclosure url="https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-12.mp3" length="20706093" type="audio/mpeg" />
+    </item>
+    <item>
       <title>The AI Daily Roundup — 2026-03-11</title>
       <pubDate>Wed, 11 Mar 2026 12:00:00 +0000</pubDate>
       <guid isPermaLink="true">https://mjwoolley.github.io/digest-pipeline/digests/ai/podcasts/2026-03-11.mp3</guid>
