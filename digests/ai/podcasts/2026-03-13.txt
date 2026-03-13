@@ -1,0 +1,125 @@
+ALEX: Welcome to the AI Daily Roundup for Friday, March 13th, 2026 — we've got a packed digest today so let's get into it.
+
+SARAH: Big lead story from Anthropic — they've made 1 million token context windows generally available for Claude Opus 4.6 and Sonnet 4.6 at standard pricing, no long-context surcharge, which is a direct contrast to how OpenAI and Google handle this.
+
+ALEX: On benchmarks, Opus 4.6 is scoring 78.3% on MRCR v2 at 1 million tokens, which leads frontier models right now, and Claude Code users get the 1M context by default — Max, Team, and Enterprise users no longer need the slash extra-usage flag either.
+
+SARAH: Flat-rate pricing at that context length is a competitive signal — it raises the baseline expectation for what rivals have to offer at standard tiers.
+
+ALEX: Staying with model news, Meta's flagship model internally codenamed Avocado has been pushed to at least May after underperforming against frontier models in internal evaluations.
+
+SARAH: Every other major lab is shipping aggressively right now, so a delay like this is notable given how much Meta has invested — it suggests the gap at the frontier is harder to close than they anticipated.
+
+ALEX: Moving to developer tools — Anthropic's Claude Code Review feature is in research preview for Team and Enterprise, and the internal numbers are striking: substantive review comments jumped from 16% to 54% of PRs, with less than 1% of findings flagged as incorrect by engineers.
+
+SARAH: On large PRs over a thousand lines, 84% surface findings averaging 7.5 issues each — and reviews cost between $15 and $25 on average billed by token usage. If those accuracy numbers hold outside Anthropic's own environment, that's a meaningful shift for engineering teams.
+
+ALEX: Also from Claude Code, there's a new slash btw feature that lets users open a sidebar conversation with Claude while the original prompt is still executing, so you can course-correct in real time without interrupting the main workflow.
+
+SARAH: That's a small UX change that actually reframes the relationship — you're working alongside the agent rather than waiting on it. Karpathy mentions something similar later in the digest too, so we'll come back to that thread.
+
+ALEX: Next up, a deep dive from Latent Space on Turbopuffer — Simon Eskildsen built it after Readwise was paying roughly $20,000 a month for vector search versus about $5,000 for a relational database. The piece covers hybrid search architectures and agent retrieval patterns built specifically for RAG systems.
+
+SARAH: A four-times cost disparity that motivated an entire startup is a good reminder that infrastructure choices in RAG pipelines have real dollar consequences — this is a practitioner accounting for both the cost and the architecture side.
+
+ALEX: Two OpenClaw releases to cover — the 2026.3.12 release ships a redesigned dashboard, a slash fast mode, and moves ollama, sglang, and vllm to plugins to slim down the core. Device tokens are now ephemeral, and cron and Windows reliability are improved.
+
+SARAH: The plugin architecture shift is the interesting part there — it points to OpenClaw maturing from a monolith into something more composable for production use.
+
+ALEX: The earlier 2026.3.8 release adds ACP provenance so agents can verify who's communicating with them, introduces an openclaw backup command, and patches 12 or more security vulnerabilities.
+
+SARAH: Agent identity and provenance are genuinely unsolved problems at scale, so baking verification into the runtime itself rather than leaving it to individual implementations is the right call architecturally.
+
+ALEX: Perplexity has expanded its Computer agentic system — previously limited access — to all Pro subscribers, with optional credit top-ups for heavier usage.
+
+SARAH: Wider availability puts Perplexity's computer-use agent in daily reach for a much larger base, which intensifies competition with Operator-style products from the bigger labs.
+
+ALEX: Ben Tossell published a detailed breakdown of his builder stack this week — GPT 5.4 XHigh for code, Opus 4.6 for planning, Droid and Pi CLIs, plus custom agent skills for frontend design and JSON rendering. He also released an alpha interactive cookbook that teaches AI-building concepts hands-on via Codex or Claude Code.
+
+SARAH: He also reverse-engineered Claude's visualization feature and released it as a reusable agent skill — it's a rare ground-level view of what a productive AI-native workflow actually looks like right now.
+
+ALEX: There's also a new unofficial Python library called notebooklm-py that exposes NotebookLM features — including some not available in the web UI — via Python, CLI, and agent integrations with Claude Code, Codex, and OpenClaw.
+
+SARAH: NotebookLM is powerful but fairly walled off — this gives developers a way to embed it directly in agent pipelines, which opens up a lot of workflow possibilities.
+
+ALEX: Google Workspace Studio lets users configure Gemini-powered agents to triage Gmail, categorize invoices, extract data, and log it to Sheets — all without code, with pre-built email boosters for things like daily recaps and VIP alerts.
+
+SARAH: No-code Gmail automation with an LLM backend as a native Google feature is a direct challenge to automation platforms like Zapier and Make — the distribution advantage Google has here is significant.
+
+ALEX: On infrastructure — NanoClaw has partnered with Docker to run inside microVM-based sandboxes, positioning itself as a leaner, more auditable alternative to OpenClaw for production agent deployments where security surface area is growing.
+
+SARAH: As agents get more system access, MicroVM-level isolation starts to look less like a nice-to-have and more like the only credible security boundary — and the McKinsey breach we'll get to shortly underscores exactly why.
+
+ALEX: On the research side, Shopify CEO Tobias Lütke applied Andrej Karpathy's autoresearch system to optimize Shopify's open-source Liquid template engine — 93 commits from roughly 120 automated experiments in two days, resulting in 53% faster parse and render and 61% fewer allocations.
+
+SARAH: Key wins include a 40% speedup from replacing StringScanner with String byteindex and a pure-byte parse tag token implementation — a sitting CEO dogfooding autoresearch on a production system is a strong signal that automated micro-optimization at scale is ready for real use.
+
+ALEX: There's a sharp piece on why AI agents keep failing in production — Gartner predicts over 40% of agentic AI projects will be abandoned by 2027. The three failure patterns are bad context management, brittle tool integrations, and compounding errors, and the math is stark: an agent that's 85% accurate per step succeeds only 20% of the time across 10 steps.
+
+SARAH: That compounding error math alone should change how teams design agent workflows — the fix is treating everything around the model with the same engineering rigor applied to the model itself, not just swapping in a better model.
+
+ALEX: On agent memory architecture, analysis of how top engineering teams actually build this reveals a consistent pattern — agents interact via a filesystem interface while persistence lives in a database. Evidence comes from Dust.tt's synthetic filesystems, Letta's benchmarks, LangChain's context engineering work, and Vercel's agents-with-bash from January.
+
+SARAH: Settling that architecture debate with real-world evidence from multiple teams is useful — it was never an either/or question, and teams can stop reinventing it now.
+
+ALEX: NVIDIA's NeMo Retriever introduces a generalizable agentic retrieval pipeline designed to go beyond the limitations of pure semantic similarity search for AI system information retrieval.
+
+SARAH: Semantic similarity alone keeps failing on nuanced retrieval tasks, so a generalized agentic pipeline approach from NVIDIA could meaningfully raise the floor on RAG quality across the ecosystem.
+
+ALEX: Workshop Labs released Trellis, post-training infrastructure for Kimi K2 Thinking that runs 50 times faster than the best existing single-node open-source implementation and costs half as much as training APIs.
+
+SARAH: Dramatically cheaper and faster post-training lowers the barrier for teams wanting to specialize frontier reasoning models without paying API markup — that's a meaningful accessibility shift.
+
+ALEX: On the applications side, Google has embedded Gemini into Maps with two headline features: Ask Maps lets users query across 300 million-plus places and reviews conversationally, and Immersive Navigation renders routes in 3D using Street View and aerial imagery to show buildings, overpasses, and crosswalks in real time.
+
+SARAH: Additional upgrades include conversational voice guidance, Street View parking previews, and AI-generated route trade-off summaries — Google embedding Gemini into products with billions of existing users is one of the highest-reach AI rollouts of the year.
+
+ALEX: Microsoft launched Copilot Health inside Copilot, connecting to 50-plus wearables, EHR records from 50,000-plus U.S. hospitals, and lab results to deliver personalized health insights — CEO Mustafa Suleyman describes it as a step toward medical superintelligence. Data connected to the platform is not used for model training.
+
+SARAH: A health AI with EHR and wearable integration at Microsoft's scale could reshape the first mile of healthcare significantly if it earns user trust — that trust question is doing a lot of work in that if.
+
+ALEX: Bumble announced an AI dating assistant called Bee that privately learns user dating preferences and proactively surfaces relevant matches based on them.
+
+SARAH: AI-assisted matchmaking crosses a culturally significant threshold — how users actually feel about delegating romantic discovery to an agent is going to define adoption here more than the technical capability.
+
+ALEX: Nous Research open-sourced Hermes Agent, an adaptive AI agent framework built to grow alongside user needs, with documentation and community Discord support.
+
+SARAH: An adaptive open-source framework from a credible research organization is a meaningful contribution to a space that's still heavily dominated by proprietary tooling.
+
+ALEX: Now to the McKinsey breach — security startup CodeWall's AI agent cracked McKinsey's internal AI platform Lilli in under two hours, gaining read-write access to 46.5 million confidential chat messages covering M&A deals and client strategy, 728,000 client files, and 57,000 user accounts, all stored in plain text.
+
+SARAH: The attack exploited 22 unauthenticated API endpoints, one with a trivially exploitable flaw enabling full database access — McKinsey confirmed the breach, engaged a third party, found no other access, and patched it. If a firm of that sophistication is shipping AI infrastructure with unauthenticated endpoints and plain-text storage, the enterprise security gap is far wider than assumed.
+
+ALEX: Axiom, focused on formal mathematics and verified AI reasoning, closed a $200 million Series A led by Menlo Ventures at a $1.6 billion-plus valuation.
+
+SARAH: That's a large bet on the idea that reliability and provability — not just raw capability — will define the next competitive frontier. Given how often we talk about compounding errors and trust, the timing makes sense.
+
+ALEX: The Pentagon's CTO Emil Michael declared there's no chance of renewing talks with Anthropic, saying Claude would — and I'm quoting here — "pollute the defense AI supply chain" with "a different policy preference," which is a pointed rebuke of Anthropic's safety-first positioning.
+
+SARAH: That crystallizes a real fault line between safety-oriented labs and the defense establishment's demand for unconstrained capability — it's not a subtle disagreement.
+
+ALEX: xAI hired Andrew Milich and Jason Ginsberg, senior product engineers from Cursor, to accelerate Grok's coding capabilities, with both reporting directly to Elon Musk.
+
+SARAH: Pulling senior talent directly from the coding AI leader signals xAI is treating the coding gap as a first-priority problem — not something on the roadmap for later.
+
+ALEX: Vercel has stepped up as a sponsor of OpenClaw, backing open-source AI agent infrastructure at scale.
+
+SARAH: Platform companies sponsoring agent runtimes signals that the agent infrastructure layer is becoming strategically important — this is past the community project stage.
+
+ALEX: Three pieces from Andrej Karpathy to close out. First, he argues the file-centric IDE era is over and what's needed next is an agent command center — where teams manage fleets of agents, monitor status, toggle visibility, check for idle workers, review usage, and jump in with slash btw questions.
+
+SARAH: Karpathy naming a gap like this tends to be the first step toward someone building it — and this framing will likely shape the next generation of developer tooling.
+
+ALEX: Second, Karpathy's autoresearch labs were entirely wiped during an OAuth outage, which led him to coin the term "intelligence brownouts" to describe what happens when frontier AI infrastructure stutters and the planet effectively loses IQ points.
+
+SARAH: When always-on agent systems become critical infrastructure, their failure modes need the same resilience engineering as cloud services — and by his own account, we're not there yet.
+
+ALEX: Third, Karpathy observes that while classical organizations like Microsoft are effectively impossible to fork, agentic organizations built on replicable code and agent configurations can be forked — a fundamental shift in organizational structure and competitive dynamics.
+
+SARAH: If orgs become forkable like open-source projects, the moats and competitive advantages of traditional companies look very different — that's a structural argument worth sitting with.
+
+ALEX: Finally, MiroFish — an open-source Python swarm intelligence engine for prediction tasks that surged to 13,400 GitHub stars in a single week.
+
+SARAH: Star velocity that fast suggests genuine community excitement around swarm-based approaches as an alternative paradigm — worth watching to see if real-world utility follows.
+
+ALEX: That's everything for Friday the 13th — have a good weekend and we'll see you Monday.
