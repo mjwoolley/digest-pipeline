@@ -69,17 +69,42 @@ def _fetch_twitter(account: str, auth_token: str, ct0: str) -> dict:
                 "content": ""}
 
 
+def _get_last_success_date(data_root: Path = None) -> datetime | None:
+    """Find the date of the last successful digest run from output files.
+
+    Looks for YYYY-MM-DD.md files in the data_root directory.
+    Returns the datetime of the most recent one, or None if none found.
+    """
+    if data_root is None:
+        return None
+    try:
+        dates = []
+        for f in data_root.iterdir():
+            if f.suffix == ".md" and re.match(r"\d{4}-\d{2}-\d{2}", f.stem):
+                dates.append(datetime.strptime(f.stem, "%Y-%m-%d").replace(tzinfo=timezone.utc))
+        return max(dates) if dates else None
+    except Exception:
+        return None
+
+
 def _fetch_newsletter(key: str, nl: dict, imap_host: str,
-                      imap_email: str, imap_password: str) -> dict:
+                      imap_email: str, imap_password: str,
+                      last_success: datetime = None) -> dict:
     """Fetch a newsletter via IMAP.
 
     Connects to the IMAP server, searches for recent emails matching the
     sender address, and returns the plain-text body of the most recent match.
+
+    If last_success is provided, uses that as the lookback date instead of
+    lookback_days, ensuring no newsletters are missed between runs.
     """
     name = nl["name"]
     sender = nl["from"]
-    lookback_days = nl.get("lookback_days", 1)
-    since_date = (datetime.now(timezone.utc) - timedelta(days=lookback_days)).strftime("%d-%b-%Y")
+    if last_success is not None:
+        since_date = last_success.strftime("%d-%b-%Y")
+    else:
+        lookback_days = nl.get("lookback_days", 1)
+        since_date = (datetime.now(timezone.utc) - timedelta(days=lookback_days)).strftime("%d-%b-%Y")
 
     try:
         conn = imaplib.IMAP4_SSL(imap_host)
@@ -388,13 +413,15 @@ def _fetch_github_trending(cfg: dict) -> dict:
 
 # ── Main gather function ────────────────────────────────────────────────────
 
-def gather_all(work_dir: Path = None, sources_config: dict = None) -> list[dict]:
+def gather_all(work_dir: Path = None, sources_config: dict = None,
+               data_root: Path = None) -> list[dict]:
     """Gather content from all sources concurrently.
 
     Args:
         work_dir: Directory for debug output files
         sources_config: Sources section from config.json. If None, looks for
                         sources.json in the old location (backward compat).
+        data_root: Digest output directory (for last-success lookback).
 
     Returns list of dicts: {name, type, key, content}.
     """
@@ -405,6 +432,13 @@ def gather_all(work_dir: Path = None, sources_config: dict = None) -> list[dict]
         secrets_file = skill_dir / "sources-secrets.env"
         load_secrets(secrets_file)
         sources_config = json.load(open(sources_file))
+
+    # Determine last successful run date for newsletter lookback
+    last_success = _get_last_success_date(data_root)
+    if last_success:
+        logger.info(f"[GATHER] Newsletter lookback: since last run {last_success.strftime('%Y-%m-%d')}")
+    else:
+        logger.info("[GATHER] Newsletter lookback: using per-source lookback_days (no prior run found)")
 
     auth_token = os.environ.get("AUTH_TOKEN", "")
     ct0 = os.environ.get("CT0", "")
@@ -435,7 +469,8 @@ def gather_all(work_dir: Path = None, sources_config: dict = None) -> list[dict]
             nl_sources = sources_config["newsletters"].get("sources", {})
             for key, nl in nl_sources.items():
                 f = pool.submit(_fetch_newsletter, key, nl,
-                                imap_host, imap_email, imap_password)
+                                imap_host, imap_email, imap_password,
+                                last_success=last_success)
                 futures[f] = f"nl-{key}"
 
         # Blogs
