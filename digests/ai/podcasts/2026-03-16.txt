@@ -1,0 +1,43 @@
+ALEX: Welcome to the AI Daily Roundup for Monday, March 16th, 2026.
+
+SARAH: We've got a packed digest today, so let's jump right in. First up on the developer tools front, there's a piece on vibe coding from The New Stack — the idea being that coding agents like Claude Code handle the implementation details while developers focus on outcomes, essentially describing what to build rather than writing the syntax to build it.
+
+ALEX: The framing here is that this isn't a novelty anymore — it's becoming a legitimate workflow, and tools like Claude Code are what's making the "describe it and ship it" approach actually viable at scale.
+
+SARAH: Which connects directly to the next story — OpenClaw dropped version 2026.3.2 this week, adding Telegram live streaming, a native PDF tool, a config validation command, and a Zalo client rebuilt in pure JavaScript, plus over a hundred security and stability fixes.
+
+ALEX: The headline feature for me is ACP subagents being enabled by default now — that's a signal that OpenClaw is moving agentic orchestration from opt-in experiment to standard developer workflow out of the box.
+
+SARAH: Shifting to infrastructure, The New Stack published a taxonomy of AI cloud infrastructure in 2026, breaking it into six categories. The big structural finding is that inference now accounts for roughly two-thirds of all AI compute, which has widened the gap from training workloads considerably.
+
+ALEX: And that split is putting serious pressure on cost and model flop utilization optimization — NVIDIA's Blackwell and GB200 architectures are driving a lot of the specialization you're seeing across the dozens of providers that have emerged beyond the original three hyperscalers.
+
+SARAH: The practical takeaway there is that picking the wrong cloud tier for your workload is now a real engineering and cost mistake, not just a preference call. Next, there's a startup called Tower, founded by former Snowflake engineers in Germany, building a platform to run Python data pipelines and AI-generated code reliably in production.
+
+ALEX: Tower is targeting what they call the last-mile gap — generating code with AI is largely a solved problem, but packaging it, scaling it, handling failures, and logging it in production is still where things break down.
+
+SARAH: So their bet is essentially that the gap between AI-generated code and deployed, running software is a business unto itself.
+
+ALEX: On the research side, Simon Willison published the opening chapter of his Agentic Engineering Patterns guide. He defines agentic engineering as building software with the help of coding agents — tools that can both write and execute code — and lays out the core agent loop: prompt an LLM with tool definitions, execute the tools it requests, feed results back, and repeat.
+
+SARAH: That loop definition is deceptively simple, but having a clean, practitioner-level vocabulary matters right now because "agentic" is getting stretched to mean almost anything.
+
+ALEX: Exactly — Willison's framing gives people a grounded starting point rather than marketing language.
+
+SARAH: In applications and products, AstrBot had a big week on GitHub — it's an open-source agentic chatbot infrastructure layer that connects multiple IM platforms, LLMs, and plugins in one place. It picked up over five thousand stars this week and positions itself as an OpenClaw alternative.
+
+ALEX: It also supports Chinese, Japanese, and French interfaces, which suggests the user base driving that traction isn't just English-speaking developers — there's real international community momentum here.
+
+SARAH: The broader signal is that there's genuine demand for a self-hostable, multi-platform agentic chat layer outside the major vendor ecosystems. And speaking of major vendors, Google Cloud released sample notebooks and code for Gemini 3.1 Pro on Vertex AI this week, covering workflows from intro tutorials all the way to production patterns.
+
+ALEX: The repo pulled 2,420 stars this week, and the point of releasing runnable samples like this is lowering the activation energy for enterprise teams — having official, working code to start from matters a lot when you're evaluating a model for production.
+
+SARAH: On the industry and business side, there's a piece about a growing trend of consultants being hired to build custom internal tools and AI automations instead of companies buying SaaS subscriptions. Vibe coding and AI assistants have slashed build costs enough that bespoke software is starting to compete with off-the-shelf licenses.
+
+ALEX: The economic logic is that internal tools only need to solve one owner's specific problem — no SaaS overhead, no feature bloat — and if that's now cheaper to build than a subscription, the unit economics of the whole B2B software market could shift.
+
+SARAH: That's a big structural implication if it plays out at scale. And finally, Andrej Karpathy took down a vibe-coded visualization he built using BLS job exposure data after it was widely misread as a prediction of AI-driven job losses.
+
+ALEX: He clarified that the exposure score only measured how digital a job is — not any forecast of what actually happens to those occupations — but the misreads had already spread.
+
+SARAH: It's a cautionary note for anyone publishing AI-adjacent visualizations right now: even clearly labeled exploratory tools can get pulled into doom narratives fast, and that's it for today's roundup — we'll see you tomorrow.
