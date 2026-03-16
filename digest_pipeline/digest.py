@@ -227,7 +227,7 @@ def main():
 
     date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     date_display = datetime.now(timezone.utc).strftime("%A, %B %d, %Y")
-    work_dir = Path(f"/tmp/digest-{date}")
+    work_dir = data_root / "work" / date
 
     # 1. Setup
     logs_dir = data_root / "logs"
