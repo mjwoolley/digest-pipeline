@@ -3,7 +3,8 @@
     "name": "AI Daily Digest",
     "tagline": "AI DIGEST",
     "emoji": "⚡",
-    "tone": "informed, direct, slightly opinionated"
+    "tone": "informed, direct, slightly opinionated",
+    "max_articles": 20
   },
   "categories": [
     {
@@ -181,7 +182,14 @@
       "name": "GitHub Trending",
       "url": "https://github.com/trending?since=weekly",
       "min_stars_week": 200,
-      "ai_keywords": ["ai", "llm", "agent", "rag", "mcp", "transformer"]
+      "ai_keywords": [
+        "ai",
+        "llm",
+        "agent",
+        "rag",
+        "mcp",
+        "transformer"
+      ]
     }
   }
 }

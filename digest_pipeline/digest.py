@@ -3,12 +3,13 @@
 Daily Digest — Main Pipeline Orchestrator
 
 Stages:
-  1. GATHER   — concurrent fetch from sources (no LLM)
-  2. EXTRACT  — batched Haiku calls (normalize to JSON)
-  3. CLUSTER  — embedding API + cosine similarity
-  4. DEDUPE   — 1 Sonnet call (merge clustered articles)
-  5. FORMAT   — 1 Sonnet call (summarize + format)
-  6. DELIVER  — email + notification + archive
+  1. GATHER      — concurrent fetch from sources (no LLM)
+  2. EXTRACT     — batched Haiku calls (normalize to JSON)
+  3. CLUSTER     — embedding API + cosine similarity
+  4. DEDUPE      — 1 Sonnet call (merge clustered articles)
+  5. PRIORITIZE  — 1 Haiku call (score + trim to max_articles)
+  6. FORMAT      — 1 Sonnet call (summarize + format)
+  7. DELIVER     — email + notification + archive
 
 Usage:
   python3 scripts/digest.py --config /path/to/config.json
@@ -243,7 +244,8 @@ def main():
         work_dir.mkdir(exist_ok=True)
         logger.info("[PIPELINE] Stage: GATHER")
         t0 = time.time()
-        sources = gather_all(work_dir, sources_config=config.get("sources"))
+        sources = gather_all(work_dir, sources_config=config.get("sources"),
+                             data_root=data_root)
         gather_dur = time.time() - t0
 
         non_empty = [s for s in sources if s.get("content", "").strip()]
@@ -401,7 +403,84 @@ def main():
 
         save_today(data_root, date, deduped, embeds)
 
-        # 8. Format: 1 Sonnet call
+        # 8. Prioritize: trim to max_articles if needed
+        max_articles = digest_cfg.get("max_articles")
+        if max_articles and len(deduped) > max_articles:
+            logger.info(f"[PIPELINE] Stage: PRIORITIZE ({len(deduped)} articles > {max_articles} max)")
+            t0 = time.time()
+            prioritize_prompt = render_prompt("prioritize.md", config,
+                                              {"ARTICLES": json.dumps(deduped, indent=2),
+                                               "MAX_ARTICLES": str(max_articles)})
+            scored, prio_usage = llm.prioritize_score(deduped, prioritize_prompt)
+            prio_dur = time.time() - t0
+
+            model_name = llm.MODELS[provider]["haiku"]
+            tracker.add("Prioritize", model_name, prio_usage, prio_dur)
+
+            # Match scores to articles by title
+            score_map = {}
+            for item in scored:
+                title = item.get("title", "")
+                score = item.get("score", 5)
+                if isinstance(score, (int, float)):
+                    score_map[title] = int(score)
+
+            for a in deduped:
+                a["_priority_score"] = score_map.get(a.get("title", ""), 5)
+
+            # Category-aware selection: guarantee at least 1 per category
+            by_category: dict[str, list[dict]] = {}
+            for a in deduped:
+                cat = a.get("category", "other")
+                by_category.setdefault(cat, []).append(a)
+
+            kept = []
+            remaining_slots = max_articles
+
+            # First pass: pick top-1 from each category
+            for cat, cat_articles in by_category.items():
+                cat_articles.sort(key=lambda x: x.get("_priority_score", 5), reverse=True)
+                if cat_articles and remaining_slots > 0:
+                    kept.append(cat_articles[0])
+                    remaining_slots -= 1
+
+            # Second pass: fill remaining slots by score from unkept articles
+            kept_titles = {a.get("title") for a in kept}
+            unkept = [a for a in deduped if a.get("title") not in kept_titles]
+            unkept.sort(key=lambda x: x.get("_priority_score", 5), reverse=True)
+            kept.extend(unkept[:remaining_slots])
+
+            dropped = [a for a in deduped if a not in kept]
+
+            # Save debug files
+            (work_dir / "prioritized.json").write_text(
+                json.dumps(kept, indent=2))
+            (work_dir / "prioritized_dropped.json").write_text(
+                json.dumps(dropped, indent=2))
+
+            # Clean up internal score field
+            for a in kept:
+                a.pop("_priority_score", None)
+            for a in dropped:
+                a.pop("_priority_score", None)
+
+            logger.info(f"[PRIORITIZE] {len(deduped)} -> {len(kept)} articles "
+                        f"({len(dropped)} dropped), {prio_dur:.1f}s")
+            if not dry_run:
+                delivery.send_progress(
+                    "Prioritize",
+                    f"Articles: {len(deduped)} -> {len(kept)} (dropped {len(dropped)})",
+                    config, {**prio_usage, "duration": prio_dur}
+                )
+
+            deduped = kept
+        else:
+            if max_articles:
+                logger.info(f"[PIPELINE] Skipping PRIORITIZE ({len(deduped)} <= {max_articles} max)")
+            else:
+                logger.info("[PIPELINE] Skipping PRIORITIZE (no max_articles configured)")
+
+        # 9. Format: 1 Sonnet call
         logger.info("[PIPELINE] Stage: FORMAT")
         t0 = time.time()
         format_prompt = render_prompt("summarize_format.md", config,

@@ -238,6 +238,20 @@ def dedupe_merge(clusters: list[list[dict]], date: str,
     return singletons + merged, usage
 
 
+def prioritize_score(articles: list[dict], prompt: str) -> tuple[list[dict], dict]:
+    """Score articles by importance for prioritization.
+    Returns (scored_list, usage) where scored_list is [{"title": str, "score": int}, ...].
+    Uses Haiku.
+    """
+    model = MODELS[_provider]["haiku"]
+    messages = [
+        {"role": "user", "content": prompt},
+    ]
+    text, usage = chat(messages, model, max_tokens=4096)
+    scored = _parse_json_array(text)
+    return scored, usage
+
+
 def summarize_format(articles: list[dict], date: str,
                      prompt_template: str) -> tuple[str, dict]:
     """Summarize each article and format the digest.
