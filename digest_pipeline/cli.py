@@ -48,6 +48,8 @@ def main():
 
     from .digest import main as digest_main
     from .podcast import main as podcast_main
+    from .archive import git_publish_daily
+    from .config import load_config
 
     if not podcast_only:
         # Build sys.argv for digest.main()
@@ -63,6 +65,16 @@ def main():
                 print("Podcast generation failed (non-fatal)")
         except Exception as e:
             print(f"Podcast generation failed (non-fatal): {e}")
+
+    # Archive & publish: commit daily artifacts to git (after all stages)
+    dry_run = "--dry-run" in args
+    config_path = next((a for a in args if not a.startswith("--")), None)
+    if config_path:
+        try:
+            config = load_config(config_path)
+            git_publish_daily(config, dry_run=dry_run)
+        except Exception as e:
+            print(f"Archive/publish failed (non-fatal): {e}")
 
 
 def _run_subscriber_cmd(args, action):

@@ -190,8 +190,6 @@ def main():
             # Generate/update RSS feed
             _update_rss_feed(podcasts_dir, date, audio_usage, config, logger)
             _update_landing_page(podcasts_dir, config, logger)
-            # Publish podcast files to git remote (for RSS feed / GitHub Pages)
-            _git_publish(podcasts_dir, date, config, logger)
         else:
             logger.error("[DELIVER] Audio send failed")
             delivery.send_alert("DELIVER", "Failed to send podcast audio",

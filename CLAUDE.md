@@ -58,6 +58,8 @@ Six-stage pipeline orchestrated by `digest_pipeline/digest.py`:
 
 **Podcast** (`podcast.py`) is a secondary pipeline: reads archived digest, generates a two-host script via Sonnet, synthesizes audio via Kokoro (local) TTS, outputs MP3 to `{data_root}/podcasts/`. After each episode, generates an RSS feed at `{data_root}/podcast.xml` for podcast app subscriptions via GitHub raw URLs.
 
+**Archive** (`archive.py`) runs after all stages complete (digest + podcast). Commits and pushes daily artifacts to git using a configurable allowlist of file patterns. Disabled by default; enable via the `"archive"` config section.
+
 ## Key Module Responsibilities
 
 | Module | Role |
@@ -68,6 +70,7 @@ Six-stage pipeline orchestrated by `digest_pipeline/digest.py`:
 | `digest_pipeline/cluster.py` | Embedding-based cosine similarity clustering |
 | `digest_pipeline/delivery.py` | Email/notification delivery, progress updates during pipeline |
 | `digest_pipeline/podcast.py` | Script generation + TTS audio synthesis |
+| `digest_pipeline/archive.py` | Allowlist-based git commit+push of daily artifacts |
 | `digest_pipeline/kokoro_tts.py` | Kokoro-82M local TTS (streaming WAV, memory-efficient) |
 | `digest_pipeline/config.py` | Config JSON loading, prompt templating, voice mapping |
 | `digest_pipeline/log.py` | File + console logging, 30-day auto-cleanup |
@@ -76,7 +79,30 @@ Six-stage pipeline orchestrated by `digest_pipeline/digest.py`:
 
 ## Configuration
 
-All configuration is external via a JSON file passed with `--config`. Key sections: `sources`, `digest`, `categories`, `podcast`, `delivery`, `llm`. API keys are loaded from environment variables, typically set via `secrets.env` at the repo root.
+All configuration is external via a JSON file passed with `--config`. Key sections: `sources`, `digest`, `categories`, `podcast`, `delivery`, `llm`, `archive`. API keys are loaded from environment variables, typically set via `secrets.env` at the repo root.
+
+### Archive Config
+
+```json
+{
+  "archive": {
+    "enabled": true,
+    "push": true,
+    "branch": "master",
+    "commit_message": "Daily archive: {date}",
+    "artifacts": [
+      "{date}.md",
+      "podcasts/{date}.mp3",
+      "podcasts/{date}.txt",
+      "podcast.xml",
+      "index.html",
+      ".seen_embeddings.json"
+    ]
+  }
+}
+```
+
+All fields are optional. Defaults: `enabled=false`, `push=true`, `commit_message="Daily archive: {date}"`, `artifacts` = the default list above. Set `branch` to push to a specific branch (e.g. `gh-pages`).
 
 Required keys in `secrets.env` (at repo root):
 - `OPENROUTER_API_KEY` — OpenRouter API key (for LLM and embeddings)
