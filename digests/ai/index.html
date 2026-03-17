@@ -14,6 +14,7 @@
     --muted: #94a3b8;
     --border: #1e293b;
     --success: #22c55e;
+    --danger: #ef4444;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -24,6 +25,7 @@
     line-height: 1.6;
   }
   a { color: var(--accent); }
+
   .hero {
     text-align: center;
     padding: 3rem 1.5rem 2rem;
@@ -48,47 +50,8 @@
   .hero .tagline {
     font-size: 1.1rem;
     color: var(--muted);
-    max-width: 620px;
-    margin: 0 auto 2rem;
-  }
-  .hero-actions {
-    display: flex;
-    gap: 0.75rem;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-bottom: 1rem;
-  }
-  .subscribe-btn,
-  .secondary-btn,
-  .copy-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.45rem;
-    padding: 0.85rem 1.25rem;
-    border-radius: 999px;
-    border: 1px solid transparent;
-    font-weight: 600;
-    font-size: 0.98rem;
-    text-decoration: none;
-    transition: opacity 0.2s, transform 0.2s, border-color 0.2s;
-    cursor: pointer;
-  }
-  .subscribe-btn {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: #0b1120;
-  }
-  .secondary-btn,
-  .copy-btn {
-    background: rgba(19, 27, 46, 0.85);
-    color: var(--text);
-    border-color: var(--border);
-  }
-  .subscribe-btn:hover,
-  .secondary-btn:hover,
-  .copy-btn:hover {
-    opacity: 0.92;
-    transform: translateY(-1px);
+    max-width: 700px;
+    margin: 0 auto 0.5rem;
   }
   .subscribe-note {
     font-size: 0.92rem;
@@ -98,7 +61,7 @@
   }
 
   .section {
-    max-width: 920px;
+    max-width: 980px;
     margin: 0 auto;
     padding: 0 1.5rem 2.5rem;
   }
@@ -110,9 +73,9 @@
     color: var(--text);
   }
 
-  .subscribe-grid {
+  .subscribe-layout {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: 1fr 1fr;
     gap: 1rem;
     align-items: stretch;
   }
@@ -120,28 +83,70 @@
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 18px;
-    padding: 1.25rem;
+    padding: 1.35rem;
   }
   .card h3 {
-    font-size: 1.02rem;
+    font-size: 1.08rem;
     margin-bottom: 0.65rem;
   }
-  .card p, .card li {
+  .card p,
+  .card li {
     color: var(--muted);
     font-size: 0.94rem;
   }
-  .card ol {
+  .card ol,
+  .card ul {
     padding-left: 1.1rem;
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
   }
-  .rss-field {
+
+  .primary-btn,
+  .secondary-btn,
+  .copy-btn,
+  .app-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.85rem 1.1rem;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: opacity 0.2s, transform 0.2s, border-color 0.2s;
+    cursor: pointer;
+  }
+  .primary-btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #0b1120;
+  }
+  .secondary-btn,
+  .copy-btn,
+  .app-link {
+    background: #0f172a;
+    color: var(--text);
+    border-color: var(--border);
+  }
+  .primary-btn:hover,
+  .secondary-btn:hover,
+  .copy-btn:hover,
+  .app-link:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+    border-color: var(--accent);
+  }
+
+  .rss-field,
+  .email-field {
     display: flex;
     gap: 0.65rem;
-    margin-top: 0.9rem;
+    margin-top: 1rem;
     flex-wrap: wrap;
   }
-  .rss-input {
-    flex: 1 1 320px;
+  .rss-input,
+  .email-input {
+    flex: 1 1 260px;
     background: #0f172a;
     border: 1px solid var(--border);
     color: var(--text);
@@ -149,57 +154,61 @@
     padding: 0.85rem 0.95rem;
     font-size: 0.92rem;
   }
-  .copy-status {
+  .copy-status,
+  .email-status {
     display: inline-block;
     min-height: 1.25rem;
     margin-top: 0.6rem;
-    color: var(--success);
     font-size: 0.88rem;
+  }
+  .copy-status { color: var(--success); }
+  .email-status { color: var(--muted); }
+
+  .honesty-note,
+  .coming-soon {
+    margin-top: 0.95rem;
+    padding: 0.85rem 0.95rem;
+    border-radius: 12px;
+    color: var(--text);
+    font-size: 0.9rem;
+  }
+  .honesty-note {
+    background: rgba(251, 191, 36, 0.08);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+  }
+  .coming-soon {
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+  }
+
+  .podcast-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
   }
   .app-links {
     display: flex;
     flex-wrap: wrap;
     gap: 0.65rem;
-    margin-top: 0.9rem;
-  }
-  .app-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    text-decoration: none;
-    color: var(--text);
-    border: 1px solid var(--border);
-    background: #0f172a;
-    padding: 0.75rem 0.95rem;
-    border-radius: 12px;
-    font-size: 0.92rem;
-  }
-  .app-link:hover { border-color: var(--accent); }
-  .coming-soon {
-    margin-top: 0.9rem;
-    padding: 0.8rem 0.9rem;
-    border-radius: 12px;
-    background: rgba(56, 189, 248, 0.08);
-    border: 1px solid rgba(56, 189, 248, 0.2);
-    color: var(--text);
   }
   .qr-wrap {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    text-align: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-top: 0.2rem;
   }
   .qr-code {
-    width: 180px;
-    height: 180px;
+    width: 160px;
+    height: 160px;
     border-radius: 12px;
     background: white;
     padding: 10px;
-    margin: 0.5rem 0 0.9rem;
+    flex: 0 0 auto;
   }
   .qr-caption {
-    max-width: 220px;
+    max-width: 260px;
   }
 
   .hosts {
@@ -272,10 +281,17 @@
     font-size: 0.8rem;
   }
 
+  @media (max-width: 800px) {
+    .subscribe-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
   @media (max-width: 640px) {
     .hero h1 { font-size: 1.85rem; }
     .hero .tagline { font-size: 1rem; }
-    .qr-code { width: 160px; height: 160px; }
+    .qr-wrap { flex-direction: column; align-items: flex-start; }
+    .qr-code { width: 150px; height: 150px; }
   }
 </style>
 </head>
@@ -284,81 +300,74 @@
 <div class="hero">
   <img src="podcast-logo.png" alt="The AI Daily Roundup logo">
   <h1>The AI Daily Roundup</h1>
-  <p class="tagline">Your daily briefing on the most important AI news &mdash; model releases, developer tools, research breakthroughs, and industry moves &mdash; delivered as a quick two-host conversation or a daily email digest.</p>
-  <div class="hero-actions">
-    <a class="subscribe-btn" href="#email-subscribe">Get the Daily Email</a>
-    <a class="secondary-btn" href="podcast.xml">Open RSS Feed</a>
-    <button class="copy-btn" type="button" id="copyHeroBtn">Copy RSS Feed</button>
-  </div>
-  <p class="subscribe-note">Subscribe to the daily email digest or add the podcast to your favorite app below.</p>
+  <p class="tagline">Your daily briefing on the most important AI news &mdash; model releases, developer tools, research breakthroughs, and industry moves &mdash; delivered as a podcast or a daily email digest or both!</p>
+  <p class="subscribe-note">Pick your flavor below: inbox, podcast app, or both if you really want the full robot media empire experience.</p>
 </div>
 
-<!-- EMAIL_SUBSCRIBE_START -->
-<section class="section" id="email-subscribe">
-  <h2 class="section-title">Daily Email Digest</h2>
-  <div class="subscribe-grid">
-    <div class="card" style="grid-column: 1 / -1; max-width: 480px; margin: 0 auto;">
-      <h3>Get the digest in your inbox</h3>
-      <p>Receive a curated summary of the day's top AI news every morning. No spam, unsubscribe anytime.</p>
-      <div class="rss-field" style="margin-top: 1rem;">
-        <input class="rss-input" id="emailInput" type="email" placeholder="you@example.com" aria-label="Email address for digest subscription" style="flex: 1 1 200px;">
-        <button class="subscribe-btn" type="button" id="emailSubscribeBtn" style="border-radius: 12px; padding: 0.85rem 1.25rem;">Subscribe</button>
+<section class="section">
+  <h2 class="section-title">Subscribe</h2>
+  <div class="subscribe-layout">
+    <div class="card" id="email-subscribe">
+      <h3>Subscribe to the daily email digest</h3>
+      <p>Get the roundup in your inbox each day with the same branding and content as the podcast companion experience.</p>
+      <div class="email-field">
+        <input class="email-input" id="emailInput" type="email" placeholder="you@example.com" aria-label="Email address for digest subscription">
+        <button class="primary-btn" type="button" id="emailSubscribeBtn">Request email signup</button>
       </div>
-      <span class="copy-status" id="emailStatus" aria-live="polite"></span>
-      <p style="font-size: 0.82rem; color: var(--muted); margin-top: 0.75rem;">
-        This sends a subscribe request to our inbox. You can also email
+      <span class="email-status" id="emailStatus" aria-live="polite"></span>
+      <div class="honesty-note">
+        <strong>Phase 1 reality check:</strong> this sends a subscription request email to the inbox that manages the digest. It is not fully automated yet, because we haven’t built the backend hook for direct signup processing.
+      </div>
+      <p style="font-size: 0.84rem; color: var(--muted); margin-top: 0.85rem;">
+        Prefer to do it manually? Email
         <a href="mailto:mjw_openclaw@agentmail.to?subject=subscribe">mjw_openclaw@agentmail.to</a>
-        with subject &ldquo;subscribe&rdquo; directly.
+        with subject <strong>subscribe</strong>.
       </p>
     </div>
-  </div>
-</section>
-<!-- EMAIL_SUBSCRIBE_END -->
-
-<section class="section">
-  <h2 class="section-title">Podcast &mdash; Subscribe Your Way</h2>
-  <div class="subscribe-grid">
-    <div class="card">
-      <h3>Copy the RSS feed</h3>
-      <p>Paste this into any podcast app that supports adding shows by URL.</p>
-      <div class="rss-field">
-        <input class="rss-input" id="rssInput" type="text" readonly value="https://mjwoolley.github.io/digest-pipeline/digests/ai/podcast.xml" aria-label="Podcast RSS feed URL">
-        <button class="copy-btn" type="button" id="copyRssBtn">Copy RSS</button>
-      </div>
-      <span class="copy-status" id="copyStatus" aria-live="polite"></span>
-    </div>
 
     <div class="card">
-      <h3>Add it in your podcast app</h3>
-      <p>Most good podcast apps support adding a show by URL, even if they hide the option like they’re ashamed of it.</p>
-      <div class="app-links">
-        <a class="app-link" href="podcast.xml" target="_blank" rel="noopener noreferrer">📡 Open raw RSS feed</a>
-        <a class="app-link" href="podcast.xml" download>⬇️ Download RSS XML</a>
-        <a class="app-link" href="https://pca.st/" target="_blank" rel="noopener noreferrer">🎧 Pocket Casts</a>
-        <a class="app-link" href="https://overcast.fm/" target="_blank" rel="noopener noreferrer">☁️ Overcast</a>
-        <a class="app-link" href="https://podcastaddict.com/" target="_blank" rel="noopener noreferrer">📱 Podcast Addict</a>
-        <a class="app-link" href="https://castro.fm/" target="_blank" rel="noopener noreferrer">🚀 Castro</a>
-        <a class="app-link" href="https://www.spotify.com/us/podcasts/" target="_blank" rel="noopener noreferrer">🟢 Spotify</a>
-      </div>
-      <ol>
-        <li>Copy the RSS feed URL.</li>
-        <li>Open your podcast app.</li>
-        <li>Choose “Add by URL” or “Follow by RSS feed.”</li>
-        <li>Paste the link and subscribe.</li>
-      </ol>
-      <div class="coming-soon">
-        <strong>Coming soon:</strong> Apple Podcasts and other directory listings, once the feed is submitted and approved.
-      </div>
-    </div>
+      <h3>Subscribe to the podcast</h3>
+      <p>Use the RSS feed in any decent podcast app. Directory listings are coming later; for now this is the universal key that unlocks the podcast kingdom.</p>
 
-    <div class="card qr-wrap">
-      <h3>Scan a QR code</h3>
-      <img
-        class="qr-code"
-        src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https%3A%2F%2Fmjwoolley.github.io%2Fdigest-pipeline%2Fdigests%2Fai%2Fpodcast.xml"
-        alt="QR code for the AI Daily Roundup RSS feed"
-      >
-      <p class="qr-caption">Scan this on your phone to open or copy the RSS feed without emailing yourself links like it’s 2009.</p>
+      <div class="podcast-stack">
+        <div>
+          <div class="rss-field">
+            <input class="rss-input" id="rssInput" type="text" readonly value="https://mjwoolley.github.io/digest-pipeline/digests/ai/podcast.xml" aria-label="Podcast RSS feed URL">
+            <button class="copy-btn" type="button" id="copyRssBtn">Copy RSS</button>
+          </div>
+          <span class="copy-status" id="copyStatus" aria-live="polite"></span>
+        </div>
+
+        <div class="app-links">
+          <a class="app-link" href="podcast.xml" target="_blank" rel="noopener noreferrer">📡 Open raw RSS feed</a>
+          <a class="app-link" href="podcast.xml" download>⬇️ Download RSS XML</a>
+          <a class="app-link" href="https://pca.st/" target="_blank" rel="noopener noreferrer">🎧 Pocket Casts</a>
+          <a class="app-link" href="https://overcast.fm/" target="_blank" rel="noopener noreferrer">☁️ Overcast</a>
+          <a class="app-link" href="https://podcastaddict.com/" target="_blank" rel="noopener noreferrer">📱 Podcast Addict</a>
+          <a class="app-link" href="https://castro.fm/" target="_blank" rel="noopener noreferrer">🚀 Castro</a>
+          <a class="app-link" href="https://www.spotify.com/us/podcasts/" target="_blank" rel="noopener noreferrer">🟢 Spotify</a>
+        </div>
+
+        <ol>
+          <li>Copy the RSS feed URL.</li>
+          <li>Open your podcast app.</li>
+          <li>Choose “Add by URL” or “Follow by RSS feed.”</li>
+          <li>Paste the link and subscribe.</li>
+        </ol>
+
+        <div class="qr-wrap">
+          <img
+            class="qr-code"
+            src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https%3A%2F%2Fmjwoolley.github.io%2Fdigest-pipeline%2Fdigests%2Fai%2Fpodcast.xml"
+            alt="QR code for the AI Daily Roundup RSS feed"
+          >
+          <p class="qr-caption">Scan this on your phone to open or copy the RSS feed without doing the usual cross-device nonsense dance.</p>
+        </div>
+
+        <div class="coming-soon">
+          <strong>Coming soon:</strong> Apple Podcasts and other directory listings once the feed is submitted and approved.
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -433,19 +442,16 @@
 <script>
   const feedUrl = 'https://mjwoolley.github.io/digest-pipeline/digests/ai/podcast.xml';
   const copyStatus = document.getElementById('copyStatus');
-  const copyButtons = [document.getElementById('copyHeroBtn'), document.getElementById('copyRssBtn')].filter(Boolean);
+  const copyBtn = document.getElementById('copyRssBtn');
 
   async function copyFeedUrl() {
     try {
       await navigator.clipboard.writeText(feedUrl);
       copyStatus.textContent = 'Copied RSS feed URL.';
-      copyButtons.forEach(btn => btn.textContent = 'Copied!');
+      if (copyBtn) copyBtn.textContent = 'Copied!';
       setTimeout(() => {
         copyStatus.textContent = '';
-        const hero = document.getElementById('copyHeroBtn');
-        const rss = document.getElementById('copyRssBtn');
-        if (hero) hero.textContent = 'Copy RSS Feed';
-        if (rss) rss.textContent = 'Copy RSS';
+        if (copyBtn) copyBtn.textContent = 'Copy RSS';
       }, 1800);
     } catch (err) {
       const input = document.getElementById('rssInput');
@@ -455,9 +461,8 @@
     }
   }
 
-  copyButtons.forEach(btn => btn.addEventListener('click', copyFeedUrl));
+  if (copyBtn) copyBtn.addEventListener('click', copyFeedUrl);
 
-  // Email subscription via mailto:
   const emailInput = document.getElementById('emailInput');
   const emailBtn = document.getElementById('emailSubscribeBtn');
   const emailStatus = document.getElementById('emailStatus');
@@ -465,17 +470,16 @@
   function subscribeEmail() {
     const email = (emailInput.value || '').trim();
     if (!email || !email.includes('@')) {
-      emailStatus.style.color = '#ef4444';
+      emailStatus.style.color = 'var(--danger)';
       emailStatus.textContent = 'Please enter a valid email address.';
       return;
     }
-    // Open mailto: link to send a subscribe request to the AgentMail inbox
     const mailto = 'mailto:mjw_openclaw@agentmail.to'
       + '?subject=' + encodeURIComponent('subscribe')
       + '&body=' + encodeURIComponent('Please subscribe this email to The AI Daily Roundup:\n' + email);
     window.location.href = mailto;
     emailStatus.style.color = 'var(--success)';
-    emailStatus.textContent = 'Opening your email client — send the message to complete your subscription.';
+    emailStatus.textContent = 'Opening your email client so you can send the request.';
   }
 
   emailBtn.addEventListener('click', subscribeEmail);
