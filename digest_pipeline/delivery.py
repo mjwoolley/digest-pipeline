@@ -18,10 +18,22 @@ MAX_MSG_LEN = 4096
 
 # ── Email Delivery ──────────────────────────────────────────────────────────
 
-def send_email(subject: str, html_body: str, config: dict):
-    """Send email via configured method. Raises on failure."""
+def send_email(subject: str, html_body: str, config: dict,
+               to_override: str = None):
+    """Send email via configured method. Raises on failure.
+
+    Args:
+        subject: Email subject line.
+        html_body: HTML email body.
+        config: Full pipeline config dict.
+        to_override: If set, send to this address instead of the configured one.
+    """
     email_cfg = config.get("delivery", {}).get("email", {})
     method = email_cfg.get("method", "smtp")
+
+    # Allow per-call recipient override (used for subscriber fan-out)
+    if to_override:
+        email_cfg = {**email_cfg, "to": to_override}
 
     if method == "gog":
         _send_email_gog(subject, html_body, email_cfg)
@@ -31,6 +43,37 @@ def send_email(subject: str, html_body: str, config: dict):
         _send_email_agentmail(subject, html_body, email_cfg)
     else:
         raise ValueError(f"Unknown email method: {method}")
+
+
+def send_email_to_subscribers(subject: str, html_body_fn, config: dict):
+    """Send personalized email to all subscribers.
+
+    Args:
+        subject: Email subject line.
+        html_body_fn: Callable(email, token) -> html_body string.
+                      Called per-subscriber to inject unsubscribe link.
+        config: Full pipeline config dict.
+    """
+    from .subscribers import load_subscribers
+    data_root = config.get("_data_root")
+    if not data_root:
+        return
+
+    subscribers = load_subscribers(data_root)
+    if not subscribers:
+        logger.info("[DELIVER] No subscribers to email")
+        return
+
+    sent = 0
+    for sub in subscribers:
+        try:
+            html = html_body_fn(sub["email"], sub["token"])
+            send_email(subject, html, config, to_override=sub["email"])
+            sent += 1
+        except Exception as e:
+            logger.error(f"[DELIVER] Failed to send to {sub['email']}: {e}")
+
+    logger.info(f"[DELIVER] Sent to {sent}/{len(subscribers)} subscribers")
 
 
 def _send_email_gog(subject: str, html_body: str, email_cfg: dict):

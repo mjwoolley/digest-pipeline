@@ -284,16 +284,39 @@
 <div class="hero">
   <img src="podcast-logo.png" alt="The AI Daily Roundup logo">
   <h1>The AI Daily Roundup</h1>
-  <p class="tagline">Your daily briefing on the most important AI news &mdash; model releases, developer tools, research breakthroughs, and industry moves &mdash; delivered as a quick two-host conversation.</p>
+  <p class="tagline">Your daily briefing on the most important AI news &mdash; model releases, developer tools, research breakthroughs, and industry moves &mdash; delivered as a quick two-host conversation or a daily email digest.</p>
   <div class="hero-actions">
-    <a class="subscribe-btn" href="podcast.xml">Open RSS Feed</a>
+    <a class="subscribe-btn" href="#email-subscribe">Get the Daily Email</a>
+    <a class="secondary-btn" href="podcast.xml">Open RSS Feed</a>
     <button class="copy-btn" type="button" id="copyHeroBtn">Copy RSS Feed</button>
   </div>
-  <p class="subscribe-note">Directory listings are coming later. For now, the easiest path is to copy the RSS feed or scan the QR code and paste it into your favorite podcast app.</p>
+  <p class="subscribe-note">Subscribe to the daily email digest or add the podcast to your favorite app below.</p>
 </div>
 
+<!-- EMAIL_SUBSCRIBE_START -->
+<section class="section" id="email-subscribe">
+  <h2 class="section-title">Daily Email Digest</h2>
+  <div class="subscribe-grid">
+    <div class="card" style="grid-column: 1 / -1; max-width: 480px; margin: 0 auto;">
+      <h3>Get the digest in your inbox</h3>
+      <p>Receive a curated summary of the day's top AI news every morning. No spam, unsubscribe anytime.</p>
+      <div class="rss-field" style="margin-top: 1rem;">
+        <input class="rss-input" id="emailInput" type="email" placeholder="you@example.com" aria-label="Email address for digest subscription" style="flex: 1 1 200px;">
+        <button class="subscribe-btn" type="button" id="emailSubscribeBtn" style="border-radius: 12px; padding: 0.85rem 1.25rem;">Subscribe</button>
+      </div>
+      <span class="copy-status" id="emailStatus" aria-live="polite"></span>
+      <p style="font-size: 0.82rem; color: var(--muted); margin-top: 0.75rem;">
+        This sends a subscribe request to our inbox. You can also email
+        <a href="mailto:mjw_openclaw@agentmail.to?subject=subscribe">mjw_openclaw@agentmail.to</a>
+        with subject &ldquo;subscribe&rdquo; directly.
+      </p>
+    </div>
+  </div>
+</section>
+<!-- EMAIL_SUBSCRIBE_END -->
+
 <section class="section">
-  <h2 class="section-title">Subscribe Your Way</h2>
+  <h2 class="section-title">Podcast &mdash; Subscribe Your Way</h2>
   <div class="subscribe-grid">
     <div class="card">
       <h3>Copy the RSS feed</h3>
@@ -433,6 +456,32 @@
   }
 
   copyButtons.forEach(btn => btn.addEventListener('click', copyFeedUrl));
+
+  // Email subscription via mailto:
+  const emailInput = document.getElementById('emailInput');
+  const emailBtn = document.getElementById('emailSubscribeBtn');
+  const emailStatus = document.getElementById('emailStatus');
+
+  function subscribeEmail() {
+    const email = (emailInput.value || '').trim();
+    if (!email || !email.includes('@')) {
+      emailStatus.style.color = '#ef4444';
+      emailStatus.textContent = 'Please enter a valid email address.';
+      return;
+    }
+    // Open mailto: link to send a subscribe request to the AgentMail inbox
+    const mailto = 'mailto:mjw_openclaw@agentmail.to'
+      + '?subject=' + encodeURIComponent('subscribe')
+      + '&body=' + encodeURIComponent('Please subscribe this email to The AI Daily Roundup:\n' + email);
+    window.location.href = mailto;
+    emailStatus.style.color = 'var(--success)';
+    emailStatus.textContent = 'Opening your email client — send the message to complete your subscription.';
+  }
+
+  emailBtn.addEventListener('click', subscribeEmail);
+  emailInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') subscribeEmail();
+  });
 </script>
 
 </body>

@@ -137,11 +137,23 @@ def batch_sources(sources: list[dict], max_chars_per_batch: int = 200_000) -> li
 
 # ── Markdown to HTML (for email) ─────────────────────────────────────────────
 
-def _markdown_to_email_html(md: str, config: dict) -> str:
-    """Convert digest markdown to styled HTML for email delivery."""
+def _markdown_to_email_html(md: str, config: dict,
+                            unsubscribe_url: str = None) -> str:
+    """Convert digest markdown to styled HTML for email delivery.
+
+    Args:
+        md: Markdown digest text.
+        config: Pipeline config dict.
+        unsubscribe_url: Optional mailto: unsubscribe link for this recipient.
+    """
     digest_cfg = config.get("digest", {})
+    podcast_cfg = config.get("podcast", {})
     emoji = digest_cfg.get("emoji", "📰")
     section_emojis = [c["emoji"] for c in config.get("categories", [])]
+
+    # Branding: match podcast name and logo
+    brand_name = podcast_cfg.get("name", digest_cfg.get("name", "AI Daily Digest"))
+    brand_logo = podcast_cfg.get("image_url", "")
 
     lines = md.split("\n")
     html_lines = []
@@ -150,6 +162,25 @@ def _markdown_to_email_html(md: str, config: dict) -> str:
         'Roboto, sans-serif; max-width: 600px; margin: 0 auto; '
         'color: #333; line-height: 1.6; font-size: 15px;">'
     )
+
+    # Branded header matching the podcast
+    header_parts = []
+    if brand_logo:
+        header_parts.append(
+            f'<img src="{brand_logo}" alt="{brand_name}" '
+            f'style="width: 48px; height: 48px; border-radius: 10px; '
+            f'vertical-align: middle; margin-right: 12px;">'
+        )
+    header_parts.append(
+        f'<span style="font-size: 20px; font-weight: 700; '
+        f'color: #1a1a1a; vertical-align: middle;">{brand_name}</span>'
+    )
+    html_lines.append(
+        f'<div style="text-align: center; padding: 16px 0 12px; '
+        f'border-bottom: 1px solid #eee; margin-bottom: 16px;">'
+        f'{"".join(header_parts)}</div>'
+    )
+
     for line in lines:
         stripped = line.strip()
         if not stripped:
@@ -199,6 +230,17 @@ def _markdown_to_email_html(md: str, config: dict) -> str:
             continue
 
         html_lines.append(f"<p style=\"margin: 4px 0;\">{processed}</p>")
+
+    # Unsubscribe footer
+    if unsubscribe_url:
+        html_lines.append(
+            '<div style="margin-top: 24px; padding-top: 12px; '
+            'border-top: 1px solid #eee; text-align: center; '
+            'font-size: 12px; color: #999;">'
+            f'<a href="{unsubscribe_url}" style="color: #999; '
+            f'text-decoration: underline;">Unsubscribe</a> from {brand_name}'
+            '</div>'
+        )
 
     html_lines.append("</div>")
     return "\n".join(html_lines)
@@ -519,10 +561,20 @@ def main():
             emoji = digest_cfg.get("emoji", "📰")
             tagline = digest_cfg.get("name", "Digest")
             subject = f"{emoji} {tagline} — {date_display}"
-            html_body = _markdown_to_email_html(final_digest, config)
 
+            # Send to configured primary recipient (no unsubscribe link)
+            html_body = _markdown_to_email_html(final_digest, config)
             delivery.send_email(subject, html_body, config)
             logger.info("[DELIVER] Email delivery: OK")
+
+            # Send to subscribers with personalized unsubscribe links
+            from .subscribers import unsubscribe_url as _unsub_url
+            def _make_html(email, token):
+                return _markdown_to_email_html(
+                    final_digest, config,
+                    unsubscribe_url=_unsub_url("", token),
+                )
+            delivery.send_email_to_subscribers(subject, _make_html, config)
 
             total_dur = time.time() - start_time
             delivery.send_notification(

@@ -10,6 +10,9 @@ def main():
       digest-pipeline /path/to/config.json --digest-only [--dry-run]
       digest-pipeline /path/to/config.json --podcast-only [--dry-run] [date]
       digest-pipeline /path/to/config.json --backfill
+      digest-pipeline /path/to/config.json --subscribe user@example.com
+      digest-pipeline /path/to/config.json --unsubscribe user@example.com
+      digest-pipeline /path/to/config.json --list-subscribers
     """
     args = sys.argv[1:]
 
@@ -20,6 +23,17 @@ def main():
     backfill = "--backfill" in args
     digest_only = "--digest-only" in args
     podcast_only = "--podcast-only" in args
+
+    # Subscriber management commands
+    if "--subscribe" in args:
+        _run_subscriber_cmd(args, "subscribe")
+        return
+    if "--unsubscribe" in args:
+        _run_subscriber_cmd(args, "unsubscribe")
+        return
+    if "--list-subscribers" in args:
+        _run_subscriber_cmd(args, "list")
+        return
 
     if digest_only and podcast_only:
         print("Cannot use both --digest-only and --podcast-only")
@@ -49,6 +63,46 @@ def main():
                 print("Podcast generation failed (non-fatal)")
         except Exception as e:
             print(f"Podcast generation failed (non-fatal): {e}")
+
+
+def _run_subscriber_cmd(args, action):
+    """Handle --subscribe, --unsubscribe, and --list-subscribers commands."""
+    from .config import load_config
+    from .subscribers import add_subscriber, remove_subscriber, list_subscribers
+
+    config_path = next((a for a in args if not a.startswith("--")), None)
+    if not config_path:
+        print("Error: config path required")
+        sys.exit(1)
+
+    config = load_config(config_path)
+    data_root = config["_data_root"]
+
+    if action == "list":
+        subs = list_subscribers(data_root)
+        if not subs:
+            print("No subscribers.")
+        else:
+            print(f"{len(subs)} subscriber(s):")
+            for s in subs:
+                print(f"  {s['email']}  (token: {s['token']})")
+        return
+
+    # Get email argument (the value after --subscribe or --unsubscribe)
+    flag = f"--{action}"
+    try:
+        idx = args.index(flag)
+        email = args[idx + 1]
+    except (ValueError, IndexError):
+        print(f"Error: {flag} requires an email address")
+        sys.exit(1)
+
+    if action == "subscribe":
+        added, msg = add_subscriber(data_root, email)
+    else:
+        removed, msg = remove_subscriber(data_root, email=email)
+
+    print(msg)
 
 
 def _run_backfill(args):
