@@ -72,6 +72,7 @@ Six-stage pipeline orchestrated by `digest_pipeline/digest.py`:
 | `digest_pipeline/podcast.py` | Script generation + TTS audio synthesis |
 | `digest_pipeline/archive.py` | Allowlist-based git commit+push of daily artifacts |
 | `digest_pipeline/kokoro_tts.py` | Kokoro-82M local TTS (streaming WAV, memory-efficient) |
+| `digest_pipeline/subscription_api.py` | Flask API for subscribe/unsubscribe via HTTP |
 | `digest_pipeline/config.py` | Config JSON loading, prompt templating, voice mapping |
 | `digest_pipeline/log.py` | File + console logging, 30-day auto-cleanup |
 | `digest_pipeline/cli.py` | Unified CLI entry point |
@@ -79,7 +80,7 @@ Six-stage pipeline orchestrated by `digest_pipeline/digest.py`:
 
 ## Configuration
 
-All configuration is external via a JSON file passed with `--config`. Key sections: `sources`, `digest`, `categories`, `podcast`, `delivery`, `llm`, `archive`. API keys are loaded from environment variables, typically set via `secrets.env` at the repo root.
+All configuration is external via a JSON file passed with `--config`. Key sections: `sources`, `digest`, `categories`, `podcast`, `delivery`, `llm`, `archive`, `subscriptions`. API keys are loaded from environment variables, typically set via `secrets.env` at the repo root.
 
 ### Archive Config
 
@@ -104,6 +105,29 @@ All configuration is external via a JSON file passed with `--config`. Key sectio
 
 All fields are optional. Defaults: `enabled=false`, `push=true`, `commit_message="Daily archive: {date}"`, `artifacts` = the default list above. Set `branch` to push to a specific branch (e.g. `gh-pages`).
 
+### Subscriptions Config
+
+```json
+{
+  "subscriptions": {
+    "public_base_url": "https://example.com",
+    "cors_origins": ["https://mjwoolley.github.io"],
+    "port": 5100
+  }
+}
+```
+
+- `public_base_url`: Base URL for unsubscribe links in emails. When set, emails contain HTTP unsubscribe links; when empty, falls back to `mailto:`.
+- `cors_origins`: Allowed origins for CORS on the subscription API.
+- `port`: Port for the Flask subscription API server (default: 5100).
+
+**CLI serve command:** `digest-pipeline <config> --serve [--port PORT]` starts the subscription API on `127.0.0.1`.
+
+**Runtime files** (in `{data_root}/`, gitignored):
+- `subscribers.json` — subscriber list
+- `subscription_events.jsonl` — subscribe/unsubscribe event log
+- `send_history.jsonl` — per-subscriber email delivery log
+
 Required keys in `secrets.env` (at repo root):
 - `OPENROUTER_API_KEY` — OpenRouter API key (for LLM and embeddings)
 - `ANTHROPIC_API_KEY` — Anthropic API key (if using `"provider": "anthropic"` in config)
@@ -112,4 +136,4 @@ Required keys in `secrets.env` (at repo root):
 
 - **CLI tools**: `curl`, `ffmpeg`, `bird` (Twitter)
 - **APIs**: OpenRouter or Anthropic (LLM), OpenAI embeddings (via OpenRouter), Telegram/Slack (notifications)
-- **Python packages**: `numpy`, `kokoro` (installed automatically via `pip install -e .`)
+- **Python packages**: `numpy`, `kokoro`, `flask` (installed automatically via `pip install -e .`)

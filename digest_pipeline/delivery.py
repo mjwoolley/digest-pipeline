@@ -45,7 +45,8 @@ def send_email(subject: str, html_body: str, config: dict,
         raise ValueError(f"Unknown email method: {method}")
 
 
-def send_email_to_subscribers(subject: str, html_body_fn, config: dict):
+def send_email_to_subscribers(subject: str, html_body_fn, config: dict,
+                              digest_date: str = None):
     """Send personalized email to all subscribers.
 
     Args:
@@ -53,8 +54,9 @@ def send_email_to_subscribers(subject: str, html_body_fn, config: dict):
         html_body_fn: Callable(email, token) -> html_body string.
                       Called per-subscriber to inject unsubscribe link.
         config: Full pipeline config dict.
+        digest_date: Date string for send-history logging.
     """
-    from .subscribers import load_subscribers
+    from .subscribers import load_subscribers, log_send
     data_root = config.get("_data_root")
     if not data_root:
         return
@@ -64,14 +66,21 @@ def send_email_to_subscribers(subject: str, html_body_fn, config: dict):
         logger.info("[DELIVER] No subscribers to email")
         return
 
+    method = config.get("delivery", {}).get("email", {}).get("method", "smtp")
     sent = 0
     for sub in subscribers:
         try:
             html = html_body_fn(sub["email"], sub["token"])
             send_email(subject, html, config, to_override=sub["email"])
             sent += 1
+            if digest_date:
+                log_send(data_root, digest_date, sub["email"],
+                         "sent", method=method)
         except Exception as e:
             logger.error(f"[DELIVER] Failed to send to {sub['email']}: {e}")
+            if digest_date:
+                log_send(data_root, digest_date, sub["email"],
+                         "failed", error=str(e), method=method)
 
     logger.info(f"[DELIVER] Sent to {sent}/{len(subscribers)} subscribers")
 

@@ -85,6 +85,11 @@
       }
     }
   },
+  "subscriptions": {
+    "public_base_url": "https://ai-digest.duckdns.org",
+    "cors_origins": ["https://mjwoolley.github.io", "https://ai-digest.duckdns.org"],
+    "port": 5100
+  },
   "llm": {
     "provider": "openrouter"
   },

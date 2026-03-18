@@ -13,6 +13,7 @@ def main():
       digest-pipeline /path/to/config.json --subscribe user@example.com
       digest-pipeline /path/to/config.json --unsubscribe user@example.com
       digest-pipeline /path/to/config.json --list-subscribers
+      digest-pipeline /path/to/config.json --serve [--port PORT]
     """
     args = sys.argv[1:]
 
@@ -33,6 +34,11 @@ def main():
         return
     if "--list-subscribers" in args:
         _run_subscriber_cmd(args, "list")
+        return
+
+    # Subscription API server
+    if "--serve" in args:
+        _run_serve(args)
         return
 
     if digest_only and podcast_only:
@@ -110,11 +116,39 @@ def _run_subscriber_cmd(args, action):
         sys.exit(1)
 
     if action == "subscribe":
-        added, msg = add_subscriber(data_root, email)
+        added, msg = add_subscriber(data_root, email, source="cli")
     else:
         removed, msg = remove_subscriber(data_root, email=email)
 
     print(msg)
+
+
+def _run_serve(args):
+    """Start the subscription API server."""
+    from .subscription_api import create_app
+    from .config import load_config
+
+    config_path = next((a for a in args if not a.startswith("--")), None)
+    if not config_path:
+        print("Error: config path required")
+        sys.exit(1)
+
+    # Parse --port
+    port = 5100
+    if "--port" in args:
+        try:
+            idx = args.index("--port")
+            port = int(args[idx + 1])
+        except (ValueError, IndexError):
+            print("Error: --port requires a number")
+            sys.exit(1)
+    else:
+        config = load_config(config_path)
+        port = config.get("subscriptions", {}).get("port", 5100)
+
+    app = create_app(config_path)
+    print(f"Starting subscription API on http://127.0.0.1:{port}")
+    app.run(host="127.0.0.1", port=port)
 
 
 def _run_backfill(args):

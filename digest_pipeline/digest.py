@@ -569,12 +569,14 @@ def main():
 
             # Send to subscribers with personalized unsubscribe links
             from .subscribers import unsubscribe_url as _unsub_url
+            _pub_base = config.get("subscriptions", {}).get("public_base_url", "")
             def _make_html(email, token):
                 return _markdown_to_email_html(
                     final_digest, config,
-                    unsubscribe_url=_unsub_url("", token),
+                    unsubscribe_url=_unsub_url(_pub_base, token),
                 )
-            delivery.send_email_to_subscribers(subject, _make_html, config)
+            delivery.send_email_to_subscribers(
+                subject, _make_html, config, digest_date=date)
 
             total_dur = time.time() - start_time
             delivery.send_notification(

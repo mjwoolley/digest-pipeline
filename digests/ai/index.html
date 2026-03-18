@@ -312,17 +312,10 @@
       <p>Get the roundup in your inbox each day with the same branding and content as the podcast companion experience.</p>
       <div class="email-field">
         <input class="email-input" id="emailInput" type="email" placeholder="you@example.com" aria-label="Email address for digest subscription">
-        <button class="primary-btn" type="button" id="emailSubscribeBtn">Request email signup</button>
+        <input type="text" name="website" id="honeypot" style="display:none" tabindex="-1" autocomplete="off">
+        <button class="primary-btn" type="button" id="emailSubscribeBtn">Subscribe</button>
       </div>
       <span class="email-status" id="emailStatus" aria-live="polite"></span>
-      <div class="honesty-note">
-        <strong>Phase 1 reality check:</strong> this sends a subscription request email to the inbox that manages the digest. It is not fully automated yet, because we haven’t built the backend hook for direct signup processing.
-      </div>
-      <p style="font-size: 0.84rem; color: var(--muted); margin-top: 0.85rem;">
-        Prefer to do it manually? Email
-        <a href="mailto:mjw_openclaw@agentmail.to?subject=subscribe">mjw_openclaw@agentmail.to</a>
-        with subject <strong>subscribe</strong>.
-      </p>
     </div>
 
     <div class="card">
@@ -463,23 +456,49 @@
 
   if (copyBtn) copyBtn.addEventListener('click', copyFeedUrl);
 
+  const API_BASE = 'https://ai-digest.duckdns.org';
   const emailInput = document.getElementById('emailInput');
   const emailBtn = document.getElementById('emailSubscribeBtn');
   const emailStatus = document.getElementById('emailStatus');
+  const honeypot = document.getElementById('honeypot');
 
-  function subscribeEmail() {
+  function showStatus(msg, color) {
+    emailStatus.style.color = color;
+    emailStatus.textContent = msg;
+  }
+
+  async function subscribeEmail() {
     const email = (emailInput.value || '').trim();
     if (!email || !email.includes('@')) {
-      emailStatus.style.color = 'var(--danger)';
-      emailStatus.textContent = 'Please enter a valid email address.';
+      showStatus('Please enter a valid email address.', 'var(--danger)');
       return;
     }
-    const mailto = 'mailto:mjw_openclaw@agentmail.to'
-      + '?subject=' + encodeURIComponent('subscribe')
-      + '&body=' + encodeURIComponent('Please subscribe this email to The AI Daily Roundup:\n' + email);
-    window.location.href = mailto;
-    emailStatus.style.color = 'var(--success)';
-    emailStatus.textContent = 'Opening your email client so you can send the request.';
+
+    emailBtn.disabled = true;
+    emailBtn.textContent = 'Subscribing...';
+    showStatus('', 'var(--muted)');
+
+    try {
+      const body = { email: email };
+      if (honeypot && honeypot.value) body.website = honeypot.value;
+      const resp = await fetch((API_BASE || '') + '/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await resp.json();
+      if (resp.ok && data.ok) {
+        showStatus(data.message || 'Subscribed!', 'var(--success)');
+        emailInput.value = '';
+      } else {
+        showStatus(data.message || 'Something went wrong.', 'var(--danger)');
+      }
+    } catch (err) {
+      showStatus('Network error. Please try again.', 'var(--danger)');
+    }
+
+    emailBtn.disabled = false;
+    emailBtn.textContent = 'Subscribe';
   }
 
   emailBtn.addEventListener('click', subscribeEmail);
