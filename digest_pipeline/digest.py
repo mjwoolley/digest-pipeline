@@ -138,13 +138,15 @@ def batch_sources(sources: list[dict], max_chars_per_batch: int = 200_000) -> li
 # ── Markdown to HTML (for email) ─────────────────────────────────────────────
 
 def _markdown_to_email_html(md: str, config: dict,
-                            unsubscribe_url: str = None) -> str:
+                            unsubscribe_url: str = None,
+                            date_display: str = None) -> str:
     """Convert digest markdown to styled HTML for email delivery.
 
     Args:
         md: Markdown digest text.
         config: Pipeline config dict.
-        unsubscribe_url: Optional mailto: unsubscribe link for this recipient.
+        unsubscribe_url: Optional unsubscribe link for this recipient.
+        date_display: Short date string like "Wed 3/19/2026" for the header.
     """
     digest_cfg = config.get("digest", {})
     podcast_cfg = config.get("podcast", {})
@@ -168,12 +170,15 @@ def _markdown_to_email_html(md: str, config: dict,
     if brand_logo:
         header_parts.append(
             f'<img src="{brand_logo}" alt="{brand_name}" '
-            f'style="width: 48px; height: 48px; border-radius: 10px; '
-            f'vertical-align: middle; margin-right: 12px;">'
+            f'style="width: 80px; height: 80px; border-radius: 14px; '
+            f'display: block; margin: 0 auto 10px;">'
         )
+    title_text = brand_name
+    if date_display:
+        title_text += f' for {date_display}'
     header_parts.append(
         f'<span style="font-size: 20px; font-weight: 700; '
-        f'color: #1a1a1a; vertical-align: middle;">{brand_name}</span>'
+        f'color: #1a1a1a;">{title_text}</span>'
     )
     html_lines.append(
         f'<div style="text-align: center; padding: 16px 0 12px; '
@@ -207,12 +212,8 @@ def _markdown_to_email_html(md: str, config: dict,
             )
             continue
 
-        # Title line (digest emoji)
+        # Title line (digest emoji) — skip, shown in branded header
         if processed.startswith(emoji):
-            html_lines.append(
-                f'<h1 style="font-size: 22px; margin: 0 0 8px 0; '
-                f'color: #1a1a1a;">{processed}</h1>'
-            )
             continue
 
         if processed.startswith("•"):
@@ -562,21 +563,22 @@ def main():
             tagline = digest_cfg.get("name", "Digest")
             subject = f"{emoji} {tagline} — {date_display}"
 
-            # Send to configured primary recipient (no unsubscribe link)
-            html_body = _markdown_to_email_html(final_digest, config)
-            delivery.send_email(subject, html_body, config)
-            logger.info("[DELIVER] Email delivery: OK")
-
             # Send to subscribers with personalized unsubscribe links
             from .subscribers import unsubscribe_url as _unsub_url
             _pub_base = config.get("subscriptions", {}).get("public_base_url", "")
+            now = datetime.now(timezone.utc)
+            short_date = f"{now.strftime('%A, %B')} {now.day}, {now.year}"
             def _make_html(email, token):
                 return _markdown_to_email_html(
                     final_digest, config,
                     unsubscribe_url=_unsub_url(_pub_base, token),
+                    date_display=short_date,
                 )
+            def _unsub_for(email, token):
+                return _unsub_url(_pub_base, token)
             delivery.send_email_to_subscribers(
-                subject, _make_html, config, digest_date=date)
+                subject, _make_html, config, digest_date=date,
+                unsubscribe_url_fn=_unsub_for)
 
             total_dur = time.time() - start_time
             delivery.send_notification(

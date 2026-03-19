@@ -120,8 +120,8 @@ def _make_config(emoji="📰", categories=None):
 def test_markdown_to_html_heading():
     md = "📰 Daily Digest"
     html = _markdown_to_email_html(md, _make_config())
-    assert "<h1" in html
-    assert "Daily Digest" in html
+    # Title line is skipped in email (shown in branded header instead)
+    assert "📰" not in html
 
 
 def test_markdown_to_html_links():

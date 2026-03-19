@@ -103,11 +103,16 @@ def create_app(config_path: str) -> Flask:
             # Already subscribed — don't reveal this to prevent enumeration
             return jsonify({"ok": True, "message": "Thanks! Check your inbox to confirm."})
 
-    @app.route("/unsubscribe", methods=["GET"])
+    @app.route("/unsubscribe", methods=["GET", "POST"])
     def unsubscribe_page():
         token = request.args.get("token", "")
         if not token:
             return _render_unsubscribe_page(valid=False), 400
+
+        # POST = Gmail one-click List-Unsubscribe; unsubscribe immediately
+        if request.method == "POST":
+            remove_subscriber(data_root, token=token, source="list-unsubscribe")
+            return "", 200
 
         subscribers = load_subscribers(data_root)
         found = any(s["token"] == token for s in subscribers)

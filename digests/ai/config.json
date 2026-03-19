@@ -71,7 +71,6 @@
   "delivery": {
     "email": {
       "method": "agentmail",
-      "to": "mwoolley2@gmail.com",
       "agentmail": {
         "api_key_env": "AGENTMAIL_API_KEY",
         "inbox_id": "mjw_openclaw@agentmail.to"

@@ -19,7 +19,7 @@ MAX_MSG_LEN = 4096
 # ── Email Delivery ──────────────────────────────────────────────────────────
 
 def send_email(subject: str, html_body: str, config: dict,
-               to_override: str = None):
+               to_override: str = None, unsubscribe_url: str = None):
     """Send email via configured method. Raises on failure.
 
     Args:
@@ -27,6 +27,7 @@ def send_email(subject: str, html_body: str, config: dict,
         html_body: HTML email body.
         config: Full pipeline config dict.
         to_override: If set, send to this address instead of the configured one.
+        unsubscribe_url: If set, added as List-Unsubscribe header for Gmail.
     """
     email_cfg = config.get("delivery", {}).get("email", {})
     method = email_cfg.get("method", "smtp")
@@ -38,15 +39,16 @@ def send_email(subject: str, html_body: str, config: dict,
     if method == "gog":
         _send_email_gog(subject, html_body, email_cfg)
     elif method == "smtp":
-        _send_email_smtp(subject, html_body, email_cfg)
+        _send_email_smtp(subject, html_body, email_cfg, unsubscribe_url)
     elif method == "agentmail":
-        _send_email_agentmail(subject, html_body, email_cfg)
+        _send_email_agentmail(subject, html_body, email_cfg, unsubscribe_url)
     else:
         raise ValueError(f"Unknown email method: {method}")
 
 
 def send_email_to_subscribers(subject: str, html_body_fn, config: dict,
-                              digest_date: str = None):
+                              digest_date: str = None,
+                              unsubscribe_url_fn=None):
     """Send personalized email to all subscribers.
 
     Args:
@@ -55,6 +57,8 @@ def send_email_to_subscribers(subject: str, html_body_fn, config: dict,
                       Called per-subscriber to inject unsubscribe link.
         config: Full pipeline config dict.
         digest_date: Date string for send-history logging.
+        unsubscribe_url_fn: Callable(email, token) -> unsubscribe URL string.
+                            Used for List-Unsubscribe header (Gmail one-click).
     """
     from .subscribers import load_subscribers, log_send
     data_root = config.get("_data_root")
@@ -71,7 +75,9 @@ def send_email_to_subscribers(subject: str, html_body_fn, config: dict,
     for sub in subscribers:
         try:
             html = html_body_fn(sub["email"], sub["token"])
-            send_email(subject, html, config, to_override=sub["email"])
+            unsub = unsubscribe_url_fn(sub["email"], sub["token"]) if unsubscribe_url_fn else None
+            send_email(subject, html, config, to_override=sub["email"],
+                       unsubscribe_url=unsub)
             sent += 1
             if digest_date:
                 log_send(data_root, digest_date, sub["email"],
@@ -113,7 +119,8 @@ def _send_email_gog(subject: str, html_body: str, email_cfg: dict):
     logger.info("[DELIVER] Email sent via GOG")
 
 
-def _send_email_smtp(subject: str, html_body: str, email_cfg: dict):
+def _send_email_smtp(subject: str, html_body: str, email_cfg: dict,
+                     unsubscribe_url: str = None):
     """Send email via SMTP."""
     smtp_cfg = email_cfg.get("smtp", {})
     host = smtp_cfg.get("host", "smtp.gmail.com")
@@ -128,6 +135,9 @@ def _send_email_smtp(subject: str, html_body: str, email_cfg: dict):
     msg["Subject"] = subject
     msg["From"] = from_addr
     msg["To"] = to_addr
+    if unsubscribe_url:
+        msg["List-Unsubscribe"] = f"<{unsubscribe_url}>"
+        msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
     msg.attach(MIMEText("See HTML version of this email.", "plain"))
     msg.attach(MIMEText(html_body, "html"))
 
@@ -138,7 +148,8 @@ def _send_email_smtp(subject: str, html_body: str, email_cfg: dict):
     logger.info("[DELIVER] Email sent via SMTP")
 
 
-def _send_email_agentmail(subject: str, html_body: str, email_cfg: dict):
+def _send_email_agentmail(subject: str, html_body: str, email_cfg: dict,
+                          unsubscribe_url: str = None):
     """Send email via AgentMail API.
 
     Requires an AgentMail inbox. Config:
@@ -160,12 +171,18 @@ def _send_email_agentmail(subject: str, html_body: str, email_cfg: dict):
     encoded_inbox = urllib.parse.quote(inbox_id, safe="")
     url = f"https://api.agentmail.to/v0/inboxes/{encoded_inbox}/messages/send"
 
-    payload = json.dumps({
+    msg = {
         "to": to_addr,
         "subject": subject,
         "text": "See HTML version of this email.",
         "html": html_body,
-    }).encode()
+    }
+    if unsubscribe_url:
+        msg["headers"] = {
+            "List-Unsubscribe": f"<{unsubscribe_url}>",
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        }
+    payload = json.dumps(msg).encode()
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}",
