@@ -509,6 +509,9 @@
   emailInput.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') subscribeEmail();
   });
+  emailInput.addEventListener('focus', function() {
+    emailStatus.textContent = '';
+  });
 </script>
 
 </body>
