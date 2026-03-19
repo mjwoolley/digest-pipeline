@@ -570,7 +570,7 @@ def main():
             short_date = f"{now.strftime('%A, %B')} {now.day}, {now.year}"
             def _make_html(email, token):
                 return _markdown_to_email_html(
-                    final_digest, config,
+                    formatted, config,
                     unsubscribe_url=_unsub_url(_pub_base, token),
                     date_display=short_date,
                 )
