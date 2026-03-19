@@ -73,6 +73,7 @@ Six-stage pipeline orchestrated by `digest_pipeline/digest.py`:
 | `digest_pipeline/archive.py` | Allowlist-based git commit+push of daily artifacts |
 | `digest_pipeline/kokoro_tts.py` | Kokoro-82M local TTS (streaming WAV, memory-efficient) |
 | `digest_pipeline/subscription_api.py` | Flask API for subscribe/unsubscribe via HTTP |
+| `digest_pipeline/subscribers.py` | Subscriber CRUD, email validation, event/send logging |
 | `digest_pipeline/config.py` | Config JSON loading, prompt templating, voice mapping |
 | `digest_pipeline/log.py` | File + console logging, 30-day auto-cleanup |
 | `digest_pipeline/cli.py` | Unified CLI entry point |
@@ -131,6 +132,29 @@ All fields are optional. Defaults: `enabled=false`, `push=true`, `commit_message
 Required keys in `secrets.env` (at repo root):
 - `OPENROUTER_API_KEY` — OpenRouter API key (for LLM and embeddings)
 - `ANTHROPIC_API_KEY` — Anthropic API key (if using `"provider": "anthropic"` in config)
+
+## Deployment
+
+**VPS:** `178.156.161.33` (ubuntu-2gb-ash-1), runs Tailscale.
+
+**Subscription API** runs as a systemd service (`digest-subscriptions.service`) on `127.0.0.1:5100`, fronted by Caddy reverse proxy at `https://ai-digest.duckdns.org`. Caddy handles automatic TLS via Let's Encrypt.
+
+- **Caddyfile:** `/etc/caddy/Caddyfile` — binds to `178.156.161.33` (not `0.0.0.0`) to avoid port conflict with Tailscale on `:443`.
+- **systemd service:** `/etc/systemd/system/digest-subscriptions.service` — runs as `clawdbot`, uses `EnvironmentFile=/home/clawdbot/digest-pipeline/secrets.env`.
+- **Entry point:** Must use `.venv/bin/digest-pipeline` (the installed console script), not `python -m digest_pipeline.cli` (no `__main__.py`).
+- **DuckDNS:** Free subdomain `ai-digest.duckdns.org` pointing to the VPS public IP.
+
+```bash
+# Manage the subscription API service
+sudo systemctl status digest-subscriptions
+sudo systemctl restart digest-subscriptions
+sudo journalctl -u digest-subscriptions --no-pager -n 30
+
+# Manage Caddy
+sudo systemctl status caddy
+sudo systemctl restart caddy
+sudo journalctl -u caddy --no-pager -n 30
+```
 
 ## External Dependencies
 
