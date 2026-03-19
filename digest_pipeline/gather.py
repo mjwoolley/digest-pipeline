@@ -167,9 +167,32 @@ def _extract_email_text(msg: email.message.Message) -> str:
     return ""
 
 
+def _is_bad_payload(text: str) -> bool:
+    """Check if a fetched payload is an error page or app-shell, not real content.
+
+    Note: ``_next/static`` alone is NOT a rejection signal — legitimate Next.js
+    pages (e.g. Anthropic /news) contain it.  Only explicit error markers and
+    "Not Found" titles/headings trigger rejection.
+    """
+    error_markers = ["NEXT_HTTP_ERROR_FALLBACK", "__next_error__"]
+    for marker in error_markers:
+        if marker in text:
+            return True
+    # Detect generic "Not Found" HTML error pages (title or heading)
+    if re.search(r'<(title|h1)[^>]*>\s*Not Found\s*</', text, re.IGNORECASE):
+        return True
+    return False
+
+
 def _fetch_blog(key: str, blog: dict) -> dict:
-    """Fetch and parse a blog RSS feed."""
+    """Fetch and parse a blog source. Dispatches by strategy."""
     name = blog["name"]
+    strategy = blog.get("strategy", "rss")
+
+    if strategy == "html_scrape":
+        return _fetch_blog_html_scrape(key, blog)
+
+    # Default: RSS strategy
     try:
         try:
             result = subprocess.run(
@@ -186,13 +209,116 @@ def _fetch_blog(key: str, blog: dict) -> dict:
             return {"name": name, "type": "blog", "key": f"blog-{key}",
                     "content": ""}
 
+        if _is_bad_payload(result.stdout):
+            logger.warning(f"[GATHER] {name}: bad payload (error page or app-shell)")
+            return {"name": name, "type": "blog", "key": f"blog-{key}",
+                    "content": ""}
+
         parsed = parse_rss_recent(result.stdout)
         if parsed is not None:
             content = parsed
             logger.info(f"[GATHER] {name}: OK (XML parsed)")
         else:
-            content = "\n".join(result.stdout.split("\n")[:300])
-            logger.info(f"[GATHER] {name}: OK (raw truncated)")
+            logger.warning(f"[GATHER] {name}: failed to parse RSS/Atom XML")
+            content = ""
+        return {"name": name, "type": "blog", "key": f"blog-{key}",
+                "content": content}
+    except Exception as e:
+        logger.warning(f"[GATHER] {name}: {e}")
+        return {"name": name, "type": "blog", "key": f"blog-{key}",
+                "content": ""}
+
+
+# ── HTML scrape strategy ─────────────────────────────────────────────────────
+
+class AnthropicNewsParser(HTMLParser):
+    """Parse the Anthropic /news landing page to extract article links/titles.
+
+    Skips the curated/featured section at the top of the page and only
+    extracts from the chronological list that follows the <h2>News</h2> heading.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.articles = []  # list of (title, url)
+        self._in_link = False
+        self._current_href = ""
+        self._text_buf = ""
+        self._in_h2 = False
+        self._past_news_heading = False
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "h2":
+            self._in_h2 = True
+            self._text_buf = ""
+        elif tag == "a" and self._past_news_heading:
+            attrs_dict = dict(attrs)
+            href = attrs_dict.get("href", "")
+            if href.startswith("/news/") and href != "/news/" and href != "/news":
+                self._in_link = True
+                self._current_href = href
+                self._text_buf = ""
+
+    def handle_endtag(self, tag):
+        if tag == "h2" and self._in_h2:
+            if self._text_buf.strip() == "News":
+                self._past_news_heading = True
+            self._in_h2 = False
+        elif tag == "a" and self._in_link:
+            title = self._text_buf.strip()
+            if title and self._current_href:
+                url = f"https://www.anthropic.com{self._current_href}"
+                # Deduplicate by URL
+                if not any(u == url for _, u in self.articles):
+                    self.articles.append((title, url))
+            self._in_link = False
+
+    def handle_data(self, data):
+        if self._in_h2 or self._in_link:
+            self._text_buf += data
+
+
+def parse_anthropic_news(html: str) -> str:
+    """Parse the Anthropic /news page HTML and return formatted entries."""
+    parser = AnthropicNewsParser()
+    parser.feed(html)
+    entries = []
+    for title, url in parser.articles:
+        entries.append(f"TITLE: {title}\nLINK: {url}\n---")
+    return "\n".join(entries)
+
+
+def _fetch_blog_html_scrape(key: str, blog: dict) -> dict:
+    """Fetch a blog via HTML scraping instead of RSS."""
+    name = blog["name"]
+    url = blog.get("url", blog.get("feed_url", ""))
+    scrape_parser = blog.get("scrape_parser", "")
+    try:
+        result = subprocess.run(
+            ["curl", "-sL", "--max-time", "10", url],
+            capture_output=True, text=True, timeout=15
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            logger.warning(f"[GATHER] {name}: fetch failed")
+            return {"name": name, "type": "blog", "key": f"blog-{key}",
+                    "content": ""}
+
+        if _is_bad_payload(result.stdout):
+            logger.warning(f"[GATHER] {name}: bad payload (error page or app-shell)")
+            return {"name": name, "type": "blog", "key": f"blog-{key}",
+                    "content": ""}
+
+        if scrape_parser == "anthropic_news":
+            content = parse_anthropic_news(result.stdout)
+        else:
+            logger.warning(f"[GATHER] {name}: unknown scrape_parser '{scrape_parser}'")
+            return {"name": name, "type": "blog", "key": f"blog-{key}",
+                    "content": ""}
+
+        if content:
+            logger.info(f"[GATHER] {name}: OK (HTML scraped)")
+        else:
+            logger.warning(f"[GATHER] {name}: no articles found in HTML")
         return {"name": name, "type": "blog", "key": f"blog-{key}",
                 "content": content}
     except Exception as e:

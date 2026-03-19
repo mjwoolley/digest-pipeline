@@ -172,7 +172,9 @@
       },
       "anthropic_blog": {
         "name": "Anthropic News",
-        "feed_url": "https://www.anthropic.com/news/rss.xml",
+        "strategy": "html_scrape",
+        "url": "https://www.anthropic.com/news",
+        "scrape_parser": "anthropic_news",
         "description": "Claude model releases, research, and tooling"
       },
       "google_ai_blog": {

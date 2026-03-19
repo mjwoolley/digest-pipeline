@@ -6,7 +6,10 @@ from unittest.mock import patch
 
 from digest_pipeline.gather import (
     _parse_date,
+    _is_bad_payload,
+    _fetch_blog,
     parse_rss_recent,
+    parse_anthropic_news,
     TrendingParser,
     parse_github_trending,
     _extract_email_text,
@@ -193,3 +196,154 @@ def test_extract_email_empty():
     )
     result = _extract_email_text(msg)
     assert result.strip() == ""
+
+
+# ── _is_bad_payload ──────────────────────────────────────────────────────────
+
+def test_bad_payload_next_error():
+    assert _is_bad_payload('<html><body>NEXT_HTTP_ERROR_FALLBACK</body></html>')
+
+
+def test_bad_payload_next_error_flag():
+    assert _is_bad_payload('<html __next_error__><body>error</body></html>')
+
+
+def test_next_static_alone_is_not_bad():
+    """_next/static by itself is legitimate — real Next.js pages have it."""
+    html = '<script src="/_next/static/chunks/main.js"></script><p>Real content</p>'
+    assert not _is_bad_payload(html)
+
+
+def test_next_static_with_error_is_bad():
+    """_next/static combined with an error marker should still reject."""
+    html = '<html __next_error__><script src="/_next/static/chunks/main.js"></script></html>'
+    assert _is_bad_payload(html)
+
+
+def test_bad_payload_not_found_title():
+    assert _is_bad_payload('<html><head><title>Not Found</title></head></html>')
+
+
+def test_bad_payload_not_found_h1():
+    assert _is_bad_payload('<html><body><h1>Not Found</h1></body></html>')
+
+
+def test_bad_payload_valid_rss():
+    assert not _is_bad_payload('<?xml version="1.0"?><rss><channel></channel></rss>')
+
+
+def test_bad_payload_valid_html():
+    assert not _is_bad_payload('<html><body><p>Real content here</p></body></html>')
+
+
+# ── parse_anthropic_news ─────────────────────────────────────────────────────
+
+ANTHROPIC_NEWS_HTML = """
+<html>
+<body>
+  <!-- Curated/featured section (should be skipped) -->
+  <section>
+    <a href="/news/featured-article">Featured Article Title</a>
+    <a href="/news/another-featured">Another Featured</a>
+  </section>
+  <!-- News heading marks start of chronological list -->
+  <h2>News</h2>
+  <a href="/news/claude-4-release">Claude 4 Release</a>
+  <a href="/news/safety-research-update">Safety Research Update</a>
+  <a href="/news/">All News</a>
+  <a href="/careers">Careers</a>
+  <a href="/news/claude-4-release">Claude 4 Release</a>
+</body>
+</html>
+"""
+
+
+def test_parse_anthropic_news_extracts_articles():
+    result = parse_anthropic_news(ANTHROPIC_NEWS_HTML)
+    assert "Claude 4 Release" in result
+    assert "Safety Research Update" in result
+    assert "https://www.anthropic.com/news/claude-4-release" in result
+    assert "https://www.anthropic.com/news/safety-research-update" in result
+
+
+def test_parse_anthropic_news_skips_featured_section():
+    """Articles before the <h2>News</h2> heading should be skipped."""
+    result = parse_anthropic_news(ANTHROPIC_NEWS_HTML)
+    assert "Featured Article Title" not in result
+    assert "Another Featured" not in result
+    assert "featured-article" not in result
+
+
+def test_parse_anthropic_news_skips_non_article_links():
+    result = parse_anthropic_news(ANTHROPIC_NEWS_HTML)
+    assert "/careers" not in result
+    # /news/ and /news are skipped (index pages)
+    lines = result.split("\n")
+    link_lines = [l for l in lines if l.startswith("LINK:")]
+    assert all("/news/" in l and l.strip() != "LINK: https://www.anthropic.com/news/" for l in link_lines)
+
+
+def test_parse_anthropic_news_deduplicates():
+    result = parse_anthropic_news(ANTHROPIC_NEWS_HTML)
+    assert result.count("claude-4-release") == 1
+
+
+def test_parse_anthropic_news_empty():
+    result = parse_anthropic_news("<html><body><p>No links</p></body></html>")
+    assert result == ""
+
+
+def test_parse_anthropic_news_no_news_heading():
+    """If there's no <h2>News</h2> heading, no articles are extracted."""
+    html = '<html><body><a href="/news/some-article">Some Article</a></body></html>'
+    result = parse_anthropic_news(html)
+    assert result == ""
+
+
+# ── Strategy dispatch ────────────────────────────────────────────────────────
+
+def test_fetch_blog_strategy_dispatch_rss(tmp_path):
+    """Default strategy uses RSS path (and rejects bad payloads)."""
+    bad_html = '<html __next_error__><body>Not Found</body></html>'
+    blog = {"name": "Test Blog", "feed_url": "http://example.com/rss"}
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value.returncode = 0
+        mock_run.return_value.stdout = bad_html
+        result = _fetch_blog("test", blog)
+    assert result["content"] == ""
+
+
+def test_fetch_blog_strategy_dispatch_html_scrape(tmp_path):
+    """html_scrape strategy dispatches to scrape path."""
+    blog = {
+        "name": "Anthropic News",
+        "strategy": "html_scrape",
+        "url": "https://www.anthropic.com/news",
+        "scrape_parser": "anthropic_news",
+    }
+    html = '<html><body><h2>News</h2><a href="/news/test-article">Test Article</a></body></html>'
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value.returncode = 0
+        mock_run.return_value.stdout = html
+        result = _fetch_blog("anthropic_blog", blog)
+    assert "Test Article" in result["content"]
+    assert "https://www.anthropic.com/news/test-article" in result["content"]
+
+
+def test_fetch_blog_html_scrape_accepts_nextjs_page(tmp_path):
+    """Real Next.js pages with _next/static should be accepted, not rejected."""
+    blog = {
+        "name": "Anthropic News",
+        "strategy": "html_scrape",
+        "url": "https://www.anthropic.com/news",
+        "scrape_parser": "anthropic_news",
+    }
+    html = (
+        '<html><head><script src="/_next/static/chunks/main.js"></script></head>'
+        '<body><h2>News</h2><a href="/news/some-article">Some Article</a></body></html>'
+    )
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value.returncode = 0
+        mock_run.return_value.stdout = html
+        result = _fetch_blog("anthropic_blog", blog)
+    assert "Some Article" in result["content"]
