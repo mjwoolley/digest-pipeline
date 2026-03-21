@@ -20,7 +20,7 @@ Summarize each into a concise digest entry and format for delivery.
 [**Title**](url1)
 [2-3 sentence summary]
 _Why it matters: [1 sentence]_
-→ [source1](url1), [source2](url2)
+→ [source_label1](url1), [source_label2](url2)
 
 ## Rules
 - Omit category sections with no items

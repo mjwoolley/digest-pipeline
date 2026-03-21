@@ -43,8 +43,12 @@ def load_secrets(secrets_file: Path):
 
 def _fetch_twitter(account: str, auth_token: str, ct0: str) -> dict:
     """Fetch tweets for a single account."""
-    name = f"@{account}"
+    source_label = f"@{account}"
+    source_key = f"twitter:{account}"
+    source_url = f"https://twitter.com/{account}"
     env = {**os.environ, "AUTH_TOKEN": auth_token, "CT0": ct0}
+    base = {"source_key": source_key, "source_type": "twitter",
+            "source_label": source_label, "source_url": source_url}
     try:
         try:
             result = subprocess.run(
@@ -58,15 +62,13 @@ def _fetch_twitter(account: str, auth_token: str, ct0: str) -> dict:
             )
         content = result.stdout.strip() if result.returncode == 0 else ""
         if not content:
-            logger.warning(f"[GATHER] {name}: empty or failed")
+            logger.warning(f"[GATHER] {source_label}: empty or failed")
         else:
-            logger.info(f"[GATHER] {name}: OK")
-        return {"name": name, "type": "twitter", "key": f"twitter-{account}",
-                "content": content}
+            logger.info(f"[GATHER] {source_label}: OK")
+        return {**base, "content": content}
     except Exception as e:
-        logger.warning(f"[GATHER] {name}: {e}")
-        return {"name": name, "type": "twitter", "key": f"twitter-{account}",
-                "content": ""}
+        logger.warning(f"[GATHER] {source_label}: {e}")
+        return {**base, "content": ""}
 
 
 def _get_last_success_date(data_root: Path = None) -> datetime | None:
@@ -98,7 +100,10 @@ def _fetch_newsletter(key: str, nl: dict, imap_host: str,
     If last_success is provided, uses that as the lookback date instead of
     lookback_days, ensuring no newsletters are missed between runs.
     """
-    name = nl["name"]
+    source_label = nl["name"]
+    source_key = f"newsletter:{key}"
+    base = {"source_key": source_key, "source_type": "newsletter",
+            "source_label": source_label, "source_url": ""}
     sender = nl["from"]
     if last_success is not None:
         since_date = last_success.strftime("%d-%b-%Y")
@@ -115,9 +120,8 @@ def _fetch_newsletter(key: str, nl: dict, imap_host: str,
         status, msg_ids = conn.search(None, f'(FROM "{sender}" SINCE {since_date})')
         if status != "OK" or not msg_ids[0]:
             conn.logout()
-            logger.info(f"[GATHER] {name}: no recent issue")
-            return {"name": name, "type": "newsletter", "key": f"nl-{key}",
-                    "content": ""}
+            logger.info(f"[GATHER] {source_label}: no recent issue")
+            return {**base, "content": ""}
 
         # Fetch the most recent match
         latest_id = msg_ids[0].split()[-1]
@@ -125,22 +129,19 @@ def _fetch_newsletter(key: str, nl: dict, imap_host: str,
         conn.logout()
 
         if status != "OK":
-            logger.warning(f"[GATHER] {name}: fetch failed")
-            return {"name": name, "type": "newsletter", "key": f"nl-{key}",
-                    "content": ""}
+            logger.warning(f"[GATHER] {source_label}: fetch failed")
+            return {**base, "content": ""}
 
         msg = email.message_from_bytes(msg_data[0][1], policy=email.policy.default)
         content = _extract_email_text(msg)
         # Truncate to first 300 lines
         content = "\n".join(content.split("\n")[:300])
 
-        logger.info(f"[GATHER] {name}: OK")
-        return {"name": name, "type": "newsletter", "key": f"nl-{key}",
-                "content": content}
+        logger.info(f"[GATHER] {source_label}: OK")
+        return {**base, "content": content}
     except Exception as e:
-        logger.warning(f"[GATHER] {name}: {e}")
-        return {"name": name, "type": "newsletter", "key": f"nl-{key}",
-                "content": ""}
+        logger.warning(f"[GATHER] {source_label}: {e}")
+        return {**base, "content": ""}
 
 
 def _extract_email_text(msg: email.message.Message) -> str:
@@ -184,13 +185,17 @@ def _is_bad_payload(text: str) -> bool:
     return False
 
 
-def _fetch_blog(key: str, blog: dict) -> dict:
+def _fetch_blog(key: str, blog: dict, source_type: str = "blog") -> dict:
     """Fetch and parse a blog source. Dispatches by strategy."""
-    name = blog["name"]
+    source_label = blog["name"]
+    source_key = f"{source_type}:{key}"
+    source_url = blog.get("url", blog.get("feed_url", ""))
+    base = {"source_key": source_key, "source_type": source_type,
+            "source_label": source_label, "source_url": source_url}
     strategy = blog.get("strategy", "rss")
 
     if strategy == "html_scrape":
-        return _fetch_blog_html_scrape(key, blog)
+        return _fetch_blog_html_scrape(key, blog, source_type=source_type)
 
     # Default: RSS strategy
     try:
@@ -205,28 +210,24 @@ def _fetch_blog(key: str, blog: dict) -> dict:
                 "or brew install curl (macOS)"
             )
         if result.returncode != 0 or not result.stdout.strip():
-            logger.warning(f"[GATHER] {name}: fetch failed")
-            return {"name": name, "type": "blog", "key": f"blog-{key}",
-                    "content": ""}
+            logger.warning(f"[GATHER] {source_label}: fetch failed")
+            return {**base, "content": ""}
 
         if _is_bad_payload(result.stdout):
-            logger.warning(f"[GATHER] {name}: bad payload (error page or app-shell)")
-            return {"name": name, "type": "blog", "key": f"blog-{key}",
-                    "content": ""}
+            logger.warning(f"[GATHER] {source_label}: bad payload (error page or app-shell)")
+            return {**base, "content": ""}
 
         parsed = parse_rss_recent(result.stdout)
         if parsed is not None:
             content = parsed
-            logger.info(f"[GATHER] {name}: OK (XML parsed)")
+            logger.info(f"[GATHER] {source_label}: OK (XML parsed)")
         else:
-            logger.warning(f"[GATHER] {name}: failed to parse RSS/Atom XML")
+            logger.warning(f"[GATHER] {source_label}: failed to parse RSS/Atom XML")
             content = ""
-        return {"name": name, "type": "blog", "key": f"blog-{key}",
-                "content": content}
+        return {**base, "content": content}
     except Exception as e:
-        logger.warning(f"[GATHER] {name}: {e}")
-        return {"name": name, "type": "blog", "key": f"blog-{key}",
-                "content": ""}
+        logger.warning(f"[GATHER] {source_label}: {e}")
+        return {**base, "content": ""}
 
 
 # ── HTML scrape strategy ─────────────────────────────────────────────────────
@@ -288,43 +289,42 @@ def parse_anthropic_news(html: str) -> str:
     return "\n".join(entries)
 
 
-def _fetch_blog_html_scrape(key: str, blog: dict) -> dict:
+def _fetch_blog_html_scrape(key: str, blog: dict,
+                            source_type: str = "blog") -> dict:
     """Fetch a blog via HTML scraping instead of RSS."""
-    name = blog["name"]
-    url = blog.get("url", blog.get("feed_url", ""))
+    source_label = blog["name"]
+    source_key = f"{source_type}:{key}"
+    source_url = blog.get("url", blog.get("feed_url", ""))
+    base = {"source_key": source_key, "source_type": source_type,
+            "source_label": source_label, "source_url": source_url}
     scrape_parser = blog.get("scrape_parser", "")
     try:
         result = subprocess.run(
-            ["curl", "-sL", "--max-time", "10", url],
+            ["curl", "-sL", "--max-time", "10", source_url],
             capture_output=True, text=True, timeout=15
         )
         if result.returncode != 0 or not result.stdout.strip():
-            logger.warning(f"[GATHER] {name}: fetch failed")
-            return {"name": name, "type": "blog", "key": f"blog-{key}",
-                    "content": ""}
+            logger.warning(f"[GATHER] {source_label}: fetch failed")
+            return {**base, "content": ""}
 
         if _is_bad_payload(result.stdout):
-            logger.warning(f"[GATHER] {name}: bad payload (error page or app-shell)")
-            return {"name": name, "type": "blog", "key": f"blog-{key}",
-                    "content": ""}
+            logger.warning(f"[GATHER] {source_label}: bad payload (error page or app-shell)")
+            return {**base, "content": ""}
 
         if scrape_parser == "anthropic_news":
             content = parse_anthropic_news(result.stdout)
         else:
-            logger.warning(f"[GATHER] {name}: unknown scrape_parser '{scrape_parser}'")
-            return {"name": name, "type": "blog", "key": f"blog-{key}",
-                    "content": ""}
+            logger.warning(f"[GATHER] {source_label}: unknown scrape_parser '{scrape_parser}'")
+            return {**base, "content": ""}
 
         if content:
-            logger.info(f"[GATHER] {name}: OK (HTML scraped)")
+            logger.info(f"[GATHER] {source_label}: OK (HTML scraped)")
         else:
-            logger.warning(f"[GATHER] {name}: no articles found in HTML")
-        return {"name": name, "type": "blog", "key": f"blog-{key}",
-                "content": content}
+            logger.warning(f"[GATHER] {source_label}: no articles found in HTML")
+        return {**base, "content": content}
     except Exception as e:
-        logger.warning(f"[GATHER] {name}: {e}")
-        return {"name": name, "type": "blog", "key": f"blog-{key}",
-                "content": ""}
+        logger.warning(f"[GATHER] {source_label}: {e}")
+        return {**base, "content": ""}
 
 
 # ── RSS parsing ──────────────────────────────────────────────────────────────
@@ -512,29 +512,30 @@ def parse_github_trending(html: str, min_stars: int, keywords: list[str]) -> str
 
 def _fetch_github_trending(cfg: dict) -> dict:
     """Fetch GitHub Trending page and extract AI-relevant repos."""
-    name = cfg["name"]
+    source_label = cfg["name"]
+    source_key = "github_trending:trending"
+    source_url = cfg["url"]
+    base = {"source_key": source_key, "source_type": "github_trending",
+            "source_label": source_label, "source_url": source_url}
     try:
         result = subprocess.run(
-            ["curl", "-sL", "--max-time", "10", cfg["url"]],
+            ["curl", "-sL", "--max-time", "10", source_url],
             capture_output=True, text=True, timeout=15
         )
         if result.returncode != 0 or not result.stdout.strip():
-            logger.warning(f"[GATHER] {name}: fetch failed")
-            return {"name": name, "type": "github_trending",
-                    "key": "github-trending", "content": ""}
+            logger.warning(f"[GATHER] {source_label}: fetch failed")
+            return {**base, "content": ""}
 
         content = parse_github_trending(
             result.stdout, cfg["min_stars_week"], cfg["ai_keywords"])
         if content:
-            logger.info(f"[GATHER] {name}: OK")
+            logger.info(f"[GATHER] {source_label}: OK")
         else:
-            logger.info(f"[GATHER] {name}: no matching repos")
-        return {"name": name, "type": "github_trending",
-                "key": "github-trending", "content": content}
+            logger.info(f"[GATHER] {source_label}: no matching repos")
+        return {**base, "content": content}
     except Exception as e:
-        logger.warning(f"[GATHER] {name}: {e}")
-        return {"name": name, "type": "github_trending",
-                "key": "github-trending", "content": ""}
+        logger.warning(f"[GATHER] {source_label}: {e}")
+        return {**base, "content": ""}
 
 
 # ── Main gather function ────────────────────────────────────────────────────
@@ -549,7 +550,8 @@ def gather_all(work_dir: Path = None, sources_config: dict = None,
                         sources.json in the old location (backward compat).
         data_root: Digest output directory (for last-success lookback).
 
-    Returns list of dicts: {name, type, key, content}.
+    Returns list of dicts with source provenance:
+        {source_key, source_type, source_label, source_url, content}.
     """
     if sources_config is None:
         # Backward compat: load from sources.json
@@ -588,7 +590,7 @@ def gather_all(work_dir: Path = None, sources_config: dict = None,
         if "twitter" in sources_config:
             for account in sources_config["twitter"]["accounts"]:
                 f = pool.submit(_fetch_twitter, account, auth_token, ct0)
-                futures[f] = f"twitter-{account}"
+                futures[f] = f"twitter:{account}"
 
         # Newsletters
         if "newsletters" in sources_config:
@@ -597,25 +599,25 @@ def gather_all(work_dir: Path = None, sources_config: dict = None,
                 f = pool.submit(_fetch_newsletter, key, nl,
                                 imap_host, imap_email, imap_password,
                                 last_success=last_success)
-                futures[f] = f"nl-{key}"
+                futures[f] = f"newsletter:{key}"
 
         # Blogs
         if "blogs" in sources_config:
             for key, blog in sources_config["blogs"].items():
                 f = pool.submit(_fetch_blog, key, blog)
-                futures[f] = f"blog-{key}"
+                futures[f] = f"blog:{key}"
 
-        # Research (treated as blogs)
+        # Research (treated as blogs with distinct source_type)
         if "research" in sources_config:
             for key, blog in sources_config["research"].items():
-                f = pool.submit(_fetch_blog, key, blog)
-                futures[f] = f"blog-{key}"
+                f = pool.submit(_fetch_blog, key, blog, source_type="research")
+                futures[f] = f"research:{key}"
 
         # GitHub Trending
         if "github_trending" in sources_config:
             gh_cfg = sources_config["github_trending"]
             f = pool.submit(_fetch_github_trending, gh_cfg)
-            futures[f] = "github-trending"
+            futures[f] = "github_trending:trending"
 
         for future in as_completed(futures):
             try:
@@ -628,11 +630,12 @@ def gather_all(work_dir: Path = None, sources_config: dict = None,
     if work_dir:
         work_dir.mkdir(exist_ok=True)
         for r in results:
-            out = work_dir / f"raw-{r['key']}.txt"
+            safe_key = r["source_key"].replace(":", "-")
+            out = work_dir / f"raw-{safe_key}.txt"
             out.write_text(r.get("content", ""))
 
-    # Sort by key for deterministic ordering
-    results.sort(key=lambda r: r["key"])
+    # Sort by source_key for deterministic ordering
+    results.sort(key=lambda r: r["source_key"])
 
     non_empty = sum(1 for r in results if r.get("content", "").strip())
     logger.info(f"[GATHER] Done: {non_empty}/{len(results)} sources with content")
@@ -671,4 +674,4 @@ if __name__ == "__main__":
     for r in results:
         size = len(r.get("content", ""))
         status = "OK" if size > 0 else "empty"
-        print(f"  {r['key']}: {size} bytes [{status}]")
+        print(f"  {r['source_key']}: {size} bytes [{status}]")

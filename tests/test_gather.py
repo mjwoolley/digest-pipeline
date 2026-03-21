@@ -311,6 +311,9 @@ def test_fetch_blog_strategy_dispatch_rss(tmp_path):
         mock_run.return_value.stdout = bad_html
         result = _fetch_blog("test", blog)
     assert result["content"] == ""
+    assert result["source_key"] == "blog:test"
+    assert result["source_type"] == "blog"
+    assert result["source_label"] == "Test Blog"
 
 
 def test_fetch_blog_strategy_dispatch_html_scrape(tmp_path):
@@ -328,6 +331,10 @@ def test_fetch_blog_strategy_dispatch_html_scrape(tmp_path):
         result = _fetch_blog("anthropic_blog", blog)
     assert "Test Article" in result["content"]
     assert "https://www.anthropic.com/news/test-article" in result["content"]
+    assert result["source_key"] == "blog:anthropic_blog"
+    assert result["source_type"] == "blog"
+    assert result["source_label"] == "Anthropic News"
+    assert result["source_url"] == "https://www.anthropic.com/news"
 
 
 def test_fetch_blog_html_scrape_accepts_nextjs_page(tmp_path):
@@ -347,3 +354,43 @@ def test_fetch_blog_html_scrape_accepts_nextjs_page(tmp_path):
         mock_run.return_value.stdout = html
         result = _fetch_blog("anthropic_blog", blog)
     assert "Some Article" in result["content"]
+
+
+# ── Source provenance schema ─────────────────────────────────────────────────
+
+def _assert_provenance_fields(result: dict):
+    """Assert that a gather result has all required provenance fields."""
+    assert "source_key" in result
+    assert "source_type" in result
+    assert "source_label" in result
+    assert "source_url" in result
+    assert "content" in result
+    # source_key format: type:identifier
+    assert ":" in result["source_key"]
+    assert result["source_type"] == result["source_key"].split(":")[0]
+
+
+def test_fetch_blog_provenance_schema():
+    """Blog gather records have correct provenance fields."""
+    blog = {"name": "Simon Willison", "feed_url": "https://simonwillison.net/atom/everything/"}
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value.returncode = 0
+        mock_run.return_value.stdout = RSS_SAMPLE
+        result = _fetch_blog("simon_willison", blog)
+    _assert_provenance_fields(result)
+    assert result["source_key"] == "blog:simon_willison"
+    assert result["source_type"] == "blog"
+    assert result["source_label"] == "Simon Willison"
+    assert result["source_url"] == "https://simonwillison.net/atom/everything/"
+
+
+def test_fetch_blog_research_source_type():
+    """Research sources get source_type='research'."""
+    blog = {"name": "ArXiv Papers", "feed_url": "https://arxiv.org/feed"}
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value.returncode = 0
+        mock_run.return_value.stdout = RSS_SAMPLE
+        result = _fetch_blog("arxiv", blog, source_type="research")
+    _assert_provenance_fields(result)
+    assert result["source_key"] == "research:arxiv"
+    assert result["source_type"] == "research"

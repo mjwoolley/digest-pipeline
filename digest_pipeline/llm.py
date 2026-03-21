@@ -169,17 +169,33 @@ def embed(texts: list[str]) -> tuple[list[list[float]], dict]:
 def extract_normalize(sources_batch: list[dict], date: str,
                       prompt_template: str) -> tuple[list[dict], dict]:
     """Extract articles from raw sources, normalize to JSON.
+
+    Sources are labeled with compact reference tokens (SRC1, SRC2, ...) in the
+    prompt. The model emits src_ref per article; code maps it back to the
+    gathered source provenance (source_key, source_type, source_label, source_url).
+
     Returns (articles, usage). Uses Haiku.
     """
     model = MODELS[_provider]["haiku"]
 
-    # Build source content for the prompt
+    # Build source content with SRC reference tokens
     source_texts = []
+    src_ref_map = {}  # SRC1 -> source provenance dict
+    src_idx = 0
     for s in sources_batch:
         content = s.get("content", "").strip()
         if not content:
             continue
-        source_texts.append(f"### Source: {s['name']} (type: {s['type']})\n{content}")
+        src_idx += 1
+        ref = f"SRC{src_idx}"
+        src_ref_map[ref] = {
+            "source_key": s["source_key"],
+            "source_type": s["source_type"],
+            "source_label": s["source_label"],
+            "source_url": s.get("source_url", ""),
+        }
+        source_texts.append(
+            f"### {ref}: {s['source_label']} (type: {s['source_type']})\n{content}")
 
     if not source_texts:
         return [], {"input_tokens": 0, "output_tokens": 0, "cost": 0}
@@ -193,13 +209,45 @@ def extract_normalize(sources_batch: list[dict], date: str,
     ]
     text, usage = chat(messages, model, max_tokens=65536)
     articles = _parse_json_array(text)
-    return articles, usage
+
+    # Stamp source provenance from gathered sources, replacing src_ref
+    stamped = []
+    for article in articles:
+        ref = article.pop("src_ref", "")
+        provenance = src_ref_map.get(ref)
+        if provenance:
+            article.update(provenance)
+            stamped.append(article)
+        else:
+            logger.warning(f"[EXTRACT] Dropping article with unknown src_ref '{ref}': '{article.get('title', '')}'")
+
+    return stamped, usage
+
+
+def _collect_source_provenance(articles: list[dict]) -> dict:
+    """Collect unique source provenance from a list of articles.
+
+    Returns dict with source_keys and source_labels lists.
+    """
+    seen_keys = []
+    seen_labels = []
+    for a in articles:
+        sk = a.get("source_key", "")
+        sl = a.get("source_label", "")
+        if sk and sk not in seen_keys:
+            seen_keys.append(sk)
+        if sl and sl not in seen_labels:
+            seen_labels.append(sl)
+    return {"source_keys": seen_keys, "source_labels": seen_labels}
 
 
 def dedupe_merge(clusters: list[list[dict]], date: str,
                  prompt_template: str) -> tuple[list[dict], dict]:
     """Merge articles within each cluster into canonical items.
     Returns (merged_articles, usage). Uses Sonnet.
+
+    Source provenance (source_keys, source_labels) is collected by code
+    from the input articles in each cluster, not by the LLM.
     """
     model = MODELS[_provider]["sonnet"]
 
@@ -211,8 +259,12 @@ def dedupe_merge(clusters: list[list[dict]], date: str,
             art = cluster[0]
             if "url" in art and "urls" not in art:
                 art["urls"] = [art.pop("url")]
-            if "source" in art and "sources" not in art:
-                art["sources"] = [art.pop("source")]
+            # Collect source provenance into lists
+            prov = _collect_source_provenance(cluster)
+            art.update(prov)
+            # Remove per-article source fields (replaced by list fields)
+            for field in ("source_key", "source_type", "source_label", "source_url"):
+                art.pop(field, None)
             singletons.append(art)
         else:
             multi_clusters.append(cluster)
@@ -235,6 +287,16 @@ def dedupe_merge(clusters: list[list[dict]], date: str,
     ]
     text, usage = chat(messages, model, max_tokens=8192)
     merged = _parse_json_array(text)
+
+    # Stamp source provenance from input clusters onto merged articles
+    for i, article in enumerate(merged):
+        if i < len(multi_clusters):
+            prov = _collect_source_provenance(multi_clusters[i])
+            article.update(prov)
+        # Remove any per-article source fields the LLM might have echoed
+        for field in ("source_key", "source_type", "source_label", "source_url"):
+            article.pop(field, None)
+
     return singletons + merged, usage
 
 

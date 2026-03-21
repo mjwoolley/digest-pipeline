@@ -110,7 +110,7 @@ def batch_sources(sources: list[dict], max_chars_per_batch: int = 200_000) -> li
         if not content:
             continue
         if len(content) > MAX_SOURCE_CHARS:
-            logger.info(f"[EXTRACT] Truncated {s['name']}: {len(content):,} -> {MAX_SOURCE_CHARS:,} chars")
+            logger.info(f"[EXTRACT] Truncated {s['source_label']}: {len(content):,} -> {MAX_SOURCE_CHARS:,} chars")
             s = {**s, "content": content[:MAX_SOURCE_CHARS]}
         non_empty.append(s)
 
@@ -294,6 +294,8 @@ def main():
         non_empty = [s for s in sources if s.get("content", "").strip()]
         logger.info(f"[PIPELINE] Gathered {len(non_empty)}/{len(sources)} sources "
                      f"in {gather_dur:.1f}s")
+        if non_empty:
+            logger.info(f"[PIPELINE] Sources: {[s['source_key'] for s in non_empty]}")
 
         if not dry_run:
             delivery.send_progress("Gather",
@@ -312,16 +314,16 @@ def main():
         logger.info("[PIPELINE] Stage: EXTRACT")
         empty_sources = [s for s in sources if not s.get("content", "").strip()]
         if empty_sources:
-            empty_names = [s["name"] for s in empty_sources]
-            logger.info(f"[EXTRACT] Skipped {len(empty_sources)} empty sources: {empty_names}")
+            empty_keys = [s["source_key"] for s in empty_sources]
+            logger.info(f"[EXTRACT] Skipped {len(empty_sources)} empty sources: {empty_keys}")
         extract_prompt = render_prompt("extract_normalize.md", config)
         batches = batch_sources(sources)
         all_articles = []
 
         for i, batch in enumerate(batches, 1):
             t0 = time.time()
-            batch_names = [s["name"] for s in batch]
-            logger.info(f"[EXTRACT] Batch {i}/{len(batches)}: {batch_names}")
+            batch_labels = [s["source_label"] for s in batch]
+            logger.info(f"[EXTRACT] Batch {i}/{len(batches)}: {batch_labels}")
 
             articles, usage = llm.extract_normalize(batch, date, extract_prompt)
             dur = time.time() - t0
@@ -333,13 +335,13 @@ def main():
             logger.info(f"[EXTRACT] Batch {i}: {len(articles)} articles, "
                          f"{dur:.1f}s")
             if not dry_run:
-                # Count articles per source
+                # Count articles per source using source_key (stamped by code, not LLM)
                 article_counts = {}
                 for a in articles:
-                    src = a.get("source", "unknown")
-                    article_counts[src] = article_counts.get(src, 0) + 1
+                    sk = a.get("source_key", "unknown")
+                    article_counts[sk] = article_counts.get(sk, 0) + 1
                 source_lines = "\n".join(
-                    f"  {s['name']}: {len(s.get('content', '')):,} chars → {article_counts.get(s['name'], 0)} articles"
+                    f"  {s['source_label']}: {len(s.get('content', '')):,} chars → {article_counts.get(s['source_key'], 0)} articles"
                     for s in batch)
                 delivery.send_progress(
                     f"Extract (Batch {i}/{len(batches)})",

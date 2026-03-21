@@ -4,32 +4,33 @@ from digest_pipeline.digest import batch_sources, _fmt_tokens, TokenTracker, _ma
 
 # ── batch_sources ────────────────────────────────────────────────────────────
 
+def _src(label, content="hello world"):
+    """Helper to build a source dict with provenance fields."""
+    key = label.lower().replace(" ", "_")
+    return {
+        "source_key": f"blog:{key}",
+        "source_type": "blog",
+        "source_label": label,
+        "source_url": "",
+        "content": content,
+    }
+
+
 def test_batch_sources_single_batch():
-    sources = [
-        {"name": "a", "content": "hello world"},
-        {"name": "b", "content": "foo bar"},
-    ]
+    sources = [_src("a"), _src("b", "foo bar")]
     batches = batch_sources(sources)
     assert len(batches) == 1
     assert len(batches[0]) == 2
 
 
 def test_batch_sources_multiple_batches():
-    # Sources are truncated to MAX_SOURCE_CHARS (50K) first, so use smaller batch limit
-    sources = [
-        {"name": "a", "content": "x" * 40_000},
-        {"name": "b", "content": "y" * 40_000},
-    ]
+    sources = [_src("a", "x" * 40_000), _src("b", "y" * 40_000)]
     batches = batch_sources(sources, max_chars_per_batch=50_000)
     assert len(batches) == 2
 
 
 def test_batch_sources_empty_sources_filtered():
-    sources = [
-        {"name": "a", "content": "real content"},
-        {"name": "b", "content": ""},
-        {"name": "c", "content": "   "},
-    ]
+    sources = [_src("a", "real content"), _src("b", ""), _src("c", "   ")]
     batches = batch_sources(sources)
     assert len(batches) == 1
     assert len(batches[0]) == 1
@@ -37,7 +38,7 @@ def test_batch_sources_empty_sources_filtered():
 
 def test_batch_sources_oversized_truncation():
     long_content = "x" * 600_000
-    sources = [{"name": "big", "content": long_content}]
+    sources = [_src("big", long_content)]
     batches = batch_sources(sources)
     assert len(batches) == 1
     # MAX_SOURCE_CHARS is 500_000
@@ -49,7 +50,7 @@ def test_batch_sources_empty_input():
 
 
 def test_batch_sources_all_empty():
-    sources = [{"name": "a", "content": ""}, {"name": "b", "content": "  "}]
+    sources = [_src("a", ""), _src("b", "  ")]
     assert batch_sources(sources) == []
 
 
