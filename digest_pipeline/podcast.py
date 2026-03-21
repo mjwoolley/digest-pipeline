@@ -213,7 +213,7 @@ def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
 
         # Use GitHub Pages for proper MIME types (audio/mpeg for MP3s)
         pages_base = podcast_cfg.get("pages_base_url",
-                                      "https://mjwoolley.github.io/digest-pipeline")
+                                      "https://aidailyroundup.com")
         base_url = f"{pages_base}/{rel_podcasts}"
         feed_url = f"{pages_base}/{rel_podcasts.parent}/podcast.xml"
 
@@ -290,7 +290,7 @@ def _update_landing_page(podcasts_dir: Path, config: dict,
         data_root = config["_data_root"]
         podcast_cfg = config.get("podcast", {})
         pages_base = podcast_cfg.get("pages_base_url",
-                                      "https://mjwoolley.github.io/digest-pipeline")
+                                      "https://aidailyroundup.com")
         rel_podcasts = podcasts_dir.relative_to(data_root.parent.parent)
         base_url = f"{pages_base}/{rel_podcasts}"
 

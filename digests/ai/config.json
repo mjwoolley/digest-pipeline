@@ -53,7 +53,7 @@
   "podcast": {
     "enabled": true,
     "name": "The AI Daily Roundup",
-    "image_url": "https://mjwoolley.github.io/digest-pipeline/digests/ai/podcast-logo.png",
+    "image_url": "https://aidailyroundup.com/digests/ai/podcast-logo.png",
     "hosts": [
       {
         "tag": "ALEX",
@@ -70,10 +70,10 @@
   },
   "delivery": {
     "email": {
-      "method": "agentmail",
-      "agentmail": {
-        "api_key_env": "AGENTMAIL_API_KEY",
-        "inbox_id": "mjw_openclaw@agentmail.to"
+      "method": "resend",
+      "resend": {
+        "api_key_env": "RESEND_API_KEY",
+        "from": "The AI Daily Roundup <digest@aidailyroundup.com>"
       }
     },
     "notify": {

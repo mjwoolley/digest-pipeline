@@ -42,6 +42,8 @@ def send_email(subject: str, html_body: str, config: dict,
         _send_email_smtp(subject, html_body, email_cfg, unsubscribe_url)
     elif method == "agentmail":
         _send_email_agentmail(subject, html_body, email_cfg, unsubscribe_url)
+    elif method == "resend":
+        _send_email_resend(subject, html_body, email_cfg, unsubscribe_url)
     else:
         raise ValueError(f"Unknown email method: {method}")
 
@@ -195,6 +197,53 @@ def _send_email_agentmail(subject: str, html_body: str, email_cfg: dict,
     except urllib.error.HTTPError as e:
         err_body = e.read().decode(errors="replace")
         raise RuntimeError(f"AgentMail API error {e.code}: {err_body[:500]}") from e
+
+
+def _send_email_resend(subject: str, html_body: str, email_cfg: dict,
+                       unsubscribe_url: str = None):
+    """Send email via Resend API.
+
+    Config:
+      resend.api_key_env: env var name for API key (default: RESEND_API_KEY)
+      resend.from: sender address (e.g. "Name <user@domain.com>")
+    """
+    rs_cfg = email_cfg.get("resend", {})
+    api_key_env = rs_cfg.get("api_key_env", "RESEND_API_KEY")
+    api_key = os.environ.get(api_key_env, "")
+    from_addr = rs_cfg.get("from", "")
+    to_addr = email_cfg.get("to", "")
+
+    if not api_key:
+        raise RuntimeError(f"Resend API key not set (env: {api_key_env})")
+    if not from_addr:
+        raise RuntimeError("Resend 'from' address not configured")
+
+    url = "https://api.resend.com/emails"
+    msg = {
+        "from": from_addr,
+        "to": to_addr,
+        "subject": subject,
+        "text": "See HTML version of this email.",
+        "html": html_body,
+    }
+    if unsubscribe_url:
+        msg["headers"] = {
+            "List-Unsubscribe": f"<{unsubscribe_url}>",
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        }
+    payload = json.dumps(msg).encode()
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}",
+    }
+    req = urllib.request.Request(url, data=payload, headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            result = json.loads(resp.read())
+            logger.info(f"[DELIVER] Email sent via Resend (id: {result.get('id', 'unknown')})")
+    except urllib.error.HTTPError as e:
+        err_body = e.read().decode(errors="replace")
+        raise RuntimeError(f"Resend API error {e.code}: {err_body[:500]}") from e
 
 
 # ── Notification Delivery ───────────────────────────────────────────────────
