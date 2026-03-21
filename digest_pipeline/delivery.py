@@ -232,11 +232,11 @@ def _send_email_resend(subject: str, html_body: str, email_cfg: dict,
             "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
         }
     payload = json.dumps(msg).encode()
-    headers = {
+    req = urllib.request.Request(url, data=payload, headers={
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}",
-    }
-    req = urllib.request.Request(url, data=payload, headers=headers)
+        "User-Agent": "digest-pipeline/1.0",
+    })
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
             result = json.loads(resp.read())
