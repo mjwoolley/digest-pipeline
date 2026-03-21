@@ -31,6 +31,8 @@ from . import llm
 from . import delivery
 from .gather import gather_all
 from .cluster import cluster_articles, embedding_text
+from .source_state import (load_state, save_state, prune_state,
+                           filter_gathered_sources, commit_pending)
 
 # ── Token Tracking ───────────────────────────────────────────────────────────
 
@@ -301,6 +303,16 @@ def main():
             delivery.send_progress("Gather",
                                    f"Sources: {len(non_empty)}/{len(sources)}",
                                    config, {"duration": gather_dur})
+
+        # 2b. Incremental filter: skip previously seen items
+        source_state = load_state(data_root)
+        sources, pending_ids = filter_gathered_sources(sources, source_state)
+        non_empty = [s for s in sources if s.get("content", "").strip()]
+        if pending_ids:
+            new_count = sum(len(ids) for ids in pending_ids.values())
+            logger.info(f"[PIPELINE] After incremental filter: "
+                        f"{len(non_empty)} sources with new content, "
+                        f"{new_count} new items")
 
         # 3. Check: if all sources empty, exit gracefully
         if not non_empty:
@@ -595,7 +607,15 @@ def main():
         digest_path.write_text(final_digest)
         logger.info(f"[DELIVER] Archived to {digest_path}")
 
-        # 10. Report
+        # 10. Commit source state (only after successful processing)
+        if pending_ids:
+            source_state = commit_pending(source_state, pending_ids, date)
+            source_state = prune_state(source_state)
+            save_state(data_root, source_state)
+            logger.info(f"[SOURCE-STATE] Committed {sum(len(v) for v in pending_ids.values())} "
+                        f"item IDs across {len(pending_ids)} sources")
+
+        # 11. Report
         total_dur = time.time() - start_time
         logger.info(f"[PIPELINE] Complete in {total_dur:.1f}s | "
                      f"${tracker.total_cost:.2f} | "
