@@ -1,6 +1,8 @@
 """Tests for digest_pipeline.source_state — incremental source processing."""
 import json
+from datetime import datetime, timedelta
 from pathlib import Path
+from unittest.mock import patch
 
 from digest_pipeline.source_state import (
     load_state,
@@ -12,6 +14,8 @@ from digest_pipeline.source_state import (
     _extract_twitter_items,
     _extract_block_items,
     _extract_newsletter_id,
+    _get_seen_ids_for_source,
+    DEFAULT_TRENDING_COOLDOWN_DAYS,
 )
 
 
@@ -47,14 +51,17 @@ def _github_source(content):
     }
 
 
-def _newsletter_source(content, key="test_nl"):
-    return {
+def _newsletter_source(content, key="test_nl", message_id=None):
+    source = {
         "source_key": f"newsletter:{key}",
         "source_type": "newsletter",
         "source_label": "Test Newsletter",
         "source_url": "",
         "content": content,
     }
+    if message_id:
+        source["message_id"] = message_id
+    return source
 
 
 SAMPLE_TWEETS = (
@@ -86,6 +93,18 @@ SAMPLE_BLOG = (
     "TITLE: Article Three\n"
     "LINK: https://example.com/post-3\n"
     "Description of article three"
+)
+
+SAMPLE_GITHUB = (
+    "TITLE: owner/repo [Python]\n"
+    "LINK: https://github.com/owner/repo\n"
+    "Stars this week: 500\n"
+    "Some description\n"
+    "---\n"
+    "TITLE: other/project [Rust]\n"
+    "LINK: https://github.com/other/project\n"
+    "Stars this week: 300\n"
+    "Another description"
 )
 
 
@@ -154,6 +173,25 @@ def test_extract_newsletter_id_different():
     assert _extract_newsletter_id("Content A") != _extract_newsletter_id("Content B")
 
 
+def test_extract_newsletter_id_prefers_message_id():
+    """Message-ID is preferred over content hash when available."""
+    nl_id = _extract_newsletter_id("Any content", message_id="abc123@example.com")
+    assert nl_id == "msgid:abc123@example.com"
+
+
+def test_extract_newsletter_id_message_id_ignores_content():
+    """Same Message-ID with different content produces same ID."""
+    id1 = _extract_newsletter_id("Content A", message_id="same@example.com")
+    id2 = _extract_newsletter_id("Content B", message_id="same@example.com")
+    assert id1 == id2 == "msgid:same@example.com"
+
+
+def test_extract_newsletter_id_falls_back_to_hash():
+    """Without Message-ID, falls back to content hash."""
+    nl_id = _extract_newsletter_id("Some content", message_id=None)
+    assert nl_id.startswith("hash:")
+
+
 # ── Twitter filtering ────────────────────────────────────────────────────────
 
 def test_filter_twitter_no_seen():
@@ -219,18 +257,7 @@ def test_filter_blog_all_seen():
 # ── GitHub trending filtering ────────────────────────────────────────────────
 
 def test_filter_github_trending():
-    content = (
-        "TITLE: owner/repo [Python]\n"
-        "LINK: https://github.com/owner/repo\n"
-        "Stars this week: 500\n"
-        "Some description\n"
-        "---\n"
-        "TITLE: other/project [Rust]\n"
-        "LINK: https://github.com/other/project\n"
-        "Stars this week: 300\n"
-        "Another description"
-    )
-    source = _github_source(content)
+    source = _github_source(SAMPLE_GITHUB)
     seen = {"https://github.com/owner/repo"}
     filtered, new_ids = extract_and_filter(source, seen)
     assert len(new_ids) == 1
@@ -251,6 +278,31 @@ def test_filter_newsletter_seen():
     nl_id = _extract_newsletter_id(content)
     source = _newsletter_source(content)
     filtered, new_ids = extract_and_filter(source, {nl_id})
+    assert new_ids == []
+    assert filtered["content"] == ""
+
+
+def test_filter_newsletter_with_message_id():
+    """Newsletter with Message-ID uses it for dedup instead of content hash."""
+    source = _newsletter_source("Content here", message_id="abc@example.com")
+    # Not seen yet
+    filtered, new_ids = extract_and_filter(source, set())
+    assert len(new_ids) == 1
+    assert new_ids[0] == "msgid:abc@example.com"
+    assert filtered["content"] == "Content here"
+
+    # Already seen
+    filtered, new_ids = extract_and_filter(source, {"msgid:abc@example.com"})
+    assert new_ids == []
+    assert filtered["content"] == ""
+
+
+def test_filter_newsletter_message_id_not_affected_by_content_change():
+    """Same Message-ID with different content is still recognized as seen."""
+    source1 = _newsletter_source("Version 1", message_id="id@example.com")
+    _, ids1 = extract_and_filter(source1, set())
+    source2 = _newsletter_source("Version 2 with changes", message_id="id@example.com")
+    filtered, new_ids = extract_and_filter(source2, set(ids1))
     assert new_ids == []
     assert filtered["content"] == ""
 
@@ -320,6 +372,125 @@ def test_commit_pending_max_ids():
     assert "new2" in result["blog:test"]["seen_ids"]
     # Oldest entries trimmed
     assert "url0" not in result["blog:test"]["seen_ids"]
+
+
+# ── GitHub Trending cooldown ─────────────────────────────────────────────────
+
+def test_commit_pending_github_trending_uses_timestamps():
+    """GitHub trending seen_ids should be a dict with dates, not a list."""
+    state = {}
+    pending = {"github_trending:trending": [
+        "https://github.com/owner/repo",
+        "https://github.com/other/project",
+    ]}
+    result = commit_pending(state, pending, "2026-03-21")
+    seen = result["github_trending:trending"]["seen_ids"]
+    assert isinstance(seen, dict)
+    assert seen["https://github.com/owner/repo"] == "2026-03-21"
+    assert seen["https://github.com/other/project"] == "2026-03-21"
+
+
+def test_commit_pending_github_trending_preserves_existing_dates():
+    """Re-seeing a repo should NOT update its first-seen date."""
+    state = {"github_trending:trending": {
+        "seen_ids": {"https://github.com/owner/repo": "2026-03-10"},
+        "last_updated": "2026-03-10",
+    }}
+    pending = {"github_trending:trending": ["https://github.com/owner/repo"]}
+    result = commit_pending(state, pending, "2026-03-21")
+    seen = result["github_trending:trending"]["seen_ids"]
+    # Original date preserved, not overwritten
+    assert seen["https://github.com/owner/repo"] == "2026-03-10"
+
+
+def test_commit_pending_github_trending_migrates_legacy_list():
+    """Old list-format seen_ids should be migrated to dict format."""
+    state = {"github_trending:trending": {
+        "seen_ids": ["https://github.com/old/repo"],
+        "last_updated": "2026-03-20",
+    }}
+    pending = {"github_trending:trending": ["https://github.com/new/repo"]}
+    result = commit_pending(state, pending, "2026-03-21")
+    seen = result["github_trending:trending"]["seen_ids"]
+    assert isinstance(seen, dict)
+    assert "https://github.com/old/repo" in seen
+    assert "https://github.com/new/repo" in seen
+
+
+def test_get_seen_ids_cooldown_active():
+    """Repos within the cooldown window are suppressed."""
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    entry = {"seen_ids": {"https://github.com/owner/repo": today}}
+    seen = _get_seen_ids_for_source("github_trending:trending", entry)
+    assert "https://github.com/owner/repo" in seen
+
+
+def test_get_seen_ids_cooldown_expired():
+    """Repos past the cooldown window can reappear."""
+    old_date = (datetime.utcnow() - timedelta(days=DEFAULT_TRENDING_COOLDOWN_DAYS + 1)).strftime("%Y-%m-%d")
+    entry = {"seen_ids": {"https://github.com/owner/repo": old_date}}
+    seen = _get_seen_ids_for_source("github_trending:trending", entry)
+    assert "https://github.com/owner/repo" not in seen
+
+
+def test_get_seen_ids_cooldown_mixed():
+    """Mix of active and expired cooldowns."""
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    old_date = (datetime.utcnow() - timedelta(days=DEFAULT_TRENDING_COOLDOWN_DAYS + 1)).strftime("%Y-%m-%d")
+    entry = {"seen_ids": {
+        "https://github.com/active/repo": today,
+        "https://github.com/expired/repo": old_date,
+    }}
+    seen = _get_seen_ids_for_source("github_trending:trending", entry)
+    assert "https://github.com/active/repo" in seen
+    assert "https://github.com/expired/repo" not in seen
+
+
+def test_get_seen_ids_non_trending_uses_flat_list():
+    """Non-trending sources still use flat list behavior."""
+    entry = {"seen_ids": ["id1", "id2"]}
+    seen = _get_seen_ids_for_source("blog:test", entry)
+    assert seen == {"id1", "id2"}
+
+
+def test_github_trending_cooldown_integration():
+    """End-to-end: repo suppressed during cooldown, reappears after expiry."""
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    old_date = (datetime.utcnow() - timedelta(days=DEFAULT_TRENDING_COOLDOWN_DAYS + 1)).strftime("%Y-%m-%d")
+
+    source = _github_source(SAMPLE_GITHUB)
+
+    # Repo seen recently — should be filtered
+    state = {"github_trending:trending": {
+        "seen_ids": {"https://github.com/owner/repo": today},
+        "last_updated": today,
+    }}
+    filtered, pending = filter_gathered_sources([source], state)
+    assert len(pending.get("github_trending:trending", [])) == 1
+    assert "https://github.com/other/project" in pending.get("github_trending:trending", [])
+
+    # Repo cooldown expired — should reappear
+    state = {"github_trending:trending": {
+        "seen_ids": {"https://github.com/owner/repo": old_date},
+        "last_updated": old_date,
+    }}
+    filtered, pending = filter_gathered_sources([source], state)
+    assert len(pending.get("github_trending:trending", [])) == 2
+    assert "https://github.com/owner/repo" in pending["github_trending:trending"]
+    assert "https://github.com/other/project" in pending["github_trending:trending"]
+
+
+def test_github_trending_state_roundtrip(tmp_path):
+    """Roundtrip: commit trending state, reload, verify dict format persisted."""
+    state = {}
+    pending = {"github_trending:trending": ["https://github.com/owner/repo"]}
+    state = commit_pending(state, pending, "2026-03-21")
+    save_state(tmp_path, state)
+
+    loaded = load_state(tmp_path)
+    seen = loaded["github_trending:trending"]["seen_ids"]
+    assert isinstance(seen, dict)
+    assert seen["https://github.com/owner/repo"] == "2026-03-21"
 
 
 # ── filter_gathered_sources (integration) ────────────────────────────────────

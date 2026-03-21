@@ -13,6 +13,7 @@ from digest_pipeline.gather import (
     TrendingParser,
     parse_github_trending,
     _extract_email_text,
+    _extract_message_id,
 )
 
 
@@ -196,6 +197,32 @@ def test_extract_email_empty():
     )
     result = _extract_email_text(msg)
     assert result.strip() == ""
+
+
+# ── _extract_message_id ─────────────────────────────────────────────────────
+
+def test_extract_message_id():
+    msg = email.message_from_string(
+        "Message-ID: <abc123@example.com>\nContent-Type: text/plain\n\nBody",
+        policy=email.policy.default,
+    )
+    assert _extract_message_id(msg) == "abc123@example.com"
+
+
+def test_extract_message_id_no_brackets():
+    msg = email.message_from_string(
+        "Message-ID: abc123@example.com\nContent-Type: text/plain\n\nBody",
+        policy=email.policy.default,
+    )
+    assert _extract_message_id(msg) == "abc123@example.com"
+
+
+def test_extract_message_id_missing():
+    msg = email.message_from_string(
+        "Content-Type: text/plain\n\nBody",
+        policy=email.policy.default,
+    )
+    assert _extract_message_id(msg) is None
 
 
 # ── _is_bad_payload ──────────────────────────────────────────────────────────

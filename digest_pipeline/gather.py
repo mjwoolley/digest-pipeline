@@ -137,8 +137,14 @@ def _fetch_newsletter(key: str, nl: dict, imap_host: str,
         # Truncate to first 300 lines
         content = "\n".join(content.split("\n")[:300])
 
+        # Extract Message-ID for stable dedup identity
+        msg_id = _extract_message_id(msg)
+
         logger.info(f"[GATHER] {source_label}: OK")
-        return {**base, "content": content}
+        result = {**base, "content": content}
+        if msg_id:
+            result["message_id"] = msg_id
+        return result
     except Exception as e:
         logger.warning(f"[GATHER] {source_label}: {e}")
         return {**base, "content": ""}
@@ -166,6 +172,16 @@ def _extract_email_text(msg: email.message.Message) -> str:
         return text
 
     return ""
+
+
+def _extract_message_id(msg: email.message.Message) -> str | None:
+    """Extract the Message-ID header, stripped of angle brackets."""
+    raw = msg.get("Message-ID", "")
+    if not raw:
+        return None
+    # Strip angle brackets: <abc@example.com> -> abc@example.com
+    cleaned = raw.strip().strip("<>").strip()
+    return cleaned if cleaned else None
 
 
 def _is_bad_payload(text: str) -> bool:

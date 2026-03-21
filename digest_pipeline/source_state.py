@@ -15,6 +15,10 @@ logger = logging.getLogger("digest")
 
 STATE_FILENAME = ".source_state.json"
 
+# Default cooldown for GitHub Trending repos (days).
+# Repos seen within this window are suppressed; after it expires they can reappear.
+DEFAULT_TRENDING_COOLDOWN_DAYS = 14
+
 # Tweet blocks are separated by this line
 _TWEET_SEPARATOR = "──────────────────────────────────────────────────"
 # Tweet URL pattern: 🔗 https://x.com/user/status/ID
@@ -101,12 +105,14 @@ def _extract_block_items(content: str) -> list[tuple[str, str]]:
     return items
 
 
-def _extract_newsletter_id(content: str) -> str | None:
-    """Generate a content-based ID for newsletter content.
+def _extract_newsletter_id(content: str, message_id: str = None) -> str | None:
+    """Generate an ID for newsletter content.
 
-    Uses hash of first 1000 chars since newsletters don't have
-    per-item structure.
+    Prefers Message-ID header (stable across fetches) over content hash.
+    Falls back to hash of first 1000 chars if no Message-ID available.
     """
+    if message_id:
+        return f"msgid:{message_id}"
     if not content.strip():
         return None
     return "hash:" + hashlib.sha256(content[:1000].encode()).hexdigest()[:32]
@@ -177,11 +183,28 @@ def _filter_blocks(source: dict, content: str,
 
 def _filter_newsletter(source: dict, content: str,
                        seen_ids: set[str]) -> tuple[dict, list[str]]:
-    """Filter newsletter by content hash (whole-source granularity)."""
-    nl_id = _extract_newsletter_id(content)
+    """Filter newsletter by Message-ID or content hash (whole-source granularity)."""
+    message_id = source.get("message_id")
+    nl_id = _extract_newsletter_id(content, message_id=message_id)
     if nl_id and nl_id in seen_ids:
         return {**source, "content": ""}, []
     return source, [nl_id] if nl_id else []
+
+
+def _get_seen_ids_for_source(source_key: str, entry: dict) -> set[str]:
+    """Build set of currently-suppressed IDs from a state entry.
+
+    For github_trending sources, seen_ids is a dict {id: "YYYY-MM-DD"} with
+    timestamp-based cooldown. Only IDs within the cooldown window are suppressed.
+    For all other sources, seen_ids is a plain list.
+    """
+    seen_ids_raw = entry.get("seen_ids", [])
+    if source_key.startswith("github_trending:") and isinstance(seen_ids_raw, dict):
+        today = datetime.utcnow().strftime("%Y-%m-%d")
+        cutoff = (datetime.utcnow() - timedelta(days=DEFAULT_TRENDING_COOLDOWN_DAYS)).strftime("%Y-%m-%d")
+        return {item_id for item_id, first_seen in seen_ids_raw.items()
+                if first_seen >= cutoff}
+    return set(seen_ids_raw)
 
 
 def filter_gathered_sources(sources: list[dict], state: dict,
@@ -202,7 +225,8 @@ def filter_gathered_sources(sources: list[dict], state: dict,
 
     for source in sources:
         source_key = source["source_key"]
-        seen = set(state.get(source_key, {}).get("seen_ids", []))
+        entry = state.get(source_key, {})
+        seen = _get_seen_ids_for_source(source_key, entry)
         filtered_source, new_ids = extract_and_filter(source, seen)
         filtered.append(filtered_source)
         if new_ids:
@@ -230,6 +254,9 @@ def commit_pending(state: dict, pending_ids: dict[str, list[str]],
                    date: str, max_ids: int = 500) -> dict:
     """Merge pending IDs into state after successful processing.
 
+    For github_trending sources, stores {id: date} dicts for cooldown tracking.
+    For all other sources, stores flat ID lists (rolling window).
+
     Args:
         state: Current state dict (mutated in place).
         pending_ids: source_key -> new item IDs from this run.
@@ -241,14 +268,36 @@ def commit_pending(state: dict, pending_ids: dict[str, list[str]],
     """
     for source_key, new_ids in pending_ids.items():
         entry = state.get(source_key, {"seen_ids": [], "last_updated": ""})
-        combined = entry["seen_ids"] + new_ids
-        # Keep only the most recent max_ids
-        if len(combined) > max_ids:
-            combined = combined[-max_ids:]
-        state[source_key] = {
-            "seen_ids": combined,
-            "last_updated": date,
-        }
+        if source_key.startswith("github_trending:"):
+            # Timestamped dict: {url: "YYYY-MM-DD"}
+            existing = entry.get("seen_ids", {})
+            if isinstance(existing, list):
+                # Migrate from old list format: assign current date to legacy IDs
+                existing = {item_id: date for item_id in existing}
+            for item_id in new_ids:
+                if item_id not in existing:
+                    existing[item_id] = date
+            # Prune expired cooldowns
+            cutoff = (datetime.utcnow() - timedelta(days=DEFAULT_TRENDING_COOLDOWN_DAYS)).strftime("%Y-%m-%d")
+            existing = {k: v for k, v in existing.items() if v >= cutoff}
+            # Cap size
+            if len(existing) > max_ids:
+                # Keep most recently seen
+                sorted_items = sorted(existing.items(), key=lambda x: x[1])
+                existing = dict(sorted_items[-max_ids:])
+            state[source_key] = {
+                "seen_ids": existing,
+                "last_updated": date,
+            }
+        else:
+            combined = entry["seen_ids"] + new_ids
+            # Keep only the most recent max_ids
+            if len(combined) > max_ids:
+                combined = combined[-max_ids:]
+            state[source_key] = {
+                "seen_ids": combined,
+                "last_updated": date,
+            }
     return state
 
 
