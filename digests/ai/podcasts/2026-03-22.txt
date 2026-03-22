@@ -1,0 +1,77 @@
+ALEX: Welcome to the AI Daily Roundup for Sunday, March 22nd — we've got a packed digest today, so let's get into it.
+
+SARAH: First up in model releases, Simon Willison built a tool that pulls the last 1,000 Hacker News comments for any user via the Algolia API and feeds them to Claude Opus 4.6 for personality analysis. The results were, in his words, "startlingly effective" — the model correctly identified Willison himself as the co-creator of Django and creator of Datasette without being told either of those things.
+
+ALEX: The whole pipeline runs client-side, which he co-built with Claude, and it's a clean demo of how much identity leaks through public comment history when a frontier model is synthesizing it at scale.
+
+SARAH: It raises a real question for anyone who's been casually posting on public forums for years — your comment history is basically an open book to these models now.
+
+ALEX: Moving to developer tools, Anthropic's Boris Cherny confirmed that Claude Code originally used RAG for codebase search but scrapped it due to privacy, security, reliability, and index staleness concerns. Agentic search delivered better results with fewer tradeoffs, and teams that still want RAG can plug in Sourcegraph via MCP or ask Claude to build a custom index.
+
+SARAH: That's a notable public admission — the team building one of the most-used coding agents decided RAG wasn't worth the tradeoffs for their use case.
+
+ALEX: It's a useful data point for anyone defaulting to RAG as the obvious answer for code search — the staleness problem alone can quietly destroy accuracy in fast-moving codebases.
+
+SARAH: Next, there's a free MCP server from the account askalphaxiv that connects Claude Code, Cursor, Codex, OpenCode, and any MCP-compatible assistant directly to the ArXiv repository — all 3 million papers, accessible with one command from inside your dev workflow.
+
+ALEX: For applied ML engineers who are constantly bouncing between papers and implementation, not having to manually copy-paste PDFs into context is a genuine quality-of-life improvement.
+
+SARAH: Also from Simon Willison, he's published a guide on using Git with coding agents as part of his Agentic Engineering Patterns series. The core framing is that Git is essential safety infrastructure — enabling rollback, history inspection, and mistake investigation — and all major coding agents are already fluent in both basic and advanced Git.
+
+ALEX: The practical upside is that developers don't need to memorize every Git command themselves — if the agent knows Git, you can hand off more ambitious operations and still recover when something goes wrong.
+
+SARAH: Treating Git as a safety net rather than just version control is a real mindset shift for teams adopting agentic workflows.
+
+ALEX: OpenClaw shipped version 2026.3.7, adding support for GPT-5.4 and Gemini 3.1 Flash-Lite, along with ACP bindings that survive restarts, slim Docker multi-stage builds, SecretRef for gateway auth, pluggable context engines, HEIF image support, and Zalo channel fixes.
+
+SARAH: Persistent agent bindings plus multi-model support in the same release — that's OpenClaw moving pretty deliberately toward production-grade infrastructure rather than just a dev tool.
+
+ALEX: Also flagged by Willison: Claude Code for web has a real architectural limitation where all Git operations route through a local proxy that only authenticates against the single private repo tied to the current session. Checking out a second private repo simultaneously isn't currently possible.
+
+SARAH: That's a concrete constraint for anyone building agents that need to cross-reference multiple private codebases — worth knowing before you design around it.
+
+ALEX: On infrastructure, Unsloth is an open-source Python project with a unified web UI for training and running models like Qwen, DeepSeek, gpt-oss, and Gemma locally. It picked up 3,367 GitHub stars in a single week.
+
+SARAH: A polished local training interface that lowers the barrier for fine-tuning without cloud dependency — that kind of community traction in a week suggests it's hitting a real gap.
+
+ALEX: Also on infrastructure, The New Stack ran a piece after hands-on time at a Cosmonic WasmCloud workshop exploring whether WebAssembly could replace Kubernetes. The short answer is no — but the more practical near-term story is using Wasm to harden Helm's security posture, since it can deploy microservices anywhere via a single command without touching underlying infrastructure.
+
+SARAH: The Wasm-versus-Kubernetes framing tends to generate heat but the actual value is in what Wasm adds to existing cloud-native stacks, not whether it replaces them.
+
+ALEX: In research, Andrej Karpathy posted a pointed critique of current AI agents, arguing they write bloated, aesthetically poor code, ignore AGENTS.md instructions, and lack the personality of a real collaborator. He held up a moment where Claude said "We're in!..." after finding a Sonos system as a glimpse of what's possible. His prescription isn't new technology — it's long SOUL.md files and organizational commitment to actually developing AI character.
+
+SARAH: Coming from one of the field's most respected voices, that's a direct challenge to AI labs to treat personality as a first-class product priority rather than an afterthought.
+
+ALEX: It's also interesting that his solution is essentially a documentation and culture problem, not a capability one — he's saying the tools to do this exist now.
+
+SARAH: On the applications side, Anthropic is automatically giving 2x usage limits for two weeks as a thank-you to users — weekdays outside 5 to 11am PT and 12 to 6pm GMT, plus all day on weekends. It applies across free, Pro, Max, and Team plans including Claude Code, with no action required.
+
+ALEX: It's a goodwill move, but it also nudges users toward off-peak hours in ways that help Anthropic manage load — those two goals line up neatly.
+
+SARAH: Also from Boris Cherny at Anthropic, he confirmed that Claude is capable of modifying its own settings when a user explicitly requests it — clarifying a question that had been circulating in the community.
+
+ALEX: User-initiated self-editing is a meaningful distinction, but operators should still be thinking through what consistency and auditability look like when settings can change mid-session.
+
+SARAH: A staffing professional discovered that candidates using Canva resumes were being parsed by ATS systems as "circus assistant in Los Angeles" because Canva embeds hidden template placeholder text. Enhancv testing confirmed Canva templates average 80% ATS parse accuracy versus 96% for Google Docs, with skills sections hitting 0%. The recommended fix is plain document formats and leaning on networking, since referrals increase hiring odds tenfold.
+
+ALEX: The 0% skills section parse rate is a brutal number — that's the most important section on a resume for keyword matching, and it's invisible to the system doing the screening.
+
+SARAH: Millions of people are probably submitting beautifully designed resumes that ATS systems can't read at all, which is a quiet disaster hiding behind good aesthetics.
+
+ALEX: There's also a tutorial out for building a legal RAG chatbot using Laravel's new first-party AI SDK, with pgvector, clause-level chunking, vector similarity search via Eloquent, and a streaming Livewire chat UI. The agent is built to cite specific section numbers or explicitly admit uncertainty — which is critical when hallucinated clause references become actual legal liability.
+
+SARAH: The citation discipline built into this design is what separates a useful legal tool from a liability — hallucinated contract clauses are not a recoverable error.
+
+ALEX: Ben Tossell is launching "Fork Off," a quarterly course teaching non-coders how to ship apps, automations, and agents with AI. He built the course platform himself using Droid with login and progress tracking, and is rotating the syllabus quarterly to stay current as the field moves. He's also experimenting alongside it with X Bookmarks Search, an Email Triage Agent, and AI writing tools designed to avoid what he calls "AI slop."
+
+SARAH: The quarterly refresh model is a smart structural bet in a field where tutorials go stale in months — keeping the content evergreen is a real competitive advantage for a course like this.
+
+ALEX: In industry news, The New Stack ran a roundup of this week's consolidation moves: Cursor launched its own model, Nvidia is organizing open base model coalitions, OpenAI is merging three apps, Anthropic cut prices twice, and Jeff Bezos is raising 100 billion dollars to AI-inject manufacturers. On the policy side, Congress dropped a 300-page federal AI bill designed to override all state-level AI regulation.
+
+SARAH: Every major player is simultaneously racing to own more of the stack — the tools developers rely on today could look pretty different in six months.
+
+ALEX: Finally, nearly 1,000 people queued outside Tencent's Shenzhen headquarters on a Friday afternoon to get OpenClaw — an open-source AI agent built by an Austrian developer — installed on their laptops by Tencent engineers. The piece frames this as part of a broader pattern of Chinese AI startups racing to build agent ecosystems with government backing, and notes Anthropic responded with its own positioning.
+
+SARAH: A thousand people lining up at a 650-billion-dollar company's headquarters to install an open-source agent is not a normal product launch moment — that's a cultural signal worth paying attention to.
+
+ALEX: That's everything for today — catch you tomorrow on the AI Daily Roundup.
