@@ -1,0 +1,87 @@
+ALEX: Welcome to The WealthTech Daily Roundup for Sunday, March 22nd, 2026.
+
+SARAH: We've got a packed digest today — let's get into it. Starting with advisor platforms, Orion is rethinking direct indexing from the ground up, shifting the model so advisors build portfolios around their own investment philosophy rather than a predefined index.
+
+ALEX: The architectural implication there is significant — instead of the index being the anchor and customization layered on top, the advisor's logic becomes the primary input. That's a meaningful inversion for how portfolio construction engines are typically built.
+
+SARAH: It also positions Orion differently in what's becoming a pretty crowded direct indexing market, where most offerings still feel like benchmark-hugging with tax-loss harvesting bolted on.
+
+ALEX: Also on the platform side, RightCapital added a guardrails visualization directly inside Retirement Details. Advisors can now show clients their initial withdrawal rate, the guardrail thresholds, and how spending adjusts over time — all in one presentation-ready view.
+
+SARAH: Guardrails strategies have been gaining real traction as a retirement income framework, and the barrier to advisor adoption often isn't the math — it's being able to explain it clearly in a client meeting. A dedicated visual solves that.
+
+ALEX: Moving to planning and workflow, RightCapital hosted a webinar on March 19th featuring Lifeworks Co-Founder Ron Bullis, walking through how his firm launched a membership model and what it did for practice value. One concrete takeaway was the "next 10 clients" approach — testing a new fee structure on your next 10 clients rather than overhauling everything at once.
+
+SARAH: That "next 10 clients" framing is the kind of practical, low-risk entry point that actually gets advisors to act. Fee model changes feel irreversible until someone shows you a way to run a contained experiment.
+
+ALEX: RightCapital also rolled out 401k loan modeling within financial plans alongside updated state tax parameters. These are targeted additions but they close gaps advisors hit regularly with real client scenarios.
+
+SARAH: 401k loan modeling is one of those features that gets requested constantly because clients actually take these loans, and without native support advisors end up building workarounds that slow the whole planning process down.
+
+ALEX: And RightCapital pushed two more updates — projected tax forms refreshed to the latest IRS versions, and the ability to upload insurance schedules via CSV. Unglamorous but necessary, especially heading into planning season.
+
+SARAH: Outdated tax form projections are a real compliance and trust risk. Staying current there is genuinely table stakes, even if it doesn't make for an exciting product announcement.
+
+SARAH: Now into AI and automation, and there's a lot here. Zocks launched Document Intelligence with a direct eMoney Advisor integration — advisors upload brokerage statements, estate plans, or intake forms, and the data is extracted and synced into eMoney in under 60 seconds.
+
+ALEX: The sub-60-second extraction is notable, but what makes this architecturally meaningful is the write-back directly into the planning platform. A lot of AI document tools stop at extraction and hand you a JSON blob. Closing the loop into eMoney is the part that actually removes the work.
+
+SARAH: That's the difference between a demo that impresses and a workflow that sticks — when the data lands where advisors already work, adoption follows.
+
+ALEX: Zocks also shipped a broad product update covering enhanced integrations with Holistiplan, AdvisorEngine, and Redtail CRM, plus new workflow features including email flows via Email Hub, form citation, branded PDF output, meeting trimming, and referral tracking. Subscription tiers were updated as well.
+
+SARAH: The breadth of that release is the story. Zocks started as an AI meeting notes tool and this update signals it's building toward a full advisor workflow layer — that's a very different competitive position.
+
+ALEX: On the RightCapital side, they launched Smart Import, an AI-powered tool that cuts manual data entry time by 70%. It targets the persistent friction of getting client data into the system accurately and quickly.
+
+SARAH: A 70% reduction in data entry time compounds fast across a practice — that's advisor capacity freed up for actual planning conversations rather than typing in account numbers.
+
+ALEX: Orion published a practical AI prompt guide for advisors — and notably, it skips the transformation-plan framing and gives advisors specific, repeatable prompts tied to real workflows like better client meetings that they can use immediately.
+
+SARAH: Concrete prompt libraries are going to do more for AI adoption in this industry than any number of white papers about AI strategy. Meeting advisors where they are with tools they can use today is the right move.
+
+ALEX: Orion also published a piece from Nolan Mauk unpacking the recent software-stock volatility tied to AI disruption concerns and offering advisors a framework for talking to worried clients about it.
+
+SARAH: AI narratives are genuinely moving markets now, and advisors need credible talking points on that — this kind of thought leadership that doubles as client communication prep earns its keep in a way that general market commentary doesn't.
+
+SARAH: Into interoperability and infrastructure — Zocks now integrates directly with RightCapital, syncing over 200 data fields from client and prospect conversations automatically into RightCapital plans after meetings.
+
+ALEX: Two hundred fields is a serious sync depth. Most integrations pass a handful of contact fields and call it a day. Syncing 200 fields means the planning record actually reflects the conversation, which is a fundamentally different outcome.
+
+SARAH: And when prospects don't go cold because the plan gets built faster, that has a direct revenue impact for the advisor — this is the kind of integration that changes behavior, not just checks a partnership box.
+
+ALEX: Zocks also integrated with Holistiplan, surfacing client-specific tax insights during meeting prep, enabling live tax Q&A through an Ask Anything feature, and letting advisors send post-meeting email replies contextualized with Holistiplan data.
+
+SARAH: Embedding tax awareness across the entire client interaction lifecycle — prep, the meeting itself, and follow-up — is a meaningful raise to the bar for client service. Most advisors treat tax planning as a separate step, and this pushes it into the natural flow.
+
+ALEX: HERE won the 2026 Best Desktop Interoperability Framework award at the TradingTech Institute awards, and separately, their Enterprise Browser 9.0.1 achieved FDC3 2.0 conformance certification — both happening in close proximity.
+
+SARAH: Standards conformance and industry recognition together send a clear signal to enterprise procurement teams. At the infrastructure layer, buyers need to feel like they're making the safe, credible choice, and HERE is building that case on both fronts.
+
+ALEX: HERE also highlighted that 90% of the world's leading financial institutions rely on its enterprise browser for legacy migration and app modernization. That's deep entrenchment at the infrastructure layer.
+
+SARAH: That kind of penetration at Tier 1 institutions creates network effects and switching costs that are very hard for competitors to displace. Once you're the browser, you're in a strong position.
+
+SARAH: On the business side, Zocks closed a 45 million dollar Series B, bringing total funding to 65 million, backed by Lightspeed, QED Investors, and Motive Partners among others. They quintupled their customer base in a single year — going from 1,000 to over 5,000 firms.
+
+ALEX: Going from 1,000 to 5,000 firms in twelve months while landing major enterprise deployments and expanding the product scope is a real signal. The Series B gives them the runway to prove out the full platform thesis.
+
+SARAH: And the investor names — Lightspeed, QED, Motive Partners — those are backers with serious fintech pattern recognition. That's not a coincidence.
+
+ALEX: Orion swept three categories in the 2026 T3 Survey — number one market share in All-In-One Software, CRM, and Portfolio Management and Reporting simultaneously.
+
+SARAH: Winning all three of those core categories at once is the consolidation argument playing out in survey data. Advisors are betting on fewer, deeper platforms, and Orion is capturing that bet.
+
+ALEX: RightCapital earned Software All-Star recognition in two categories in the same T3 survey and claimed the highest user satisfaction rating in Financial Planning Software among the three market leaders.
+
+SARAH: Market share and user satisfaction are measuring different things. Being the most-loved tool among actual users, even without the largest share, is a defensible moat and a powerful asset when advisors are evaluating switches.
+
+ALEX: And HERE announced a partnership with Defense Unicorns to deploy its enterprise browser to the U.S. Army, supporting digital modernization. That's a notable expansion well beyond financial services.
+
+SARAH: A U.S. Army deployment validates HERE's infrastructure as mission-critical in a very literal sense — and opens a vertical with entirely different buyer dynamics, procurement cycles, and scale than financial services.
+
+ALEX: Finally, Orion's Ben Vaske and Tim Holland released a video covering current market volatility driven by oil price shocks and Middle East conflict — what's moving markets and how Orion is thinking about portfolio positioning in response.
+
+SARAH: Advisors fielding anxious client calls about geopolitical volatility need structured, credible talking points quickly, and Orion delivering that proactively is how you build platform stickiness beyond the software itself.
+
+ALEX: That's everything in today's digest — thanks for listening to The WealthTech Daily Roundup and we'll see you tomorrow.
