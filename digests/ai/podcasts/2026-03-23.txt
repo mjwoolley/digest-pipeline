@@ -1,0 +1,47 @@
+ALEX: Welcome to the AI Daily Roundup for Monday, March 23rd, 2026.
+
+SARAH: We've got a packed digest today, a lot of it centered around Simon Willison's output this weekend, so let's get into it.
+
+ALEX: Starting with developer tools — Starlette 1.0 finally shipped, and the big change is that the old on_startup and on_shutdown hooks are gone, replaced by an async context manager lifespan mechanism. Willison used this as a test case for Claude Skills, because Claude's training hadn't caught up to the 1.0 changes yet, so he built and published a dedicated skill to patch that knowledge gap.
+
+SARAH: It's a clever workaround — instead of waiting for a model retrain, you just ship a skill that bridges the delta. How well does that actually hold up as a general pattern?
+
+ALEX: That's exactly the question, and Willison immediately ran into a limitation: the add-to-skills feature exists in Claude's chat interface but is completely absent from Claude Code for the web. So you can build these skills, but you can't use them consistently across surfaces.
+
+SARAH: That's a meaningful gap for anyone trying to build reliable skill-augmented workflows. The ecosystem is clearly still maturing.
+
+ALEX: Shifting to research — Willison also used Claude Code to map the JavaScript sandboxing landscape, comparing options like isolated-vm, vm2, quickjs-emscripten, QuickJS-NG, ShadowRealm, and Deno Workers. It started from Aaron Harper's work on Node.js worker threads and turned into a solid reference document.
+
+SARAH: As AI agents are increasingly executing generated code, understanding the tradeoffs between these sandboxing approaches is becoming a real engineering priority, not just an academic one.
+
+ALEX: Also in the research bucket — and this one is genuinely funny — a PC Gamer article about RSS readers weighs in at 37 megabytes, ballooning to hundreds of megabytes once auto-playing video ads load. Willison audited it using Claude Code and his Rodney tool.
+
+SARAH: An article about RSS readers being this bloated is a punchline that writes itself. The irony is pretty complete.
+
+ALEX: On to applications — TradingAgents is a multi-agent LLM framework for financial trading backed by an arXiv paper, and it picked up nearly 4,000 GitHub stars in a single week. Multiple agents coordinate to handle different parts of trading decision-making.
+
+SARAH: The star velocity is striking, but autonomous trading systems with AI agents raise real questions about risk and oversight that the star count doesn't answer.
+
+ALEX: Willison also built an interactive browser-based visualizer for the CRDT-based merge state algorithm in Bram Cohen's Mañana version control system. He converted 470 lines of Python into a Pyodide-powered UI with Claude's help.
+
+SARAH: CRDT merge logic is notoriously hard to reason about visually, so making it explorable in a browser is a genuine contribution to making that research more accessible.
+
+ALEX: There's also a browser-based DNS lookup tool Willison shipped, powered by Cloudflare's 1.1.1.1 JSON API. It supports all three Cloudflare resolvers, including the malware-blocking and adult-content-filtering variants, and was built with Claude Code.
+
+SARAH: Small purpose-built tools like this are a good illustration of how AI-assisted development compresses the time between having an itch and scratching it.
+
+ALEX: MoneyPrinterV2 is trending on GitHub with 3,659 stars in a week — it's a Python project claiming to automate making money online, but the digest notes that details on the actual mechanism are thin.
+
+SARAH: The star velocity says more about developer enthusiasm for get-rich-quick tooling than it does about technical substance. Healthy skepticism warranted.
+
+ALEX: Willison also added a notes feature to his blog's beats — the curated external links he pulls in — so entries can now carry explanatory context rather than just a bare URL. Notes render inline and flow into his atom feed.
+
+SARAH: It's a small change but it models something important: curation tools should evolve toward richer context, not just link aggregation.
+
+ALEX: Now the two industry stories, and these are worth paying attention to. Mobb.ai audited 22,511 public AI coding skills from registries including skills.sh, ClawHub, GitHub, and Tessl, and turned up nearly 141,000 security findings. The core problem is that skills are scanned at publish time but execute on developer machines with full system permissions and no real runtime restrictions.
+
+SARAH: AI coding agents are becoming a new supply chain attack surface, and 141,000 findings across 22,000 skills is a signal that the security tooling has not kept pace with the ecosystem growth.
+
+ALEX: Finally, a developer in Spain raised the argument that human-readable syntax is token-wasteful for LLMs, driving up costs and eating into context windows. That thought experiment has already produced at least one concrete project: Valea, a language explicitly designed for autonomous AI agents with deterministic properties.
+
+SARAH: If AI agents are increasingly the primary authors of code, then optimizing programming languages for human readability may genuinely be the wrong design constraint — that's a paradigm shift worth watching closely, and that's a wrap for today.
