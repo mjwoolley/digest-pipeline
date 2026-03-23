@@ -70,9 +70,10 @@
       "https://x.com/RightCapitalHQ/status/2032450972199408028",
       "https://x.com/RightCapitalHQ/status/2032133567472378161",
       "https://x.com/RightCapitalHQ/status/2031009250890178615",
-      "https://x.com/RightCapitalHQ/status/2029948546951024816"
+      "https://x.com/RightCapitalHQ/status/2029948546951024816",
+      "https://x.com/RightCapitalHQ/status/2028850772629127677"
     ],
-    "last_updated": "2026-03-22"
+    "last_updated": "2026-03-23"
   },
   "twitter:here_browser": {
     "seen_ids": [
@@ -118,5 +119,26 @@
       "https://x.com/zocksio/status/1966515829127688605"
     ],
     "last_updated": "2026-03-22"
+  },
+  "blog:wealth_solutions_report": {
+    "seen_ids": [
+      "https://www.wealthsolutionsreport.com/goldman-sachs-invests-42-5-million-in-geowealth/"
+    ],
+    "last_updated": "2026-03-23"
+  },
+  "twitter:ThinkAdvisor": {
+    "seen_ids": [
+      "https://x.com/ThinkAdvisor/status/2035870713358508257",
+      "https://x.com/ThinkAdvisor/status/2035870035441594577",
+      "https://x.com/ThinkAdvisor/status/2035145690943561872",
+      "https://x.com/ThinkAdvisor/status/2035145015606091906",
+      "https://x.com/ThinkAdvisor/status/2034850065005912196",
+      "https://x.com/ThinkAdvisor/status/2034849482387726655",
+      "https://x.com/ThinkAdvisor/status/2034783550042710069",
+      "https://x.com/ThinkAdvisor/status/2034782808707932659",
+      "https://x.com/ThinkAdvisor/status/2034421164463034430",
+      "https://x.com/ThinkAdvisor/status/2034420424126423480"
+    ],
+    "last_updated": "2026-03-23"
   }
 }
