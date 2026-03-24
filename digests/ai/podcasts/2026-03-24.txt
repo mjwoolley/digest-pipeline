@@ -1,0 +1,87 @@
+ALEX: Welcome to the AI Daily Roundup for Tuesday, March 24, 2026 — we've got a packed digest today so let's get into it.
+
+SARAH: First up on the model releases front: Cursor quietly shipped Composer 2 built on top of Moonshot AI's Kimi K2.5, a 1-trillion-parameter mixture-of-experts model, without disclosing that in the original announcement. They only copped to it after community backlash.
+
+ALEX: The model itself has serious coding capabilities, but the transparency issue is the real story here — model provenance is becoming a genuine expectation from both users and enterprises who need to know what's actually running under the hood.
+
+SARAH: And speaking of Kimi K2.5, that same model is now running on an M2 Max MacBook Pro with 96GB of RAM, thanks to a technique called streaming experts, which loads only the MoE expert weights needed per token from SSD instead of holding the full trillion parameters in RAM.
+
+ALEX: What's wild is the same optimization is running the 397-billion-parameter Qwen3.5 on an iPhone at 0.6 tokens per second, with a public iOS repo available — consumer hardware running frontier-scale models is no longer theoretical.
+
+SARAH: That completely changes assumptions about who can run this stuff locally, and the optimization work is apparently still accelerating.
+
+ALEX: Shifting to developer tools — Anthropic launched full computer use for Claude in Cowork and Claude Code on macOS. It can open apps, navigate browsers, fill spreadsheets, and handle recurring tasks. It uses native integrations first, then asks permission to operate directly on-screen when no connector exists, and it's available on Pro and Max plans.
+
+SARAH: That's a meaningful jump from chat assistant to autonomous desktop agent, and it puts Anthropic directly in competition with operator-style products. The permission model sounds important — how does it decide when to escalate to direct screen control?
+
+ALEX: Based on the announcement, it tries native integrations first and only goes to direct on-screen operation when no connector exists — so it's a fallback, not the default.
+
+SARAH: Also on the Anthropic front, Boris Cherny from the Anthropic Labs team gave a behind-the-scenes look at shipping MCP, Skills, Claude Desktop, and Claude Code — noting that early Sonnet 3.6 computer use felt clunky but was clearly directionally correct.
+
+ALEX: It's a rare public window into how their internal product bets evolved from rough prototypes to shipped infrastructure, and it signals confident momentum heading into the full Cowork and Dispatch computer use rollout.
+
+SARAH: On the MCP topic more broadly, The New Stack published a piece arguing that MCP doesn't replace existing APIs — it complements them. They map out architectural patterns for using both in agentic applications, with the analogy of APIs as fixed restaurant menus versus MCP's more flexible, speculative interactions.
+
+ALEX: That framing is useful — a lot of teams are treating this as an either-or choice, and clear guidance on coexistence patterns could save a lot of unnecessary rewrites as enterprises rush to build agentic systems.
+
+SARAH: OpenClaw had a massive week — their 2026.3.22 release added the ClawHub plugin marketplace, MiniMax M2.7 and GPT-5.4-mini and nano support, per-agent reasoning, a slash-btw side-questions feature, SSH sandboxes via OpenShell, and integrations with Exa, Tavily, and Firecrawl.
+
+ALEX: ClawHub in particular is the one to watch — building a plugin marketplace signals they're gunning for an ecosystem play, not just a feature list.
+
+SARAH: Then the very next day, 2026.3.23 dropped with a DeepSeek provider plugin, Qwen pay-as-you-go cloud access, OpenRouter auto-pricing with Anthropic thinking order, a smarter Chrome MCP, and fixes for Discord, Slack, Matrix, and the Web UI.
+
+ALEX: Back-to-back releases like that suggest a serious sprint to capture mindshare among developers who are juggling multiple models — they're clearly trying to be the everything-client for that crowd.
+
+SARAH: OpenCode also made news by integrating with Cursor's Pro subscription — so for twenty dollars a month you get Claude, GPT, Gemini, and Composer 2 access, with Cursor apparently engaging positively with the integration while Anthropic passed.
+
+ALEX: Cross-tool subscription portability is something a lot of developers have been asking for, and a painless twenty-dollar on-ramp to an alternative coding environment lowers the barrier to experimentation significantly.
+
+SARAH: Anthropic also added Projects support to the Claude Cowork desktop app, letting users import existing web-based Claude projects or start new ones directly in the desktop environment.
+
+ALEX: Continuity between web and desktop is basically table stakes for professional workflows at this point — it closes a gap that early adopters had flagged as a friction point.
+
+SARAH: Simon Willison shipped the datasette-files 0.1a2 alpha plugin, which brings drag-and-drop file uploads, CSV and TSV import to tables, multi-file upload UI, a JSON upload API, and thumbnail generation for images — all wired into Datasette 1.0's new column-types system.
+
+ALEX: Still alpha, but impressively complete for an early release — file upload support removes one of the bigger friction points for non-technical users who want to use Datasette as a serious data tool.
+
+SARAH: The New Stack also published a prompt engineering primer aimed at developers — covering what it actually means, what it doesn't, and how to design structured inputs for reliable LLM outputs.
+
+ALEX: As LLMs get embedded deeper into production systems, prompt quality is increasingly a first-class engineering concern — a grounded, misconception-free explainer is genuinely useful at this stage.
+
+SARAH: On the infrastructure side, The New Stack also put out a guide on deploying Pi-Hole via Docker for network-wide ad and tracker blocking — covers setup, configuration, and how the DNS-based approach works under the hood.
+
+ALEX: Docker makes the setup straightforward, and with AI-generated ad content proliferating, network-level blocking is becoming more relevant for anyone running a home or small office network.
+
+SARAH: In research, ServiceNow AI published EVA — Evaluation of Voice Agents — on the Hugging Face Blog, introducing a structured framework for systematically assessing voice-based AI systems.
+
+ALEX: Rigorous evaluation has been a glaring gap as voice agents move from demos to production — a principled framework here has real potential to become a community standard.
+
+SARAH: On the applications side, Project N.O.M.A.D racked up 10,479 GitHub stars in a single week. It's a self-contained offline survival computer written in TypeScript that bundles critical tools, survival knowledge, and AI — designed to work with zero internet connectivity.
+
+ALEX: That star count is a signal on its own — there's clearly a real and underserved appetite for AI that works when the grid or internet doesn't.
+
+SARAH: Now for the industry and business stories — Elon Musk announced Terafab, a vertically integrated chip fabrication facility in Austin combining Tesla, SpaceX, and xAI resources, targeting a terawatt of AI compute per year, which he claims is roughly 50 times current global output.
+
+ALEX: Two chip lines are planned — one for Tesla vehicles and Optimus robots, and a space-grade chip for solar-powered AI satellites launched via Starship, with Musk claiming space-based compute will undercut terrestrial costs within two to three years.
+
+SARAH: If even partially realized, that level of vertical integration over AI infrastructure would be unlike anything we've seen — it's an enormous claim and an enormous undertaking.
+
+ALEX: OpenAI is reportedly targeting a workforce of 8,000 by end of 2026, up from around 4,500 now — nearly doubling headcount driven by accelerating enterprise ambitions and intensifying competition for AI talent.
+
+SARAH: That scale of hiring signals a clear shift from research-first startup to full-scale enterprise software company, and doing it at speed is its own logistical challenge.
+
+ALEX: The White House released a Congressional AI policy blueprint that would preempt state-level AI legislation and consolidate oversight within existing federal agencies — a clear move to avoid a patchwork of 50 different state AI regimes.
+
+SARAH: The open question is whether existing federal agencies have the capacity or mandate to regulate AI effectively — federal preemption would be a seismic shift in U.S. AI governance either way.
+
+ALEX: New Zealand agtech startup Halter is closing a Founders Fund-led round at around a two-billion-dollar valuation — double its one-billion-dollar mark from last June. Their solar-powered cattle collars feed over 6,000 data points per minute into a proprietary AI called Cowgorithm, backing 7 billion-plus hours of animal behavior data as they expand into the U.S.
+
+SARAH: Agtech is quietly becoming one of AI's most defensible verticals — when your data moat is measured in billions of hours of animal behavior, that's genuinely hard to replicate.
+
+ALEX: Meta's Superintelligence Labs hired someone known as Dreamer just 11 days after they recorded a Latent Space podcast episode — apparently one of the fastest podcast-to-hire pipelines on record.
+
+SARAH: The speed of that move says something about how aggressively Meta is scouting talent for its superintelligence push — when you're moving that fast, you're not waiting for a traditional recruiting process.
+
+ALEX: Finally, a U.S. man pleaded guilty to generating AI-produced fake music tracks and artificially inflating their stream counts to pocket 1.2 million dollars per year from streaming royalties — he faces up to five years in prison in one of the first major criminal convictions tied to AI-generated content fraud.
+
+SARAH: This sets a real precedent for how courts will treat AI-enabled fraud, and it puts streaming platforms on notice to close this exploit before it scales further — that's everything for today, thanks for listening to the AI Daily Roundup.
