@@ -5,7 +5,7 @@
 
 set -euo pipefail
 
-HEALTH_URL="https://ai-digest.duckdns.org/health"
+HEALTH_URL="https://aidailyroundup.com/health"
 SECRETS_FILE="/home/clawdbot/digest-pipeline/secrets.env"
 
 # Load Telegram credentials from secrets.env
