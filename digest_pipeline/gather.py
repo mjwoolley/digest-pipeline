@@ -217,7 +217,7 @@ def _fetch_blog(key: str, blog: dict, source_type: str = "blog") -> dict:
     try:
         try:
             result = subprocess.run(
-                ["curl", "-sL", "--max-time", "10", blog["feed_url"]],
+                ["curl", "-sL", "--compressed", "--max-time", "10", blog["feed_url"]],
                 capture_output=True, text=True, timeout=15
             )
         except FileNotFoundError:
@@ -233,7 +233,8 @@ def _fetch_blog(key: str, blog: dict, source_type: str = "blog") -> dict:
             logger.warning(f"[GATHER] {source_label}: bad payload (error page or app-shell)")
             return {**base, "content": ""}
 
-        parsed = parse_rss_recent(result.stdout)
+        feed_hours = blog.get("feed_hours", 24)
+        parsed = parse_rss_recent(result.stdout, hours=feed_hours)
         if parsed is not None:
             content = parsed
             logger.info(f"[GATHER] {source_label}: OK (XML parsed)")
@@ -305,6 +306,79 @@ def parse_anthropic_news(html: str) -> str:
     return "\n".join(entries)
 
 
+class AddeparBlogParser(HTMLParser):
+    """Parse the Addepar /blog page to extract article links, titles, and descriptions."""
+
+    def __init__(self):
+        super().__init__()
+        self.articles = []  # list of (title, url, description)
+        self._in_feature = False
+        self._current_href = ""
+        self._in_h3 = False
+        self._in_time = False
+        self._in_desc_p = False
+        self._text_buf = ""
+        self._title = ""
+        self._desc = ""
+
+    def handle_starttag(self, tag, attrs):
+        attrs_dict = dict(attrs)
+        classes = attrs_dict.get("class", "")
+        if tag == "a" and "blog-feature" in classes:
+            href = attrs_dict.get("href", "")
+            if href.startswith("/blog/") and href != "/blog/" and href != "/blog":
+                self._in_feature = True
+                self._current_href = href
+                self._title = ""
+                self._desc = ""
+        elif self._in_feature:
+            if tag == "h3":
+                self._in_h3 = True
+                self._text_buf = ""
+            elif tag == "time":
+                self._in_time = True
+                self._text_buf = ""
+            elif tag == "p" and "measure" in classes and not self._in_desc_p:
+                self._in_desc_p = True
+                self._text_buf = ""
+
+    def handle_endtag(self, tag):
+        if tag == "a" and self._in_feature:
+            if self._title and self._current_href:
+                url = f"https://www.addepar.com{self._current_href}"
+                if not any(u == url for _, u, _ in self.articles):
+                    self.articles.append((self._title, url, self._desc))
+            self._in_feature = False
+        elif tag == "h3" and self._in_h3:
+            self._title = self._text_buf.strip()
+            self._in_h3 = False
+        elif tag == "time" and self._in_time:
+            self._in_time = False
+        elif tag == "p" and self._in_desc_p:
+            self._desc = self._text_buf.strip()
+            self._in_desc_p = False
+
+    def handle_data(self, data):
+        if self._in_h3 or self._in_desc_p:
+            self._text_buf += data
+        elif self._in_time:
+            self._text_buf += data
+
+
+def parse_addepar_blog(html: str) -> str:
+    """Parse the Addepar /blog page HTML and return formatted entries."""
+    parser = AddeparBlogParser()
+    parser.feed(html)
+    entries = []
+    for title, url, desc in parser.articles[:15]:
+        parts = [f"TITLE: {title}", f"LINK: {url}"]
+        if desc:
+            parts.append(desc)
+        parts.append("---")
+        entries.append("\n".join(parts))
+    return "\n".join(entries)
+
+
 def _fetch_blog_html_scrape(key: str, blog: dict,
                             source_type: str = "blog") -> dict:
     """Fetch a blog via HTML scraping instead of RSS."""
@@ -316,7 +390,7 @@ def _fetch_blog_html_scrape(key: str, blog: dict,
     scrape_parser = blog.get("scrape_parser", "")
     try:
         result = subprocess.run(
-            ["curl", "-sL", "--max-time", "10", source_url],
+            ["curl", "-sL", "--compressed", "--max-time", "10", source_url],
             capture_output=True, text=True, timeout=15
         )
         if result.returncode != 0 or not result.stdout.strip():
@@ -329,6 +403,8 @@ def _fetch_blog_html_scrape(key: str, blog: dict,
 
         if scrape_parser == "anthropic_news":
             content = parse_anthropic_news(result.stdout)
+        elif scrape_parser == "addepar_blog":
+            content = parse_addepar_blog(result.stdout)
         else:
             logger.warning(f"[GATHER] {source_label}: unknown scrape_parser '{scrape_parser}'")
             return {**base, "content": ""}
@@ -484,7 +560,7 @@ def _fetch_readme(owner: str, repo: str) -> str:
     """Fetch first 3000 chars of a repo's README via raw.githubusercontent.com."""
     try:
         result = subprocess.run(
-            ["curl", "-sL", "--max-time", "5",
+            ["curl", "-sL", "--compressed", "--max-time", "5",
              f"https://raw.githubusercontent.com/{owner}/{repo}/HEAD/README.md"],
             capture_output=True, text=True, timeout=8
         )
@@ -535,7 +611,7 @@ def _fetch_github_trending(cfg: dict) -> dict:
             "source_label": source_label, "source_url": source_url}
     try:
         result = subprocess.run(
-            ["curl", "-sL", "--max-time", "10", source_url],
+            ["curl", "-sL", "--compressed", "--max-time", "10", source_url],
             capture_output=True, text=True, timeout=15
         )
         if result.returncode != 0 or not result.stdout.strip():

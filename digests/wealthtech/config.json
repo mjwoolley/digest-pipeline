@@ -1,0 +1,154 @@
+{
+  "digest": {
+    "name": "Wealth Management Tech Digest",
+    "tagline": "WEALTHTECH DIGEST",
+    "emoji": "💼",
+    "tone": "informed, direct, slightly opinionated",
+    "max_articles": 20
+  },
+  "categories": [
+    {
+      "id": "advisor-platforms",
+      "label": "Advisor Platforms",
+      "emoji": "🧰",
+      "description": "Portfolio management, rebalancing, reporting, CRM, and integrated advisor platform updates"
+    },
+    {
+      "id": "planning-workflows",
+      "label": "Planning & Workflow",
+      "emoji": "📋",
+      "description": "Financial planning, client onboarding, advisor workflow automation, and operational tooling"
+    },
+    {
+      "id": "ai-automation",
+      "label": "AI & Automation",
+      "emoji": "🤖",
+      "description": "AI-native and AI-enabled products for advisor meetings, notes, CRM updates, planning assistance, and productivity"
+    },
+    {
+      "id": "interop-infra",
+      "label": "Interop & Infrastructure",
+      "emoji": "🔗",
+      "description": "Interoperability, desktop integration, enterprise workflow infrastructure, and enabling technology relevant to wealth platforms"
+    },
+    {
+      "id": "industry",
+      "label": "Industry & Business",
+      "emoji": "📈",
+      "description": "Partnerships, funding, M&A, strategic launches, and ecosystem changes across wealth management technology"
+    },
+    {
+      "id": "other",
+      "label": "Other",
+      "emoji": "🌐",
+      "description": "Anything relevant that does not fit the main buckets"
+    }
+  ],
+  "podcast": {
+    "enabled": true,
+    "name": "The WealthTech Daily Roundup",
+    "hosts": [
+      {
+        "tag": "ALEX",
+        "role": "The technical host. Focuses on platform architecture, advisor workflow design, integrations, and implementation detail.",
+        "voice_kokoro": "am_michael"
+      },
+      {
+        "tag": "SARAH",
+        "role": "The business host. Focuses on strategic implications for advisors, firms, vendors, and the wealthtech ecosystem.",
+        "voice_kokoro": "af_heart"
+      }
+    ],
+    "tts_backend": "kokoro"
+  },
+  "delivery": {
+    "email": {
+      "method": "resend",
+      "resend": {
+        "api_key_env": "RESEND_API_KEY",
+        "from": "The WealthTech Daily Roundup <digest@wealthtechdigest.com>"
+      }
+    },
+    "notify": {
+      "method": "telegram",
+      "telegram": {
+        "bot_token_env": "TELEGRAM_BOT_TOKEN",
+        "chat_id_env": "TELEGRAM_CHAT_ID"
+      }
+    }
+  },
+  "subscriptions": {
+    "public_base_url": "https://wealthtechdigest.com",
+    "cors_origins": ["https://wealthtechdigest.com"],
+    "port": 5100
+  },
+  "llm": {
+    "provider": "openrouter"
+  },
+  "archive": {
+    "enabled": true,
+    "push": true,
+    "branch": "master",
+    "commit_message": "WealthTech archive: {date}",
+    "artifacts": [
+      "{date}.md",
+      "podcasts/{date}.mp3",
+      "podcasts/{date}.txt",
+      "podcast.xml",
+      ".seen_embeddings.json",
+      ".source_state.json"
+    ]
+  },
+  "sources": {
+    "twitter": {
+      "accounts": [
+        "orionwealthtech",
+        "RightCapitalHQ",
+        "zocksio",
+        "here_browser",
+        "ThinkAdvisor"
+      ],
+      "lookback": "36h",
+      "max_per_account": 8
+    },
+    "blogs": {
+      "wealthmanagement": {
+        "name": "WealthManagement.com",
+        "feed_url": "https://www.wealthmanagement.com/rss.xml",
+        "feed_hours": 72,
+        "description": "Editorial coverage of wealth management and advisor technology"
+      },
+      "interop": {
+        "name": "interop.io",
+        "feed_url": "https://interop.io/blog/feed/",
+        "feed_hours": 72,
+        "description": "Interoperability and workflow infrastructure relevant to financial applications"
+      },
+      "here": {
+        "name": "HERE",
+        "feed_url": "https://here.io/blog/rss.xml",
+        "feed_hours": 72,
+        "description": "Enterprise browser and productivity infrastructure relevant to advisor workflows"
+      },
+      "financial_planning": {
+        "name": "Financial Planning",
+        "feed_url": "https://www.financial-planning.com/feed.rss",
+        "feed_hours": 72,
+        "description": "News and analysis for financial advisors covering technology, practice management, and wealth management"
+      },
+      "wealth_solutions_report": {
+        "name": "Wealth Solutions Report",
+        "feed_url": "https://www.wealthsolutionsreport.com/rss/",
+        "feed_hours": 72,
+        "description": "Editorial coverage of wealthtech, advisor platforms, deals, product launches, and RIA ecosystem changes"
+      },
+      "addepar": {
+        "name": "Addepar",
+        "url": "https://www.addepar.com/blog",
+        "strategy": "html_scrape",
+        "scrape_parser": "addepar_blog",
+        "description": "Portfolio management platform for wealth managers — product updates, AI features, and industry perspectives"
+      }
+    }
+  }
+}

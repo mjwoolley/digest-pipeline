@@ -84,6 +84,56 @@ Add a preheader (preview text) to digest emails — the snippet Gmail shows next
 - Extract the first 1-2 story titles from the digest
 - Inject as a hidden preheader div at the top of the HTML email body
 
+## Management Console for Multiple Digests
+
+### Goal
+Add a management console that supports multiple daily digests, not just the AI Daily Roundup.
+
+### What it should show
+- all configured digests
+- current enabled/disabled sources per digest
+- source metadata and source type
+- recent run history per digest
+- stage-by-stage run status
+- recent errors / failures / warnings
+- source health signals (for example repeated zero-yield sources)
+- high-level stats such as article counts, dedupe counts, dropped counts, and delivery outcomes
+
+### Design goals
+- design it as a multi-digest control plane, not a one-off AI digest debug page
+- support both digest-specific views and an all-digests overview
+- make it easy to answer:
+  - what sources are active?
+  - what ran recently?
+  - what failed?
+  - which sources are unhealthy or stale?
+- reuse existing logs/work artifacts/source-state where practical before inventing new storage
+
+### Notes
+- read-only operational visibility first; mutating controls can come later
+- should complement source-health auditing and source-state checkpoint work rather than duplicating it
+- should be useful for diagnosing broken sources, delivery issues, and schema drift across multiple digests
+
+## Register Podcast with Directories
+
+### Goal
+Submit the AI Daily Roundup podcast RSS feed to major podcast directories so listeners can subscribe through their preferred app.
+
+### Directories to target
+- Apple Podcasts
+- Spotify
+- Google Podcasts
+- Amazon Music / Audible
+- Pocket Casts
+- Overcast
+
+### What to consider
+- Most directories require a valid RSS feed with specific tags (artwork, author, category, explicit flag, etc.) — audit `podcast.xml` for compliance
+- Apple Podcasts is the most strict; getting accepted there usually means the feed works everywhere
+- Some directories (Spotify) have their own submission portal separate from RSS
+- Need podcast artwork (minimum 1400x1400, recommended 3000x3000)
+- May need to add `<itunes:*>` tags to the RSS feed if not already present
+
 ---
 
 ## Completed

@@ -85,7 +85,7 @@
     }
   },
   "subscriptions": {
-    "public_base_url": "https://ai-digest.duckdns.org",
+    "public_base_url": "https://aidailyroundup.com",
     "cors_origins": ["https://aidailyroundup.com", "https://ai-digest.duckdns.org"],
     "port": 5100
   },

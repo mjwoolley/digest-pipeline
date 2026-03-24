@@ -179,12 +179,16 @@ def get_subscriber_emails(data_root: Path) -> list[str]:
     return [s["email"] for s in load_subscribers(data_root)]
 
 
-def unsubscribe_url(base_url: str, token: str) -> str:
+def unsubscribe_url(base_url: str, token: str, digest: str = None) -> str:
     """Build an unsubscribe URL.
 
     If base_url is provided, returns an HTTP unsubscribe link.
     Otherwise falls back to mailto: for backward compatibility.
+    When digest is provided, appends &digest={slug} for multi-digest routing.
     """
     if base_url:
-        return f"{base_url.rstrip('/')}/unsubscribe?token={token}"
+        url = f"{base_url.rstrip('/')}/unsubscribe?token={token}"
+        if digest:
+            url += f"&digest={digest}"
+        return url
     return f"mailto:mjw_openclaw@agentmail.to?subject=unsubscribe&body=token:{token}"

@@ -33,7 +33,7 @@ def app_client(tmp_path):
         return cfg
 
     with patch("digest_pipeline.subscription_api.load_config", side_effect=mock_load):
-        app = create_app(str(config_path))
+        app = create_app(config_path=str(config_path))
 
     app.testing = True
     return app.test_client(), tmp_path

@@ -13,6 +13,7 @@ uv.lock
 
 # Runtime data
 digests/*/logs/
+digests/*/work/
 digests/*/subscribers.json
 digests/*/subscription_events.jsonl
 digests/*/send_history.jsonl

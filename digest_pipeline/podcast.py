@@ -289,10 +289,11 @@ def _update_landing_page(podcasts_dir: Path, config: dict,
     try:
         data_root = config["_data_root"]
         podcast_cfg = config.get("podcast", {})
+        sub_cfg = config.get("subscriptions", {})
         pages_base = podcast_cfg.get("pages_base_url",
-                                      "https://aidailyroundup.com")
-        rel_podcasts = podcasts_dir.relative_to(data_root.parent.parent)
-        base_url = f"{pages_base}/{rel_podcasts}"
+                                      sub_cfg.get("public_base_url",
+                                                   "https://aidailyroundup.com"))
+        base_url = f"{pages_base}/podcasts"
 
         index_path = data_root / "index.html"
         if not index_path.exists():

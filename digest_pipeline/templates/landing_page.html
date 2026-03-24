@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The AI Daily Roundup</title>
+<title>{{DIGEST_NAME}}</title>
 <style>
   :root {
     --bg: #0b1120;
@@ -166,51 +166,11 @@
   .copy-status { color: var(--success); }
   .email-status { color: var(--muted); }
 
-  .honesty-note,
-  .coming-soon {
-    margin-top: 0.95rem;
-    padding: 0.85rem 0.95rem;
-    border-radius: 12px;
-    color: var(--text);
-    font-size: 0.9rem;
-  }
-  .honesty-note {
-    background: rgba(251, 191, 36, 0.08);
-    border: 1px solid rgba(251, 191, 36, 0.2);
-  }
-  .coming-soon {
-    background: rgba(56, 189, 248, 0.08);
-    border: 1px solid rgba(56, 189, 248, 0.2);
-  }
-
   .podcast-stack {
     display: flex;
     flex-direction: column;
     gap: 1rem;
     margin-top: 1rem;
-  }
-  .app-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.65rem;
-  }
-  .qr-wrap {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-    padding-top: 0.2rem;
-  }
-  .qr-code {
-    width: 160px;
-    height: 160px;
-    border-radius: 12px;
-    background: white;
-    padding: 10px;
-    flex: 0 0 auto;
-  }
-  .qr-caption {
-    max-width: 260px;
   }
 
   .hosts {
@@ -263,18 +223,6 @@
     border-radius: 8px;
   }
 
-  .about {
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 0 1.5rem 3rem;
-    text-align: center;
-  }
-  .about p {
-    color: var(--muted);
-    font-size: 0.95rem;
-    margin-bottom: 0.5rem;
-  }
-
   footer {
     text-align: center;
     padding: 2rem 1.5rem;
@@ -292,25 +240,23 @@
   @media (max-width: 640px) {
     .hero h1 { font-size: 1.85rem; }
     .hero .tagline { font-size: 1rem; }
-    .qr-wrap { flex-direction: column; align-items: flex-start; }
-    .qr-code { width: 150px; height: 150px; }
   }
 </style>
 </head>
 <body>
 
 <div class="hero">
-  <img src="podcast-logo.png" alt="The AI Daily Roundup logo">
-  <h1>The AI Daily Roundup</h1>
-  <p class="tagline">Your daily briefing on the most important AI news &mdash; model releases, developer tools, research breakthroughs, and industry moves &mdash; delivered as a podcast or a daily email digest or both!</p>
-  <p class="subscribe-note">Pick your flavor below: inbox, podcast app, or both if you really want the full robot media empire experience.</p>
+  <img src="{{BRAND_IMAGE}}" alt="{{DIGEST_NAME}} logo">
+  <h1>{{DIGEST_NAME}}</h1>
+  <p class="tagline">{{TAGLINE}}</p>
+  <p class="subscribe-note">Subscribe via email or podcast app below.</p>
 </div>
 
 <section class="section">
   <div class="subscribe-layout">
     <div class="card" id="email-subscribe">
       <h3>Subscribe to the daily email digest</h3>
-      <p>Get the roundup in your inbox each day with the same branding and content as the podcast companion experience.</p>
+      <p>Get the digest in your inbox each day.</p>
       <div class="email-field">
         <input class="email-input" id="emailInput" type="email" placeholder="you@example.com" aria-label="Email address for digest subscription">
         <input type="text" name="website" id="honeypot" style="display:none" tabindex="-1" autocomplete="off">
@@ -321,12 +267,12 @@
 
     <div class="card">
       <h3>Subscribe to the podcast</h3>
-      <p>Use the RSS feed in any decent podcast app. Directory listings are coming later; for now this is the universal key that unlocks the podcast kingdom.</p>
+      <p>Use the RSS feed in any podcast app.</p>
 
       <div class="podcast-stack">
         <div>
           <div class="rss-field">
-            <input class="rss-input" id="rssInput" type="text" readonly value="https://aidailyroundup.com/digests/ai/podcast.xml" aria-label="Podcast RSS feed URL">
+            <input class="rss-input" id="rssInput" type="text" readonly value="{{PODCAST_FEED_URL}}" aria-label="Podcast RSS feed URL">
             <button class="copy-btn" type="button" id="copyRssBtn">Copy RSS</button>
           </div>
           <span class="copy-status" id="copyStatus" aria-live="polite"></span>
@@ -335,7 +281,7 @@
         <ol>
           <li>Copy the RSS feed URL above.</li>
           <li>Open your podcast app.</li>
-          <li>Choose “Add by URL” or “Follow by RSS feed.”</li>
+          <li>Choose "Add by URL" or "Follow by RSS feed."</li>
           <li>Paste the link and subscribe.</li>
         </ol>
       </div>
@@ -343,94 +289,21 @@
   </div>
 </section>
 
-<div class="hosts">
-  <div class="host">
-    <div class="name">Alex</div>
-    <div class="role">The technical host. Digs into architecture, benchmarks, and implementation details.</div>
-  </div>
-  <div class="host">
-    <div class="name">Sarah</div>
-    <div class="role">The big-picture host. Focuses on strategy, industry impact, and the &ldquo;so what?&rdquo; questions.</div>
-  </div>
-</div>
+{{HOSTS_HTML}}
 
 <div class="episodes">
   <h2 class="section-title">Recent Episodes</h2>
   <!-- EPISODES_START -->
-  <div class="episode">
-    <div class="ep-title">2026-03-23</div>
-    <audio controls preload="none" src="https://aidailyroundup.com/podcasts/2026-03-23.mp3"></audio>
-  </div>
-  <div class="episode">
-    <div class="ep-title">2026-03-22</div>
-    <audio controls preload="none" src="https://aidailyroundup.com/podcasts/2026-03-22.mp3"></audio>
-  </div>
-  <div class="episode">
-    <div class="ep-title">2026-03-21</div>
-    <audio controls preload="none" src="https://aidailyroundup.com/podcasts/2026-03-21.mp3"></audio>
-  </div>
-  <div class="episode">
-    <div class="ep-title">2026-03-20</div>
-    <audio controls preload="none" src="https://aidailyroundup.com/podcasts/2026-03-20.mp3"></audio>
-  </div>
-  <div class="episode">
-    <div class="ep-title">2026-03-19</div>
-    <audio controls preload="none" src="https://aidailyroundup.com/podcasts/2026-03-19.mp3"></audio>
-  </div>
-  <div class="episode">
-    <div class="ep-title">2026-03-18</div>
-    <audio controls preload="none" src="https://aidailyroundup.com/podcasts/2026-03-18.mp3"></audio>
-  </div>
-  <div class="episode">
-    <div class="ep-title">2026-03-17</div>
-    <audio controls preload="none" src="https://aidailyroundup.com/podcasts/2026-03-17.mp3"></audio>
-  </div>
-  <div class="episode">
-    <div class="ep-title">2026-03-16</div>
-    <audio controls preload="none" src="https://aidailyroundup.com/podcasts/2026-03-16.mp3"></audio>
-  </div>
-  <div class="episode">
-    <div class="ep-title">2026-03-15</div>
-    <audio controls preload="none" src="https://aidailyroundup.com/podcasts/2026-03-15.mp3"></audio>
-  </div>
-  <div class="episode">
-    <div class="ep-title">2026-03-13</div>
-    <audio controls preload="none" src="https://aidailyroundup.com/podcasts/2026-03-13.mp3"></audio>
-  </div>
-  <div class="episode">
-    <div class="ep-title">2026-03-12</div>
-    <audio controls preload="none" src="https://aidailyroundup.com/podcasts/2026-03-12.mp3"></audio>
-  </div>
-  <div class="episode">
-    <div class="ep-title">2026-03-11</div>
-    <audio controls preload="none" src="https://aidailyroundup.com/podcasts/2026-03-11.mp3"></audio>
-  </div>
-  <div class="episode">
-    <div class="ep-title">2026-03-10</div>
-    <audio controls preload="none" src="https://aidailyroundup.com/podcasts/2026-03-10.mp3"></audio>
-  </div>
-  <div class="episode">
-    <div class="ep-title">2026-03-09</div>
-    <audio controls preload="none" src="https://aidailyroundup.com/podcasts/2026-03-09.mp3"></audio>
-  </div>
-  <div class="episode">
-    <div class="ep-title">2026-03-08</div>
-    <audio controls preload="none" src="https://aidailyroundup.com/podcasts/2026-03-08.mp3"></audio>
-  </div>
-  <div class="episode">
-    <div class="ep-title">2026-03-07</div>
-    <audio controls preload="none" src="https://aidailyroundup.com/podcasts/2026-03-07.mp3"></audio>
-  </div>
   <!-- EPISODES_END -->
 </div>
 
 
 <footer>
-  The AI Daily Roundup &middot; AI-generated podcast
+  {{DIGEST_NAME}} &middot; AI-generated digest &amp; podcast
 </footer>
 
 <script>
-  const feedUrl = 'https://aidailyroundup.com/digests/ai/podcast.xml';
+  const feedUrl = '{{PODCAST_FEED_URL}}';
   const copyStatus = document.getElementById('copyStatus');
   const copyBtn = document.getElementById('copyRssBtn');
 

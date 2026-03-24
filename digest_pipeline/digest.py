@@ -580,16 +580,17 @@ def main():
             # Send to subscribers with personalized unsubscribe links
             from .subscribers import unsubscribe_url as _unsub_url
             _pub_base = config.get("subscriptions", {}).get("public_base_url", "")
+            _digest_slug = config["_data_root"].name
             now = datetime.now(timezone.utc)
             short_date = f"{now.strftime('%A, %B')} {now.day}, {now.year}"
             def _make_html(email, token):
                 return _markdown_to_email_html(
                     formatted, config,
-                    unsubscribe_url=_unsub_url(_pub_base, token),
+                    unsubscribe_url=_unsub_url(_pub_base, token, digest=_digest_slug),
                     date_display=short_date,
                 )
             def _unsub_for(email, token):
-                return _unsub_url(_pub_base, token)
+                return _unsub_url(_pub_base, token, digest=_digest_slug)
             delivery.send_email_to_subscribers(
                 subject, _make_html, config, digest_date=date,
                 unsubscribe_url_fn=_unsub_for)
