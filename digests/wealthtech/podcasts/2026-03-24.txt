@@ -1,61 +1,57 @@
-ALEX: Welcome to The WealthTech Daily Roundup for Tuesday, March 24, 2026.
+ALEX: Welcome to the WealthTech Daily Roundup for Tuesday, March 24th, 2026.
 
-SARAH: Let's start with Orion, where President of Advisor Technology Reed Colley appeared on the Ezra Group's WealthTech Today podcast to explain the firm's shift from being AI-first to AI-native — framing it as a deeper architectural commitment rather than just a feature layer.
+SARAH: We've got a packed digest today, so let's jump straight in. Starting with Orion — Reed Colley, their President of Advisor Technology, went on the Ezra Group's WealthTech Today podcast to draw a distinction between being AI-first and being AI-native, and it's not just semantics.
+ALEX: Right — AI-first means you're prioritizing AI features, but AI-native means the architecture itself is built around AI from the ground up. That's a fundamentally different engineering commitment, and it raises the bar for every other platform trying to compete.
+SARAH: It also signals that the platforms still bolting AI onto existing workflows may find themselves structurally behind, not just feature-behind.
 
-ALEX: The distinction matters technically — AI-first means you prioritize AI initiatives, but AI-native means the platform is designed around AI from the ground up, which is a much harder thing to retrofit for competitors already built on legacy architecture.
+SARAH: Moving into planning and workflow, there's a piece from a former DOL regulator arguing that the 401k system is structurally broken because nobody is clear on who does what. The blurry role definitions among service providers are limiting participant access and accountability.
+ALEX: And from a workflow standpoint, that ambiguity means there's no clean handoff — advisors, recordkeepers, TPAs, and plan sponsors are all operating in overlapping lanes without defined ownership.
+SARAH: The argument is that neither regulators nor the market have fixed this, and at the scale of 401ks as the primary retirement vehicle for most Americans, that's a real outcomes problem.
 
-SARAH: It raises the competitive bar for every other advisor platform that's been bolting AI on top of existing infrastructure.
+ALEX: Related to that, there's also a piece listing ten common mistakes plan sponsors make — things like misunderstanding their fiduciary duties, inadequate participant education, and failing on fee transparency.
+SARAH: None of these are exotic failures. They're basic oversight gaps, which actually makes it a clear opportunity for retirement plan advisors to add structured value through training and process.
+ALEX: It's the kind of repeatable advisory workflow that lends itself well to scalable service models — checklists, audit tools, that sort of thing.
 
-ALEX: Moving to planning and workflow — a former DOL regulator published a piece arguing that America's 401k system is structurally undermined by murky role definitions among service providers, which limits both participant access and accountability.
+SARAH: Alicia Munnell is out with a piece pushing back on annuitization as a default 401k option. Her core argument is that locking retirees into an income stream without flexibility falls apart the moment someone faces a real-world liquidity emergency.
+ALEX: So the product design problem is that defaults assume a clean decumulation path, but actual participant circumstances are messier — medical costs, family needs, unexpected expenses.
+SARAH: With momentum building to embed more annuities into workplace plans, this is a meaningful counterweight to what can be oversimplified decumulation policy.
 
-SARAH: This isn't a new complaint, but the fact that it's coming from someone inside the regulatory apparatus gives it more weight — and it points to gaps that neither regulators nor market forces have managed to close.
+ALEX: There's also a piece aimed at advisors about pre-wedding financial conversations — specifically around prenups and property purchases before marriage and the legal and financial complexity they carry.
+SARAH: Life transitions are one of the most reliable entry points for deepening a client relationship, and this is exactly the kind of planning conversation that expands scope beyond investment management.
+ALEX: It's also the kind of topic that doesn't come up unless the advisor surfaces it proactively, which is where workflow triggers and life event monitoring in the CRM actually earn their keep.
 
-ALEX: On a related note, WealthManagement.com has a piece cataloging ten mistakes plan sponsors routinely make — things like misunderstanding fiduciary duties, inadequate participant education, and failing on fee transparency.
+SARAH: On the infrastructure side, there's a piece making the case that wealth management has a last-mile delivery problem — content and insights are being built, but there's no reliable system ensuring clients actually receive them. And critically, nobody is measuring the cost of that gap.
+ALEX: The analogy holds — you can have the best analytics and the most sophisticated models, but if the delivery layer between advisor and client is unengineered, the value doesn't land.
+SARAH: Until firms treat client delivery as infrastructure and not just a communication afterthought, they're leaving engagement and revenue on the table.
 
-SARAH: These aren't exotic failures, they're basic oversight gaps, and that actually makes them a clear opportunity for advisors serving plan sponsors who can come in with structured training and process support.
+ALEX: Big regulatory news today — Commonwealth Financial Network is settling an SEC enforcement action over mutual fund share class recommendations for 5 million dollars. That's down from a 93 million dollar penalty a federal judge originally imposed before an appeals court intervened.
+SARAH: The case predates LPL's acquisition of Commonwealth, but the more significant story here is what the outcome signals — appellate review can dramatically reshape large SEC judgments, and that may encourage other firms to challenge rather than settle.
+ALEX: A 94 percent reduction in penalty is hard to ignore as a data point when firms are weighing the cost-benefit of litigation versus early settlement.
 
-SARAH: Staying in retirement — Alicia Munnell makes the case that annuitization as a default 401k option is a poor choice because it strips participants of liquidity when they face real-world emergencies.
+SARAH: On the recruiting front, a six-person New York team called the Apollo Group, managing 1.25 billion in AUM, has left JPMorgan to join Janney Montgomery Scott. They're former First Republic advisors.
+ALEX: So this is part of a continued pattern — First Republic advisors who landed at JPMorgan after the acquisition haven't all found the cultural or structural fit they were looking for.
+SARAH: For JPMorgan it's a retention problem, and for regional and independent firms like Janney, it's an ongoing recruitment opportunity at meaningful AUM scale.
 
-ALEX: That's a meaningful counterpoint given the momentum behind embedding annuities into workplace plans — the policy push assumes income certainty is the primary goal, but liquidity needs are real and unpredictable.
+ALEX: There's a serious fraud case to cover — Brooklynn Chandler Willy, a Texas-based advisor who also had a public radio presence, has pleaded guilty to misappropriating client funds, forging signatures, and making Ponzi-style payments to investors.
+SARAH: The public profile element is what makes this particularly damaging — clients trusted her in part because of her media visibility, which is exactly the kind of credential shortcut that vetting is supposed to catch.
+ALEX: Cases like this are a recurring reminder that compliance and background verification need to be robust regardless of how prominent someone is publicly.
 
-ALEX: Shifting gears — WealthManagement.com has a piece on pre-wedding financial conversations, specifically around pre-nuptial agreements and property purchases before marriage, as areas where advisors are well-positioned to add value.
+SARAH: Shifting to alternatives — there's a piece raising systemic concerns about private credit's opacity. The market has grown explosively, but disclosure gaps and risk assessment shortfalls are drawing increasing scrutiny.
+ALEX: The framing is sharp — it's not just what we know about private credit lending practices, it's what isn't being reported that may matter more as the asset class flows into retail wealth channels.
+SARAH: Advisors need risk frameworks grounded in that reality, not just the yield narrative that's been driving adoption.
 
-SARAH: Life transitions have always been a proven entry point for deepening client relationships and expanding planning scope, and this is one that often gets skipped because advisors wait for clients to bring it up first.
+ALEX: And directly connected to that — SEC Commissioner Uyeda is backing the Trump administration's push to ease restrictions on alternative investments in 401k plans, even as private credit stress is raising red flags.
+SARAH: Experts quoted in the piece warn that the timing should give plan sponsors and advisors genuine pause — putting illiquid, opaque alternatives into everyday retirement accounts is a high-stakes policy bet.
+ALEX: The juxtaposition of these two stories on the same day is striking — one flags systemic opacity concerns, the other is pushing the door wider open for retail exposure.
 
-SARAH: On infrastructure — there's a piece making the case that wealth management has a "last mile" problem, meaning the gap between content existing and a client actually receiving it has never been systematically solved, and nobody is measuring what it costs.
+SARAH: On a more encouraging note, a new study shows that recruitment efforts targeting women in wealth management are producing measurable results, with female entrants hitting unprecedented levels.
+ALEX: The caveat in the piece is real though — the pipeline gains need sustained investment to hold, or the momentum stalls before it delivers full business impact.
+SARAH: And the business case is well-documented — greater gender diversity in advisory ranks is linked to broader client demographic reach and better practice outcomes, not just equity metrics.
 
-ALEX: From a systems perspective this is a real delivery problem — firms invest heavily in content production and sophisticated tools but haven't built the infrastructure to ensure that value actually reaches end clients consistently.
+ALEX: Back to markets — oil-driven volatility is generating a spike in anxious client calls, and the piece notes that advisors with pre-built communication frameworks are handling it noticeably better than those improvising under pressure.
+SARAH: This keeps coming up every volatility event — firms that have invested in proactive client communication infrastructure are at a structural advantage over those that treat messaging as a reactive task.
+ALEX: It's a workflow and content readiness problem as much as it is a relationship management one.
 
-SARAH: And until that delivery layer catches up, client engagement and revenue are both being left on the table.
-
-ALEX: Big regulatory news — Commonwealth Financial Network has settled an SEC enforcement action over mutual fund share class recommendations for five million dollars, down dramatically from a ninety-three million dollar penalty a federal judge originally imposed before an appeals court intervened. The case predates LPL Financial's acquisition of Commonwealth.
-
-SARAH: A reduction from ninety-three million to five million is the kind of outcome that will get noticed — it signals that appellate review can fundamentally reshape regulatory penalties and may give other firms more confidence to contest large SEC judgments rather than settle early.
-
-ALEX: On the recruiting front — the Apollo Group, a six-person New York team managing one point two five billion in AUM and formerly from First Republic, has left JPMorgan to join Janney Montgomery Scott.
-
-SARAH: This reinforces a pattern we've been watching — a meaningful segment of former First Republic advisors never fully settled into JPMorgan's culture and structure, and regional and independent firms are the ones capitalizing on that.
-
-SARAH: On a darker note — Texas-based advisor and radio personality Brooklynn Chandler Willy has pleaded guilty to misappropriating client funds for personal use, forging signatures, and making Ponzi-style payments to investors.
-
-ALEX: The public radio profile is what makes this particularly damaging to the broader profession — clients trusted her in part because of that visibility, which is exactly why vetting credentials matters even for media-prominent figures.
-
-ALEX: In alternatives — there's a piece flagging that private credit's opacity is becoming a systemic concern, with scrutiny intensifying around disclosure gaps and risk assessment as the asset class has grown explosively.
-
-SARAH: The concern here is that private credit is flowing into retail wealth channels, and advisors need clear-eyed risk frameworks — not just yield narratives — to serve clients appropriately in this space.
-
-SARAH: Directly connected to that — SEC Commissioner Uyeda is backing the Trump administration's push to ease restrictions on alternative investments in 401k plans, even as private credit stress signals are already appearing.
-
-ALEX: Experts quoted in the piece warn that the timing will give plan sponsors and advisors genuine pause — putting illiquid, opaque alternatives into everyday retirement accounts is a high-stakes policy move that's moving fast.
-
-ALEX: On a more positive industry note — a new study shows recruitment efforts targeting women in wealth management are producing measurable results, with female entrants hitting unprecedented levels.
-
-SARAH: The caveat is sustainability — the gains need continued investment to hold, because research consistently links gender diversity in advisory ranks to broader client demographic reach and better practice outcomes, so stalling here has real business consequences.
-
-ALEX: Wrapping up — oil-driven market volatility is generating an uptick in anxious client calls, and advisors with pre-built communication frameworks are handling it better than those improvising under pressure.
-
-SARAH: This is a recurring theme every time markets move — firms that have invested in proactive client communication infrastructure have a structural advantage, and those that haven't are exposed every single time.
-
-ALEX: Finally — the Trump administration's shifting stance on threats toward Iran is generating a volatile mix of cautious optimism and skepticism on Wall Street, with the unpredictability itself becoming a market variable advisors need to factor into client conversations.
-
-SARAH: Geopolitical whiplash from Washington is increasingly a portfolio risk factor in its own right, and that's a conversation more advisors are going to need to be ready to have — that's all for today, we'll see you tomorrow.
+SARAH: And finally, the Trump administration's shifting stance on threats related to Iran is generating a mix of cautious optimism and skepticism among investors. The piece notes that the unpredictability itself is becoming a market variable.
+ALEX: That's an interesting framing — it's not just the geopolitical outcome that matters, it's the signal noise from Washington being priced in as its own risk factor.
+SARAH: That's the WealthTech Daily Roundup for Tuesday, March 24th — we'll be back tomorrow with whatever the market and the industry throw at us next.
