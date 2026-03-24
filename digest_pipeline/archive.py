@@ -136,9 +136,6 @@ def git_publish_daily(config: dict, date: str | None = None,
         )
         if push_result.returncode == 0:
             logger.info("[ARCHIVE] Pushed to remote")
-            delivery.send_progress("ARCHIVE",
-                                   f"Daily archive {date} pushed to git",
-                                   config)
         else:
             logger.error("[ARCHIVE] Push failed: %s",
                          push_result.stderr[:300])

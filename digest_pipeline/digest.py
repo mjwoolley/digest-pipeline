@@ -33,6 +33,7 @@ from .gather import gather_all
 from .cluster import cluster_articles, embedding_text
 from .source_state import (load_state, save_state, prune_state,
                            filter_gathered_sources, commit_pending)
+from .run_log import RunLog
 
 # ── Token Tracking ───────────────────────────────────────────────────────────
 
@@ -287,6 +288,7 @@ def main():
     try:
         # 2. Gather
         work_dir.mkdir(exist_ok=True)
+        run_log = RunLog(digest_cfg.get("name", "Digest"), date, work_dir)
         logger.info("[PIPELINE] Stage: GATHER")
         t0 = time.time()
         sources = gather_all(work_dir, sources_config=config.get("sources"),
@@ -299,10 +301,9 @@ def main():
         if non_empty:
             logger.info(f"[PIPELINE] Sources: {[s['source_key'] for s in non_empty]}")
 
-        if not dry_run:
-            delivery.send_progress("Gather",
-                                   f"Sources: {len(non_empty)}/{len(sources)}",
-                                   config, {"duration": gather_dur})
+        run_log.log_stage("Gather",
+                          f"Sources: {len(non_empty)}/{len(sources)}",
+                          {"duration": gather_dur})
 
         # 2b. Incremental filter: skip previously seen items
         source_state = load_state(data_root)
@@ -318,8 +319,7 @@ def main():
         if not non_empty:
             msg = "All sources empty — skipping digest"
             logger.warning(f"[PIPELINE] {msg}")
-            if not dry_run:
-                delivery.send_progress("Gather", msg, config)
+            run_log.log_stage("Gather", msg)
             return
 
         # 4. Extract: batched Haiku calls
@@ -346,20 +346,19 @@ def main():
 
             logger.info(f"[EXTRACT] Batch {i}: {len(articles)} articles, "
                          f"{dur:.1f}s")
-            if not dry_run:
-                # Count articles per source using source_key (stamped by code, not LLM)
-                article_counts = {}
-                for a in articles:
-                    sk = a.get("source_key", "unknown")
-                    article_counts[sk] = article_counts.get(sk, 0) + 1
-                source_lines = "\n".join(
-                    f"  {s['source_label']}: {len(s.get('content', '')):,} chars → {article_counts.get(s['source_key'], 0)} articles"
-                    for s in batch)
-                delivery.send_progress(
-                    f"Extract (Batch {i}/{len(batches)})",
-                    f"Articles found: {len(articles)}\n{source_lines}",
-                    config, {**usage, "duration": dur}
-                )
+            # Count articles per source using source_key (stamped by code, not LLM)
+            article_counts = {}
+            for a in articles:
+                sk = a.get("source_key", "unknown")
+                article_counts[sk] = article_counts.get(sk, 0) + 1
+            source_lines = "\n".join(
+                f"  {s['source_label']}: {len(s.get('content', '')):,} chars -> {article_counts.get(s['source_key'], 0)} articles"
+                for s in batch)
+            run_log.log_stage(
+                f"Extract (Batch {i}/{len(batches)})",
+                f"Articles found: {len(articles)}\n{source_lines}",
+                {**usage, "duration": dur}
+            )
 
         # Save extracted articles for debugging
         (work_dir / "extracted.json").write_text(
@@ -369,8 +368,7 @@ def main():
         if not all_articles:
             msg = "No articles extracted — skipping digest"
             logger.warning(f"[PIPELINE] {msg}")
-            if not dry_run:
-                delivery.send_progress("Extract", msg, config)
+            run_log.log_stage("Extract", msg)
             return
 
         logger.info(f"[PIPELINE] Total articles extracted: {len(all_articles)}")
@@ -389,12 +387,11 @@ def main():
         multi = sum(1 for c in clusters if len(c) > 1)
         logger.info(f"[CLUSTER] {len(clusters)} clusters "
                      f"({multi} with duplicates), {cluster_dur:.1f}s")
-        if not dry_run:
-            delivery.send_progress(
-                "Cluster",
-                f"Clusters: {len(clusters)} ({multi} with duplicates)",
-                config, {**embed_usage, "duration": cluster_dur}
-            )
+        run_log.log_stage(
+            "Cluster",
+            f"Clusters: {len(clusters)} ({multi} with duplicates)",
+            {**embed_usage, "duration": cluster_dur}
+        )
 
         # Save clusters for debugging
         (work_dir / "clusters.json").write_text(
@@ -412,12 +409,11 @@ def main():
 
         logger.info(f"[DEDUPE] {len(all_articles)} -> {len(deduped)} articles, "
                      f"{dedupe_dur:.1f}s")
-        if not dry_run:
-            delivery.send_progress(
-                "Dedupe",
-                f"Articles: {len(all_articles)} -> {len(deduped)}",
-                config, {**dedupe_usage, "duration": dedupe_dur}
-            )
+        run_log.log_stage(
+            "Dedupe",
+            f"Articles: {len(all_articles)} -> {len(deduped)}",
+            {**dedupe_usage, "duration": dedupe_dur}
+        )
 
         # Save deduped for debugging
         (work_dir / "deduped.json").write_text(
@@ -442,21 +438,19 @@ def main():
                 deduped, embeds, history, threshold=0.85)
             logger.info(f"[CROSS-DEDUP] Skipped {len(skipped)} previously "
                         f"seen articles ({pre_count} -> {len(deduped)})")
-            if not dry_run:
-                delivery.send_progress(
-                    "CrossDedup",
-                    f"Skipped {len(skipped)} repeats "
-                    f"({pre_count} -> {len(deduped)})",
-                    config, {**cross_usage, "duration": cross_dur}
-                )
+            run_log.log_stage(
+                "CrossDedup",
+                f"Skipped {len(skipped)} repeats "
+                f"({pre_count} -> {len(deduped)})",
+                {**cross_usage, "duration": cross_dur}
+            )
         else:
             logger.info("[CROSS-DEDUP] No history found, saving today's embeddings")
-            if not dry_run:
-                delivery.send_progress(
-                    "CrossDedup",
-                    f"No history — saved {len(deduped)} embeddings",
-                    config, {**cross_usage, "duration": cross_dur}
-                )
+            run_log.log_stage(
+                "CrossDedup",
+                f"No history -- saved {len(deduped)} embeddings",
+                {**cross_usage, "duration": cross_dur}
+            )
 
         save_today(data_root, date, deduped, embeds)
 
@@ -523,12 +517,11 @@ def main():
 
             logger.info(f"[PRIORITIZE] {len(deduped)} -> {len(kept)} articles "
                         f"({len(dropped)} dropped), {prio_dur:.1f}s")
-            if not dry_run:
-                delivery.send_progress(
-                    "Prioritize",
-                    f"Articles: {len(deduped)} -> {len(kept)} (dropped {len(dropped)})",
-                    config, {**prio_usage, "duration": prio_dur}
-                )
+            run_log.log_stage(
+                "Prioritize",
+                f"Articles: {len(deduped)} -> {len(kept)} (dropped {len(dropped)})",
+                {**prio_usage, "duration": prio_dur}
+            )
 
             deduped = kept
         else:
@@ -552,12 +545,11 @@ def main():
 
         logger.info(f"[FORMAT] Formatted digest ({len(formatted)} chars), "
                      f"{format_dur:.1f}s")
-        if not dry_run:
-            delivery.send_progress(
-                "Format",
-                f"Digest: {len(formatted)} chars",
-                config, {**format_usage, "duration": format_dur}
-            )
+        run_log.log_stage(
+            "Format",
+            f"Digest: {len(formatted)} chars",
+            {**format_usage, "duration": format_dur}
+        )
 
         # Append token usage summary
         final_digest = formatted + "\n\n" + tracker.summary()
@@ -566,6 +558,7 @@ def main():
         (work_dir / "final-digest.md").write_text(final_digest)
 
         # 9. Deliver: send via email + archive
+        run_log.complete(tracker)
         if dry_run:
             logger.info("[PIPELINE] DRY RUN — skipping delivery")
             print("\n" + "=" * 60)
@@ -624,6 +617,7 @@ def main():
 
     except Exception as e:
         logger.error(f"[PIPELINE] FAILED: {e}\n{traceback.format_exc()}")
+        run_log.fail(str(e))
         try:
             delivery.send_alert("Pipeline", str(e), config)
         except Exception:

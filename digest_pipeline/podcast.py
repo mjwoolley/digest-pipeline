@@ -132,10 +132,6 @@ def main():
             raise ValueError("Script parsing produced no turns")
         logger.info(f"[SCRIPTGEN] Parsed {len(turns)} turns")
 
-        delivery.send_progress("SCRIPTGEN",
-                               f"{len(turns)} turns, {len(script_text)} chars",
-                               config, {**usage, "duration": scriptgen_duration})
-
         if dry_run:
             logger.info("[PODCAST] Dry run — skipping TTS and delivery")
             print(f"Script saved to {script_path}")
@@ -148,31 +144,15 @@ def main():
         mp3_path = podcasts_dir / f"{date}.mp3"
         voice_map = get_voice_map(config, "kokoro")
 
-        # Progress callback: notify every 10 turns
-        _audio_start = time.time()
-        def _on_tts_progress(turn_num, total, speaker):
-            if turn_num == 1 or turn_num % 10 == 0 or turn_num == total:
-                elapsed = time.time() - _audio_start
-                delivery.send_progress(
-                    "AUDIO",
-                    f"TTS: turn {turn_num}/{total} ({speaker}) — {elapsed:.0f}s elapsed",
-                    config)
-
         t0 = time.time()
         from . import kokoro_tts
         kokoro_tts.configure()
         audio_usage = kokoro_tts.synthesize_script(turns, mp3_path,
-                                                   voice_map=voice_map,
-                                                   on_progress=_on_tts_progress)
+                                                   voice_map=voice_map)
         audio_duration = time.time() - t0
 
         swap_usage = _get_swap_usage()
-        logger.info(f"[AUDIO] Complete in {audio_duration:.1f}s: {audio_usage}")
-        delivery.send_progress("AUDIO",
-                               f"{audio_usage['duration_seconds']:.0f}s audio in {audio_duration:.0f}s wall time\n"
-                               f"TTS backend: kokoro, chars: {audio_usage['total_chars']:,}\n"
-                               f"Swap: {swap_usage}",
-                               config)
+        logger.info(f"[AUDIO] Complete in {audio_duration:.1f}s: {audio_usage}, Swap: {swap_usage}")
 
         # ── Stage 9: DELIVER ────────────────────────────────────────────
         t0 = time.time()
@@ -184,9 +164,6 @@ def main():
 
         if success:
             logger.info(f"[DELIVER] Podcast sent ({deliver_duration:.1f}s)")
-            delivery.send_progress("DELIVER",
-                                   f"Podcast delivered ({deliver_duration:.1f}s)",
-                                   config)
             # Generate/update RSS feed
             _update_rss_feed(podcasts_dir, date, audio_usage, config, logger)
             _update_landing_page(podcasts_dir, config, logger)
@@ -384,8 +361,6 @@ def _git_publish(podcasts_dir: Path, date: str, config: dict,
         )
         if push_result.returncode == 0:
             logger.info(f"[GIT] Podcast {date} published to remote")
-            delivery.send_progress("PUBLISH",
-                                   f"Podcast {date} pushed to git", config)
         else:
             logger.error(f"[GIT] Push failed: {push_result.stderr[:300]}")
             delivery.send_alert("PUBLISH",
