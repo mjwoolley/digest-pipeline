@@ -73,6 +73,7 @@ Six-stage pipeline orchestrated by `digest_pipeline/digest.py`:
 | `digest_pipeline/archive.py` | Allowlist-based git commit+push of daily artifacts |
 | `digest_pipeline/kokoro_tts.py` | Kokoro-82M local TTS (streaming WAV, memory-efficient) |
 | `digest_pipeline/subscription_api.py` | Flask API for subscribe/unsubscribe via HTTP |
+| `digest_pipeline/console_api.py` | Flask management console API (read-only dashboard) |
 | `digest_pipeline/subscribers.py` | Subscriber CRUD, email validation, event/send logging |
 | `digest_pipeline/config.py` | Config JSON loading, prompt templating, voice mapping |
 | `digest_pipeline/log.py` | File + console logging, 30-day auto-cleanup |
@@ -133,14 +134,63 @@ Required keys in `secrets.env` (at repo root):
 - `OPENROUTER_API_KEY` — OpenRouter API key (for LLM and embeddings)
 - `ANTHROPIC_API_KEY` — Anthropic API key (if using `"provider": "anthropic"` in config)
 
+## Management Console
+
+Read-only dashboard for monitoring all configured digests. Built with Preact + Material Web, served by Flask.
+
+### Views
+
+- **Overview** — All digests at a glance with last run status, article count, source count, subscribers
+- **Run History** — Per-digest table of recent runs (14-day window) with status, duration, cost, article count
+- **Run Detail** — Article funnel (extracted/clustered/deduped/prioritized/formatted), stage timeline with duration/tokens/cost, source file breakdown
+- **Source Health** — Sources grouped by type with health flags (healthy/warning/stale), clickable source links
+- **Delivery** — Subscriber count, 7-day success rate, per-date send history, individual send log
+- **Podcast** — Episode list with MP3/script status, RSS sync check
+
+### Running the Console
+
+```bash
+# Start locally
+digest-pipeline --console [--digests-dir DIR] [--host HOST] [--port PORT]
+
+# Defaults: host=127.0.0.1, port=5200, digests-dir=auto-discovered from digests/
+```
+
+### Frontend Development
+
+```bash
+# Terminal 1: Flask API
+digest-pipeline --console --port 5200
+
+# Terminal 2: Vite dev server (hot reload, proxies /api to Flask)
+cd console && npm run dev
+
+# Production build (outputs to console/dist/, served by Flask)
+cd console && npm run build
+```
+
+### Data Sources
+
+The console reads existing pipeline artifacts with no additional instrumentation:
+- `work/{date}/run.json` — structured run log (stages, tokens, costs, durations)
+- `work/{date}/extracted.json`, `clusters.json`, `deduped.json`, `prioritized.json` — stage artifacts
+- `work/{date}/raw-*.txt` — per-source raw fetch output
+- `.source_state.json` — per-source seen item tracking
+- `subscribers.json`, `send_history.jsonl`, `subscription_events.jsonl` — delivery data
+- `podcasts/`, `podcast.xml` — episode files and RSS feed
+
+Runs predating `run.json` are synthesized from work artifacts (funnel + source files available, but no stage timeline or cost data).
+
 ## Deployment
 
 **VPS:** `178.156.161.33` (ubuntu-2gb-ash-1), runs Tailscale.
 
 **Subscription API** runs as a systemd service (`digest-subscriptions.service`) on `127.0.0.1:5100`, fronted by Caddy reverse proxy at `https://ai-digest.duckdns.org`. Caddy handles automatic TLS via Let's Encrypt.
 
+**Management Console** runs as a systemd service (`digest-console.service`) on `100.95.155.14:5200` (Tailscale IP only). No public access, no auth needed.
+
 - **Caddyfile:** `/etc/caddy/Caddyfile` — binds to `178.156.161.33` (not `0.0.0.0`) to avoid port conflict with Tailscale on `:443`.
-- **systemd service:** `/etc/systemd/system/digest-subscriptions.service` — runs as `clawdbot`, uses `EnvironmentFile=/home/clawdbot/digest-pipeline/secrets.env`.
+- **systemd services:** `/etc/systemd/system/digest-subscriptions.service` and `digest-console.service` — both run as `clawdbot`.
 - **Entry point:** Must use `.venv/bin/digest-pipeline` (the installed console script), not `python -m digest_pipeline.cli` (no `__main__.py`).
 - **DuckDNS:** Free subdomain `ai-digest.duckdns.org` pointing to the VPS public IP.
 
@@ -149,6 +199,11 @@ Required keys in `secrets.env` (at repo root):
 sudo systemctl status digest-subscriptions
 sudo systemctl restart digest-subscriptions
 sudo journalctl -u digest-subscriptions --no-pager -n 30
+
+# Manage the console
+sudo systemctl status digest-console
+sudo systemctl restart digest-console
+sudo journalctl -u digest-console --no-pager -n 30
 
 # Manage Caddy
 sudo systemctl status caddy

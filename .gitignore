@@ -20,5 +20,9 @@ digests/*/send_history.jsonl
 *.log
 *.wav
 
+# Console frontend build
+console/dist/
+console/node_modules/
+
 # OS
 .DS_Store

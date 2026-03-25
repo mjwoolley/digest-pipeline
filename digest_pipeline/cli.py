@@ -15,6 +15,7 @@ def main():
       digest-pipeline /path/to/config.json --list-subscribers
       digest-pipeline --serve [--digests-dir DIR] [--port PORT]
       digest-pipeline /path/to/config.json --serve [--port PORT]
+      digest-pipeline --console [--digests-dir DIR] [--port PORT]
       digest-pipeline init
     """
     args = sys.argv[1:]
@@ -47,6 +48,11 @@ def main():
     # Subscription API server
     if "--serve" in args:
         _run_serve(args)
+        return
+
+    # Management console
+    if "--console" in args:
+        _run_console(args)
         return
 
     if digest_only and podcast_only:
@@ -180,6 +186,56 @@ def _run_serve(args):
 
     print(f"Starting subscription API on http://127.0.0.1:{port}")
     app.run(host="127.0.0.1", port=port)
+
+
+def _run_console(args):
+    """Start the management console server."""
+    from pathlib import Path
+    from .console_api import create_app
+
+    # Parse --port
+    port = 5200
+    if "--port" in args:
+        try:
+            idx = args.index("--port")
+            port = int(args[idx + 1])
+        except (ValueError, IndexError):
+            print("Error: --port requires a number")
+            sys.exit(1)
+
+    # Parse --host
+    host = "127.0.0.1"
+    if "--host" in args:
+        try:
+            idx = args.index("--host")
+            host = args[idx + 1]
+        except (ValueError, IndexError):
+            print("Error: --host requires an address")
+            sys.exit(1)
+
+    # Parse --digests-dir
+    digests_dir = None
+    if "--digests-dir" in args:
+        try:
+            idx = args.index("--digests-dir")
+            digests_dir = args[idx + 1]
+        except (ValueError, IndexError):
+            print("Error: --digests-dir requires a path")
+            sys.exit(1)
+
+    if digests_dir:
+        app = create_app(digests_dir=digests_dir)
+    else:
+        # Auto-discover: look for digests/ relative to the package
+        default_dir = Path(__file__).resolve().parent.parent / "digests"
+        if default_dir.is_dir():
+            app = create_app(digests_dir=str(default_dir))
+        else:
+            print("Error: no --digests-dir provided, and no digests/ directory found")
+            sys.exit(1)
+
+    print(f"Starting management console on http://{host}:{port}")
+    app.run(host=host, port=port)
 
 
 def _run_backfill(args):

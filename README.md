@@ -168,21 +168,49 @@ AUTH_TOKEN=...
 CT0=...
 ```
 
+## Management Console
+
+A read-only web dashboard for monitoring all your digests in one place. See which sources are healthy, track run history, monitor delivery success rates, and check podcast status — no log-diving required.
+
+**Views:**
+
+- **Overview** — All digests at a glance with last run status, article counts, and subscriber numbers
+- **Run History** — Recent runs with status, duration, cost, and article counts. Click into any run for details.
+- **Run Detail** — Article funnel showing how content flows through the pipeline (extracted > clustered > deduped > prioritized > formatted), per-stage timeline with token usage and costs, and per-source file breakdown
+- **Source Health** — Sources grouped by type (Twitter, blogs, newsletters, GitHub) with health indicators flagging stale or inactive sources
+- **Delivery** — Subscriber count, 7-day delivery success rate, send history by date, and individual send log
+- **Podcast** — Episode list with MP3/script availability, file sizes, and RSS feed sync status
+
+```bash
+# Start the console
+digest-pipeline --console
+
+# With options
+digest-pipeline --console --host 0.0.0.0 --port 5200 --digests-dir /path/to/digests
+
+# Defaults: host=127.0.0.1, port=5200, digests-dir auto-discovered
+```
+
+The console reads existing pipeline artifacts (run logs, stage outputs, delivery history) — no additional configuration or instrumentation needed. Built with Preact and Material Web.
+
 ## Project structure
 
 ```
 digest_pipeline/
-  cli.py             # CLI entry point
-  digest.py          # Main orchestrator, batching logic
-  gather.py          # Source-specific fetchers (Twitter, Gmail, RSS, GitHub)
-  llm.py             # OpenRouter/Anthropic API client, embeddings, cost tracking
-  cluster.py         # Embedding-based cosine similarity clustering
-  delivery.py        # Email, Telegram/Slack notifications, archiving
-  podcast.py         # Script generation + TTS synthesis
-  kokoro_tts.py      # Kokoro-82M local TTS (streaming, memory-efficient)
-  config.py          # Config loading, prompt templating
-  log.py             # File + console logging, 30-day auto-cleanup
-  prompts/           # LLM prompt templates with {{variable}} placeholders
+  cli.py               # CLI entry point
+  digest.py            # Main orchestrator, batching logic
+  gather.py            # Source-specific fetchers (Twitter, Gmail, RSS, GitHub)
+  llm.py               # OpenRouter/Anthropic API client, embeddings, cost tracking
+  cluster.py           # Embedding-based cosine similarity clustering
+  delivery.py          # Email, Telegram/Slack notifications, archiving
+  podcast.py           # Script generation + TTS synthesis
+  kokoro_tts.py        # Kokoro-82M local TTS (streaming, memory-efficient)
+  subscription_api.py  # Flask subscription API (public-facing)
+  console_api.py       # Flask management console API (internal)
+  config.py            # Config loading, prompt templating
+  log.py               # File + console logging, 30-day auto-cleanup
+  prompts/             # LLM prompt templates with {{variable}} placeholders
+console/               # Preact + Vite frontend for the management console
 ```
 
 ## Key design decisions
