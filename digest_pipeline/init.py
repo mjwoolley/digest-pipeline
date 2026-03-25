@@ -128,6 +128,7 @@ def run_init():
             "enabled": bool(hosts),
             "name": name,
             "image_url": f"https://{domain}/brand.png",
+            "pages_base_url": f"https://{domain}",
             "hosts": hosts,
             "tts_backend": "kokoro",
         },

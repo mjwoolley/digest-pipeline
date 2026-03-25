@@ -184,15 +184,17 @@ def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
     try:
         podcast_cfg = config.get("podcast", {})
         digest_cfg = config.get("digest", {})
-        # Derive relative path from data_root to podcasts_dir for URL construction
+        sub_cfg = config.get("subscriptions", {})
+        # Podcasts are published at the domain root under /podcasts and /podcast.xml
         data_root = config["_data_root"]
-        rel_podcasts = podcasts_dir.relative_to(data_root.parent.parent)
 
-        # Use GitHub Pages for proper MIME types (audio/mpeg for MP3s)
-        pages_base = podcast_cfg.get("pages_base_url",
-                                      "https://aidailyroundup.com")
-        base_url = f"{pages_base}/{rel_podcasts}"
-        feed_url = f"{pages_base}/{rel_podcasts.parent}/podcast.xml"
+        # Use configured public base URL for proper podcast/feed URLs
+        pages_base = podcast_cfg.get(
+            "pages_base_url",
+            sub_cfg.get("public_base_url", "https://aidailyroundup.com")
+        ).rstrip("/")
+        base_url = f"{pages_base}/podcasts"
+        feed_url = f"{pages_base}/podcast.xml"
 
         title = podcast_cfg.get("name", digest_cfg.get("name", "The AI Daily Roundup"))
         description = podcast_cfg.get("description",
@@ -228,7 +230,7 @@ def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
         ET.SubElement(channel, "title").text = title
         ET.SubElement(channel, "description").text = description
         ET.SubElement(channel, "language").text = language
-        landing_url = f"{pages_base}/{rel_podcasts.parent}/"
+        landing_url = f"{pages_base}/"
         ET.SubElement(channel, "link").text = landing_url
         ET.SubElement(channel, "{http://www.itunes.com/dtds/podcast-1.0.dtd}author").text = title
         ET.SubElement(channel, "{http://www.itunes.com/dtds/podcast-1.0.dtd}explicit").text = "false"

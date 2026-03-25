@@ -47,6 +47,8 @@
   "podcast": {
     "enabled": true,
     "name": "The WealthTech Daily Roundup",
+    "image_url": "https://wealthtechdigest.com/brand.png",
+    "pages_base_url": "https://wealthtechdigest.com",
     "hosts": [
       {
         "tag": "ALEX",
@@ -110,6 +112,19 @@
       ],
       "lookback": "36h",
       "max_per_account": 8
+    },
+    "newsletters": {
+      "imap": {
+        "host": "imap.gmail.com",
+        "email": "mwoolley2@gmail.com"
+      },
+      "sources": {
+        "sytaylor": {
+          "name": "SY Taylor",
+          "from": "sytaylor@mail.beehiiv.com",
+          "lookback_days": 1
+        }
+      }
     },
     "blogs": {
       "wealthmanagement": {
