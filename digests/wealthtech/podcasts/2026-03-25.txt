@@ -1,0 +1,121 @@
+ALEX: Welcome to the WealthTech Daily Roundup for Wednesday, March 25, 2026 — we've got a packed digest today, so let's get into it.
+
+SARAH: We'll start with Cambridge Investment Research, which just crossed $2 billion in annual revenue — entirely self-funded, no outside PE, no institutional capital involved.
+
+ALEX: Three of their presidents spoke about how they balance advisor autonomy with the operational demands of running a firm at that scale, and the transparency about that tension is pretty unusual for a firm this size.
+
+SARAH: In a market where almost every firm at this revenue level has taken outside money, Cambridge staying independent is genuinely rare — and it's worth watching as a real counterpoint to the consolidation narrative.
+
+SARAH: Next up, Kayne Anderson Rudnick's Stephen Rigali detailed how the firm scaled to $55 billion in AUM without abandoning its high-touch model, leaning on advisor development, deep client relationships, and selective AI integration.
+
+ALEX: The selective AI piece is worth noting — they're not deploying broadly, they're integrating carefully to preserve the client experience rather than automate it away.
+
+SARAH: Organic growth at that scale, without genericizing the firm, is exactly what every boutique RIA says they want to do — this is one that's actually doing it.
+
+ALEX: Sticking with growth strategy, Zephyr's Ryan Nauman and Angie Herbers published a piece arguing that the real constraint on sustainable growth isn't headcount or AUM — it's operational capacity.
+
+SARAH: The argument is that firms piling on acquisitions without building infrastructure to serve the added book are creating fragile growth, not real growth.
+
+ALEX: From a platform architecture standpoint, that's a real problem — you can't bolt on client relationships if your workflows and systems weren't designed to absorb them.
+
+SARAH: Moving into planning and workflow — a piece in Financial Planning outlines five concrete behavioral pivots advisors can make to better engage and retain women clients.
+
+ALEX: The business case here is hard to ignore — $47 trillion in intergenerational wealth is projected to flow to younger women by 2048, and advisors defaulting to outdated engagement styles are structurally exposed.
+
+SARAH: Five specific behavioral shifts rather than broad advice is the right framing — advisors need actionable pivots, not another article about the problem.
+
+ALEX: On the product side, LTC annuities are moving from niche to mainstream, with the combination of guaranteed income and long-term care coverage resonating as standalone LTC insurance becomes harder to place.
+
+SARAH: Hybrid structures that solve two problems at once are always going to find an audience when the alternative — standalone LTC — is increasingly impractical for most clients.
+
+ALEX: And ThinkAdvisor is calling this their moment, which tracks with what advisors have been asking for on the care funding side for years.
+
+SARAH: JP Morgan Asset Management's chief retirement strategist Michael Conrath is pushing advisors to move beyond portfolio performance as the primary metric for retirement success, reframing the question around what "how am I doing" actually means to retirees.
+
+ALEX: From a workflow design standpoint, this is meaningful — if the scorecard clients care about isn't pure returns, the reporting and check-in cadences advisors build should reflect that.
+
+SARAH: Client anxiety in retirement is often about uncertainty, not underperformance — advisors who internalize that distinction can meaningfully improve the client relationship.
+
+ALEX: On the AI front, a piece in WealthManagement.com makes the case that embedding AI into advisor workflows without governance frameworks, clear oversight, and data security in place is a setup for regulatory and client backlash.
+
+SARAH: The firms rushing deployment are the ones most exposed here — trust is a feature, not an afterthought, and the regulatory environment is not going to give anyone a pass on that.
+
+ALEX: Governance and data security need to be designed in from the start, not retrofitted after something goes wrong.
+
+SARAH: A busy week in deals — iCapital acquired Hexure, Schwab closed its Forge Global deal, iAltA picked up Delio, Fidelity launched private markets model portfolios, and Envestnet added interval funds to its UMA.
+
+ALEX: The through-line across all of those is M&A as a shortcut to capabilities that would take years to build internally — but Wealth Solutions Report editor Julius Buchanan flags that acquisition risk rises with the pace.
+
+SARAH: Firms without a clear build-versus-buy framework are going to overpay for speed, and in alternatives and private markets especially, integration complexity is real.
+
+ALEX: Advisor mobility hit a new high in 2025 — over 11,000 advisors switched firms, up 16% year over year, driven by acquisition activity, richer transition packages, and more affiliation models to choose from.
+
+SARAH: When 11,000 advisors are moving in a single year, that's not a blip — it's a structural signal that the war for talent in wealth management has genuinely intensified.
+
+ALEX: For platforms, that volume of transitions is also an operational stress test — onboarding at that scale puts real pressure on workflow and data migration infrastructure.
+
+SARAH: On women in wealth management — women now hold 23.8% of CFP designations, a record 25,601 professionals, but ownership, leadership, and decision-making roles remain heavily male-dominated.
+
+ALEX: Cerulli projects women will receive $87 trillion in wealth transfers through 2048, so the client-advisor gender gap isn't just a diversity issue — it's a business risk with a hard timeline attached.
+
+SARAH: The 2026 Pathfinder Award winners featured in the piece offer unfiltered perspectives on breaking barriers, and the math here is unambiguous for firms that haven't started building diverse leadership pipelines.
+
+ALEX: A packed recruiting roundup this week — Goldman invested in GeoWealth, Summit backed Signet, RBC and Raymond James added advisor teams, and Cetera, Carson, and LPL all posted recruiting wins.
+
+SARAH: The standout theme is Edelman's planner ownership program and Perigon's partner additions — both using equity not just for M&A, but as a direct talent retention mechanism.
+
+ALEX: Giving advisors skin in the game rather than just competing on transition bonuses is a more durable retention strategy, and it's becoming a real differentiator in recruiting conversations.
+
+SARAH: Verdence Capital Advisors, a $4.6 billion RIA, sold a majority stake to Wealth Partners Capital Group and private equity firm HGGC, with Emigrant Partners exiting its minority position in the deal.
+
+ALEX: Proceeds are earmarked for M&A activity, organic growth initiatives, and client-facing resources — so this is explicitly about buying scale.
+
+SARAH: Another mid-sized RIA taking on institutional capital to compete — the window for staying independent while growing aggressively is clearly narrowing.
+
+ALEX: Cetera hired the former eMoney CEO as its new COO, a move that signals a deliberate push to embed fintech-style operational thinking at the top of the house.
+
+SARAH: Elsewhere in leadership moves, Savant Wealth combined its head of advice and CIO roles, InspereX expanded its RIA and private markets sales team, and former Hightower CEO Bob Oros joined alternatives firm PPB Capital Partners as vice chairman.
+
+ALEX: The Cetera hire is the one to watch from a platform perspective — eMoney is a financial planning workflow company at its core, and bringing that lens to COO-level decisions at a large broker-dealer will likely show up in advisor productivity tooling.
+
+SARAH: Composition Wealth, a $10 billion RIA, pulled in a 16-person team managing $900 million from Edgewater Wealth Management out of Northwestern Mutual, its first acquisition of 2026.
+
+ALEX: This is another data point in the ongoing migration from wirehouse and insurance-affiliated channels to the independent RIA model — and the Pacific Northwest is emerging as a competitive recruiting market.
+
+SARAH: Ally's investment advisory unit is paying a $500,000 SEC fine after the regulator found that certain client asset allocations were influenced by conflicts of interest that weren't disclosed to clients.
+
+ALEX: The technical issue is that the allocation logic in the robo-advisor wasn't neutral — conflicts were baked into the automated decision-making, and the disclosure framework didn't surface them.
+
+SARAH: This is a pointed reminder that algorithmic platforms carry the same fiduciary disclosure obligations as human advisors, and regulators are paying closer attention as robo-advisory AUM grows.
+
+ALEX: Investor attorneys are pressing FINRA to redirect its $100 million fee surplus toward unpaid arbitration awards owed to defrauded clients, rather than rebating those fees to member firms.
+
+SARAH: The argument is straightforward — that money should serve its protective purpose, not flow back to the firms that generated it.
+
+ALEX: Winning an arbitration award means nothing if the losing party can't or won't pay, and this campaign is highlighting a structural gap in how the system actually delivers for harmed investors.
+
+SARAH: The CFP Board has formed a working group to evaluate whether the bachelor's degree requirement still makes sense given how the profession has evolved and the workforce pipeline challenges the industry is facing.
+
+ALEX: Restructuring or loosening that requirement could meaningfully expand the talent pool, particularly from underrepresented backgrounds — which connects directly to the diversity gaps we discussed earlier.
+
+SARAH: A credential access conversation happening at the same time as a talent shortage conversation is not a coincidence.
+
+ALEX: Ameriprise is proposing an 8% raise for CEO James Cracchiolo following a record revenue year, putting his total compensation meaningfully ahead of peers at comparable regional firms.
+
+SARAH: The business performance justifies the increase, but the pay gap relative to competitors at similar-sized firms is notable and will draw scrutiny regardless.
+
+ALEX: Executive comp at this level is a useful signal for where shareholder expectations and business performance actually stand — and Ameriprise is clearly telling a strong story right now.
+
+SARAH: Shifting to tax and macro — Massachusetts residents who left the state in 2023 took $4.2 billion in adjusted gross income with them, one of the largest net outflows in the country, following the state's millionaire surtax.
+
+ALEX: That's IRS migration data, so these aren't projections — the wealth movement is already recorded and measurable.
+
+SARAH: For advisors serving affluent clients in high-tax states, domicile planning conversations are no longer hypothetical — the data is real and clients are already asking.
+
+ALEX: Finally, the latest WMIQ Advisor Sentiment Index shows an unusual split — advisors are growing more optimistic about the broader economy but less confident in near-term equity market performance.
+
+SARAH: Notably, the data was collected before the recent escalation of conflict in the Middle East, so sentiment may have deteriorated further since the survey closed.
+
+ALEX: The economy-versus-markets divergence reflects genuine uncertainty about valuations and geopolitical risk heading into mid-2026, and that's a difficult backdrop for advisors to navigate client conversations around.
+
+SARAH: That's everything in today's digest — thanks for listening to the WealthTech Daily Roundup, and we'll see you tomorrow.
