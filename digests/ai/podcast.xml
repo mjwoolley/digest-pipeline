@@ -10,6 +10,12 @@
     <itunes:image href="https://aidailyroundup.com/digests/ai/podcast-logo.png" />
     <itunes:category text="Technology" />
     <item>
+      <title>The AI Daily Roundup — 2026-03-25</title>
+      <pubDate>Wed, 25 Mar 2026 12:00:00 +0000</pubDate>
+      <guid isPermaLink="true">https://aidailyroundup.com/podcasts/2026-03-25.mp3</guid>
+      <enclosure url="https://aidailyroundup.com/podcasts/2026-03-25.mp3" length="10691373" type="audio/mpeg" />
+    </item>
+    <item>
       <title>The AI Daily Roundup — 2026-03-24</title>
       <pubDate>Tue, 24 Mar 2026 12:00:00 +0000</pubDate>
       <guid isPermaLink="true">https://aidailyroundup.com/podcasts/2026-03-24.mp3</guid>

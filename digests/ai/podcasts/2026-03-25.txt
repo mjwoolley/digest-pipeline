@@ -1,0 +1,83 @@
+ALEX: Welcome to the AI Daily Roundup for Wednesday, March 25, 2026 — we've got a packed show today including a major supply chain attack, some big infrastructure news out of KubeCon, and a few surprising product moves from OpenAI.
+
+SARAH: Let's start with the story that's going to make a lot of developers nervous — LiteLLM versions 1.82.7 and 1.82.8 on PyPI were compromised with a credential stealer hidden in base64 inside a dot-pth file, meaning just installing the package was enough to trigger exfiltration of SSH keys, AWS, GCP, and Azure credentials, Kubernetes configs, shell history, and crypto wallets.
+
+ALEX: The poisoned version was live for roughly three hours before PyPI quarantined it, with an estimated 20,000 to 80,000 downloads in that window — and the attack was only discovered because it caused an out-of-memory crash on one developer's machine, which was essentially a bug in the malware itself.
+
+SARAH: LiteLLM has 97 million downloads a month and the blast radius extended to every project transitively depending on it, including DSPy — so what's the right takeaway for teams running AI pipelines right now?
+
+ALEX: Audit your transitive dependencies immediately and rotate any credentials that could have been exposed — and this attack is exactly what prompted the second story today, Simon Willison revisiting dependency cooldowns.
+
+SARAH: Right — pnpm, Yarn, Bun, Deno, uv, and pip 26.0 have all now shipped some form of minimum release age enforcement, the idea being you wait a few days before installing newly published packages to let the community catch poisoned versions.
+
+ALEX: The features vary in configurability across those tools, but the direction is clear — supply chain hygiene is finally being addressed at the tooling level rather than leaving it to individual developers to remember.
+
+SARAH: Connected to all of this, Dan Phillips over at The New Stack is arguing that WebAssembly could be the standard execution layer for untrusted AI-generated code, given WASM's strong isolation and sandboxing properties.
+
+ALEX: The argument is straightforward — as AI agents move from reasoning to actually running code that touches real systems, you need a contained execution environment before that code can reach production infrastructure.
+
+SARAH: So between cooldowns in package managers, WASM sandboxing, and what we're about to discuss with Claude Code, there's a clear cluster of security tooling maturing around agentic AI all at once.
+
+ALEX: Speaking of which — Claude Code just shipped auto mode, where a separate classifier model running on Claude Sonnet 4.6 reviews every tool call before execution, blocking actions that escalate scope, target unrecognized infrastructure, or appear influenced by hostile content.
+
+SARAH: It ships with extensive default filters and supports custom rules, plus an allow list for common safe patterns like local file operations and test credentials — it's live now as a research preview on the Team plan via claude dash dash enable-auto-mode.
+
+ALEX: The key architectural detail is that it's a separate classifier, not the same model judging its own actions — that separation is what makes it credible as a safety layer.
+
+SARAH: OpenAI also published prompt-based teen safety policies for developers today, centered on a model called gpt-oss-safeguard, giving developers clearer guardrails when their apps may be accessed by minors.
+
+ALEX: It's a platform-level tool rather than a runtime enforcement mechanism, so the practical effect depends heavily on whether developers actually integrate it.
+
+SARAH: And the broader implication is that platform-level safety tooling like this shifts responsibility and liability back to developers in a concrete, documented way.
+
+ALEX: Now over to infrastructure — the big news out of KubeCon Europe in Amsterdam is that IBM Research, Red Hat, and Google Cloud donated llm-d to the CNCF as a sandbox project.
+
+SARAH: llm-d is an open-source distributed LLM inference framework that gives teams a vendor-neutral Kubernetes blueprint for deploying inference stacks across any model, accelerator, or cloud — with founding support from NVIDIA, CoreWeave, AMD, Cisco, Hugging Face, Intel, Lambda, and Mistral.
+
+ALEX: The roster of founding supporters is notable — when you have AMD, NVIDIA, and Intel in the same project, that's a strong signal this is meant to be the neutral layer, not a vehicle for any single vendor's hardware.
+
+SARAH: Also at KubeCon, Broadcom is donating Velero — a popular Kubernetes backup and restore tool — to the CNCF sandbox, alongside new API compatibility with F5, Tigera Calico Enterprise, and Kong API Gateway.
+
+ALEX: Post-acquisition Broadcom has been a controversial presence in the Kubernetes community, so moving Velero into neutral CNCF governance is a meaningful gesture toward enterprise users worried about lock-in.
+
+SARAH: And for teams trying to understand what they're actually spending on when they run any of this — The AI Engineer published a GPU primer worth flagging, covering why memory bandwidth, VRAM capacity, and tensor cores are the three specs that dominate AI purchasing decisions.
+
+ALEX: The headline numbers: a single H100 runs around 28 thousand dollars to purchase, cloud rates hit two to four dollars per hour, and most organizations waste over half their GPU compute — so this is not a small budget line to be fuzzy on.
+
+SARAH: Brendan Burns, the Kubernetes co-founder and Microsoft CVP, has an interesting take on AI-generated code — he argues the debate is a red herring, drawing a direct parallel to compiled code: we stopped caring that a compiler generated our machine code, and we'll stop caring that AI generated our source code.
+
+ALEX: He also notes that AI inference workloads are forcing Kubernetes to adapt in ways its creators never anticipated, which is interesting context given that he still personally maintains several Kubernetes client libraries despite leading a roughly 1,400-person Azure organization.
+
+SARAH: On the research side, MIT's Professor Heather Kulik makes a clear-eyed case for why materials discovery hasn't had its AlphaFold moment — success requires deep integration of domain expertise with AI techniques, not just pointing the latest model at a new dataset.
+
+ALEX: Her core argument is that results only count when they hold up in the lab, and the discriminating mind of a domain expert remains irreplaceable in the loop — which is a useful corrective given how much funding is flowing into AI-for-science right now.
+
+SARAH: Shifting to products — ChatGPT is rolling out a richer shopping experience powered by something called the Agentic Commerce Protocol, enabling product discovery, side-by-side comparisons, and direct merchant integration within the chat interface.
+
+ALEX: This positions ChatGPT as a direct competitor to Google Shopping and Amazon for consumer purchase intent — which is a very different business than being a chat assistant.
+
+SARAH: If OpenAI can make ChatGPT the default starting point for purchase decisions, that rewires a massive slice of consumer intent that ad-driven search has owned for two decades — so watch how Google responds.
+
+ALEX: PwC launched PwC One, a platform where clients log in, describe a problem, and autonomous agents do the work — with human consultants reviewing outputs rather than driving them, flipping the traditional consulting engagement model.
+
+SARAH: It's the first major Big Four firm to embed AI directly into client-facing delivery at this level, and the economic implications for professional services headcount are pretty direct.
+
+ALEX: When firms start selling agent time instead of consultant hours, the math on staffing changes permanently — and PwC moving first puts real pressure on the other three.
+
+SARAH: Ai2 launched MolmoWeb today — an open-source visual web agent in 4 billion and 8 billion parameter sizes small enough to run locally, with weights, training data, and evaluation tools fully open.
+
+ALEX: It can navigate websites, fill forms, and retrieve information using the same browser interface a human would — and being fully open makes it a rare counterpart to the closed web agents from OpenAI and Anthropic.
+
+SARAH: In an ironic note, Microsoft AI also announced it's hiring leadership from Ai2 today — the same day Ai2 shipped MolmoWeb.
+
+ALEX: It's a recurring pattern — talent flows from nonprofit AI labs toward wherever the compute and resources concentrate, and Microsoft has been aggressive about that acquisition.
+
+SARAH: Finally — OpenAI's Sora video generation product appears to be the first confirmed casualty of what's being called an internal Side Quest Massacre, with Atlas also reportedly in the crosshairs as OpenAI tightens focus on its core roadmap.
+
+ALEX: Sora launched with enormous fanfare as a generational video AI, so its quiet shelving is a meaningful signal about where OpenAI is prioritizing compute and runway right now.
+
+SARAH: And separately, the OpenAI Foundation announced plans to invest at least one billion dollars across four areas — curing diseases, expanding economic opportunity, strengthening AI resilience, and community programs — which lands squarely in the middle of OpenAI's ongoing nonprofit-to-for-profit restructuring debate.
+
+ALEX: A billion-dollar philanthropic commitment gives OpenAI something concrete to point to as critics of that transition get louder — the timing is not coincidental.
+
+SARAH: That's everything for today — stay safe out there, rotate your credentials, and we'll see you tomorrow.
