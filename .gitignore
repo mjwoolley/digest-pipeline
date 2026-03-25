@@ -17,6 +17,7 @@ digests/*/work/
 digests/*/subscribers.json
 digests/*/subscription_events.jsonl
 digests/*/send_history.jsonl
+digests/*/.source_state.json
 *.log
 *.wav
 
