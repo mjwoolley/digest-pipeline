@@ -1,0 +1,75 @@
+ALEX: Welcome to the WealthTech Daily Roundup for Thursday, March 26, 2026.
+
+SARAH: We've got a packed digest today, so let's get into it. Starting with advisor platforms — iCapital's Connect conference made one thing pretty clear: alts are no longer a differentiator, they're expected. Advisors are routing that exposure through model portfolios and UMAs to deliver at scale.
+
+ALEX: The operational packaging is really the story here. It's not just what's in the portfolio, it's how the infrastructure wraps it — and models and UMAs are becoming the default delivery mechanism.
+
+SARAH: On the planning and workflow side, the enhanced ACA subsidies have expired, and the cliffs are back. Even modest income miscalculations can now cost clients thousands of dollars in unexpected healthcare costs.
+
+ALEX: This is a workflow gap for a lot of planning tools — income projection and ACA threshold modeling need to be tightly connected, and many platforms aren't doing that automatically.
+
+SARAH: Next, outsourced compliance is still booming among RIAs, but the SEC flagged this exact concern a decade ago. The core problem remains: one outsourced CCO overseeing too many firms is a systemic risk that hasn't gone away.
+
+ALEX: From a firm infrastructure standpoint, the question is how you verify that your outsourced CCO actually has the bandwidth to know your operations — because if they don't, a regulator eventually will.
+
+SARAH: Bryn Mawr Trust's Jamie Hopkins is out with a new book, and he sat down to discuss retirement planning frameworks for advisors — covering trust, estate, and behavioral dimensions of retirement readiness.
+
+ALEX: The behavioral side is underrated in most planning software. Advisors who can bridge the technical plan with how clients actually make decisions have a real edge in retention through major transitions.
+
+SARAH: Episode 185 of 401k Real Talk digs into the ERISA litigation bill, Fred Reish's take on fiduciary duties, and what plan sponsors keep getting wrong. Holistic benefits communication also gets a hard look.
+
+ALEX: The litigation landscape piece is important — plan advisors need to track both the legal exposure and how they're communicating benefits, because both are moving targets right now.
+
+SARAH: On the AI front, a UC-Berkeley study finds that advisors are getting real efficiency gains from AI tools — but instead of using that time to decompress, they're just loading on more work. Early signs of burnout are showing up.
+
+ALEX: The tooling delivered on the promise of reclaimed time, but firms didn't build in any guardrails around how that time gets reallocated. That's a workload management design problem, not a technology problem.
+
+SARAH: And the infrastructure story of the day — iCapital and BlackRock's Aladdin Wealth have partnered so advisors can access, transact, and monitor alts without ever leaving the Aladdin environment.
+
+ALEX: Embedding alts natively into Aladdin is a big deal for workflow. Advisors already operating in that ecosystem were paying a real context-switching tax every time they touched alternatives, and this removes that friction entirely.
+
+SARAH: Moving to industry and business — Advisor Growth Strategies reports median RIA valuations hit a record 11.6x EBITDA in 2025. But buyers are getting more disciplined, and achieving above-median multiples is harder to prove out.
+
+ALEX: Firms that built up their technology stack and operational infrastructure have a cleaner story to tell in due diligence. The differentiation question is increasingly about systems and repeatability, not just AUM.
+
+SARAH: A federal court has upheld the 133 million dollar FINRA arbitration award against Stifel, rejecting their motion to vacate. Combined with other penalties tied to a now-barred broker's misconduct, total exposure could exceed 200 million dollars.
+
+ALEX: The limits of fighting FINRA arbitration outcomes in court are on full display here. The supervision failure is the core liability, and that's a systems and oversight problem that no legal strategy can fully neutralize after the fact.
+
+SARAH: DeVoe and Company logged 322 RIA M&A deals in 2025 and is calling consolidation the new normal. But Berkshire Global Advisors' David Reynolds points out that client service and sourcing model alignment are still the most persistent post-deal friction points.
+
+ALEX: Firms are closing deals faster than they can integrate the underlying operations. That's cultural and operational debt accumulating in the background, and it tends to surface in client experience before it shows up in financials.
+
+SARAH: Hightower is facing a class action lawsuit over a data breach, filed by a former employee alleging inadequate protection of client data. They join a growing list of wealth management firms facing legal fallout from breaches recently.
+
+ALEX: Large consolidators are a high-value target precisely because of the volume of sensitive client data they manage across multiple acquired firms. Cybersecurity infrastructure has to scale with M&A activity, and that's not always happening.
+
+SARAH: Fresh off a 200 million dollar capital commitment, Accelerated Wealth Partners made its first investment — a minority stake in Houston-based RIA Advisors, which manages 1.6 billion in AUM. The deal is focused on Texas expansion and adding tax, trust, and estate capabilities.
+
+ALEX: The capability-bolt-on angle is interesting. It's not just a scale play — AWP is positioning the value proposition around service depth, which is a different kind of differentiation in a crowded PE-backed acquirer market.
+
+SARAH: Beacon Pointe closed two deals in February — MGB Wealth Management in Dallas at 475 million AUM and Pacifica Wealth Advisors in Franklin and Irvine at 220 million. Both will rebrand under Beacon Pointe and get access to in-house tax, estate, and legal services.
+
+ALEX: The rebranding and capability access model is a clean integration template. Both acquired firms get a service upgrade, and Beacon Pointe gets geographic depth — that's a repeatable playbook if the operational integration holds.
+
+SARAH: Composition Wealth — formerly Miracle Mile Advisors — has brought on the 16-person Edgewater Wealth Management team out of Northwestern Mutual's Private Client Group, adding 900 million in assets.
+
+ALEX: That's a notable pull from a captive channel. When a 16-person team makes that move, integrated planning capabilities are almost always the cited reason, and it reinforces where independent RIAs are winning the talent competition.
+
+SARAH: Edward Jones is now contracting digital and operations services to India, following LPL Financial and Ameriprise down that road. Industry cost pressure is clearly the driver.
+
+ALEX: The back-office outsourcing trend is well established at this point. The longer-term question around domestic talent pipelines is real, but it's not slowing down any of the major firms making this move.
+
+SARAH: On the alts liquidity front — rising redemption requests at semiliquid private credit vehicles are forcing a hard conversation about what semiliquid actually means in practice. The debate is split between a product quality problem and investor misunderstanding of structural limits.
+
+ALEX: The structural mechanics of these vehicles are genuinely complex, and the marketing language hasn't always kept pace with that complexity. When redemption queues build up, the gap between expectation and reality becomes a client harm issue fast.
+
+SARAH: A new CAIA report says geopolitical tensions and liquidity challenges are pushing private capital toward emerging markets and tokenized structures. Regional allocation priorities are diverging sharply as investors look beyond traditional private equity and credit.
+
+ALEX: Tokenization is moving from theoretical to practical in this context. Advisors need to get up to speed on how these structures actually change access, pricing, and risk — not just what they are in concept.
+
+SARAH: And finally — a piece that's a bit of a challenge to the industry itself. The argument is that wealth management firms are distracted by vendor announcements and industry headlines while the unglamorous operational work that actually drives results goes unaddressed.
+
+ALEX: It's a fair critique from a systems perspective. Real transformation shows up in process design and workflow execution, not in press releases — and firms that conflate the two are building on fragile ground.
+
+SARAH: That's everything for today — we'll be back tomorrow with the next roundup.
