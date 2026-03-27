@@ -1,0 +1,67 @@
+ALEX: Welcome to the WealthTech Daily Roundup for Friday, March 27th — we've got a packed digest today, so let's get into it.
+
+SARAH: We'll start with planning and workflow, and tax season is front and center. Financial Planning rounded up advice from seasoned tax planners on surviving April — managing workload, client expectations, and deadline pressure without burning out.
+
+ALEX: The operational angle here is real — as advisors fold tax planning into their core offering, the practices that have systematized the crunch are going to look very different from those still winging it in April.
+
+SARAH: Next up, a piece on divorce planning with a clear thesis: advisors should focus clients on net outcomes, not the largest asset pool. Tax exposure, liquidity, and ongoing costs can completely change which settlement actually serves a client best.
+
+ALEX: Makes sense from a workflow standpoint too — advisors who build after-tax, after-cost modeling into their divorce process are delivering something structurally harder to replicate than just chasing the headline number.
+
+SARAH: Also on the planning side, WalletHub published a ranking of state and local effective tax rates, and Financial Planning flagged it as a natural conversation starter for advisors doing relocation or domicile planning.
+
+ALEX: With interstate migration still elevated post-pandemic, having that data ready to pull into a client meeting is a low-lift, high-value move.
+
+SARAH: Moving into AI — Bank of America has given Merrill Lynch what's being described as a full AI workflow overhaul. They're embedding AI directly into Salesforce and Zoom to cover the full meeting lifecycle: prep, capture, and follow-up. They're calling it the Meeting Journey suite.
+
+ALEX: What's notable architecturally is that they're not building a separate AI layer — they're embedding it into tools advisors are already using daily, which is a much smarter adoption path than asking people to open yet another application.
+
+SARAH: The broader point is that when a wirehouse the size of Merrill moves this way, it shifts the baseline expectation for advisor tooling industry-wide.
+
+ALEX: On AI myths — Wealth Management dot com has a piece debunking the four biggest misconceptions advisors still hold about generative AI. Two-thirds of advisors report using it, but nearly half aren't sure it's actually helping their practice.
+
+SARAH: That gap between usage and strategic clarity is the real problem — if advisors don't have an accurate mental model of what these tools can and can't do, they're not going to deploy them well.
+
+ALEX: ThinkAdvisor takes that a step further with a piece on what they're calling the AI Frankenstack — advisors bolting on AI tools one by one until they've got a fragmented mess. The piece outlines four guardrails to keep adoption disciplined.
+
+SARAH: The compliance and data silo risks from a disjointed stack are significant, and frankly those are the exact problems AI is supposed to help solve — so getting the architecture wrong undermines the whole investment.
+
+ALEX: Speaking of architecture — Addepar published a detailed engineering post on why they moved away from standard ORM abstractions and adopted jOOQ and Agroal for their database layer. They're dealing with 100-column tables, native partitioning, and stateless multi-tenancy at scale, and standard ORMs were introducing memory bloat and unpredictable behavior.
+
+SARAH: I'll take your word on the technical details — what does that mean for clients on the platform?
+
+ALEX: It means more reliable performance and better multi-tenant isolation at the scale Addepar operates — those database choices have direct consequences on how the platform behaves when you're managing complex portfolio data across many enterprise clients simultaneously.
+
+SARAH: Big news in industry consolidation — Equitable and Corebridge Financial are merging in an all-stock deal. Combined, they'll manage one point five trillion in client assets across advisory, retirement, annuities, and life insurance, all under the Equitable name. The combined firm is valued at about 22 billion dollars.
+
+ALEX: For advisors affiliated with either firm, the immediate questions are going to be around product shelf access and compensation structures — deals at this scale rarely leave those unchanged.
+
+SARAH: Also on the M&A front, Allworth Financial — a 37 billion dollar RIA aggregator backed by Lightyear Capital and Ontario Teachers' Pension Plan — has engaged William Blair to explore a majority stake sale.
+
+ALEX: Allworth's size makes this a meaningful signal. Whoever steps in is effectively placing a large bet on where the aggregator model goes from here.
+
+SARAH: Creative Planning made a big international move, acquiring MASECO — a London-based RIA with 5 billion in AUM and 123 employees. It's their second international deal and puts them firmly in the category of cross-border wealth management, not just a U.S. aggregator with ambitions.
+
+ALEX: International RIA acquisitions are still genuinely rare, so it'll be worth watching whether larger U.S. firms follow Creative Planning's lead as they chase globally mobile high-net-worth clients.
+
+SARAH: Cambridge Investment Research has launched a fifth affiliation model through its acquisition of WealthPlanners, an 800 million dollar firm. The new Cambridge WealthPlanners unit brings combined assets to roughly one billion and adds another distinct relationship structure to Cambridge's menu.
+
+ALEX: Offering five different affiliation models is a real structural recruiting advantage — as the line between IBD and RIA keeps blurring, flexibility like that becomes a genuine differentiator.
+
+SARAH: A piece worth sitting with — McKinsey projects women could control 45% of U.S. and European investable assets by 2030, but female CFP representation has moved from just 23% to 24% over the past decade. Prudential Advisors President Pat Hynes is calling on the industry to do substantially more.
+
+ALEX: The math is pretty stark — the client demographic is shifting dramatically faster than the advisor pipeline, and firms that don't close that gap are going to face a real client-advisor mismatch at exactly the wrong moment.
+
+SARAH: Into alternatives — Apollo, Ares, BlackRock, and Morgan Stanley are among the firms now gating redemptions as investors try to pull roughly 5 billion dollars from private credit vehicles. It's a direct consequence of the liquidity mismatch built into semi-liquid fund structures.
+
+ALEX: This is the scenario that evergreen and interval fund structures were always theoretically exposed to — advisors who put clients into these vehicles need to be getting ahead of the liquidity conversation now, not when clients come to them with questions.
+
+SARAH: And directly related — Morningstar data shows evergreen fund AUM grew 25% in 2025 to 534.6 billion dollars, with generally healthy net returns. But the dispersion between top and bottom performers is dramatically wider than in public markets.
+
+ALEX: That performance gap makes manager selection genuinely high-stakes — a robust due diligence framework isn't optional at this point, it's the core of the advisor's job in this space.
+
+SARAH: Finally, a broader structural piece on private markets — advisors are being expected to bring institutional-grade allocation discipline and governance frameworks to private wealth and retirement planning, and most practices weren't built to deliver that.
+
+ALEX: The piece frames this as structural, not cyclical, which is the right framing — advisors who treat alts as an add-on rather than building real operational infrastructure around them are going to struggle to retain serious high-net-worth clients.
+
+SARAH: That's everything for today — have a great weekend, and we'll see you back here Monday.
