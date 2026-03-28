@@ -1,0 +1,61 @@
+ALEX: Advisor movement just hit a historic high — over eleven thousand experienced advisors changed firms in 2025 — and that's just one of the big stories we're unpacking today.
+
+SARAH: That Diamond Consultants report is striking. A 16.2% jump from 2024, the average mover has 22 years of tenure, and 54 billion-dollar-plus teams made a move — including 29 from wirehouses. This isn't junior advisors testing the waters.
+
+ALEX: And the sunset deal angle is worth watching closely. Firms are making those lock-up arrangements more aggressive and more restrictive at the same time, which tells you they know the exit pressure is real.
+
+SARAH: Beacon Pointe is also making moves — two RIA acquisitions in a single week totaling 695 million in AUM. Cyndeo added a Merrill team right after its Rise Growth investment, and Americana Partners closed its acquisition of accounting firm NRT Consulting.
+
+ALEX: The NRT deal is interesting from a workflow perspective — absorbing a full-service accounting firm isn't just a growth story, it's an integration challenge. Tax and wealth data have to talk to each other cleanly or the bundled model falls apart.
+
+SARAH: The strategic logic is clear though — bundling accounting with wealth management creates stickier client relationships and captures more of the financial picture. Americana is betting that's worth the complexity.
+
+SARAH: Staying on Americana — Financial Planning covered the NRT deal separately, and the framing there reinforces that accounting firm acquisitions are becoming a repeatable growth lever across the RIA space, not a one-off.
+
+ALEX: It makes sense when you consider how much tax planning is already embedded in financial planning conversations. Owning that capability rather than referring it out is a meaningful structural shift.
+
+SARAH: Holistiplan actually ties into that thread — they just appointed Stephen Langlois to their board. He's the former Kestra Financial president and was at Fidelity when they acquired eMoney, so he has deep enterprise wealthtech distribution experience.
+
+ALEX: That's a very specific résumé for a very specific moment. Holistiplan's tax planning tools are strong in the independent RIA channel, but cracking enterprise and aggregator distribution is a different game entirely.
+
+SARAH: Board-level hires like this are usually a signal of where the next phase of growth is targeted — this one points pretty directly at institutional expansion.
+
+ALEX: On the platform side, RightCapital shipped a couple of useful updates. They added Glide Path and Contribution Timing controls under their Education Enhancements, and advisors can now share multiple model portfolios with clients while removing default options for a cleaner interface.
+
+SARAH: The multi-model sharing piece is a nice client-facing improvement — giving clients visibility into more than one portfolio option without the clutter of defaults they didn't ask for.
+
+ALEX: These are the kinds of incremental UX improvements that reduce the manual workarounds advisors build over time. They're not headline features but they compound.
+
+ALEX: In the AI and automation space, Envestnet's Tamarac rolled out new trading oversight tools, and Jump launched its AI Associate — positioning it as an always-on support layer for advisors. The same week also saw WealthReach launch Attract and a CUBE and Microsoft partnership announced.
+
+SARAH: The Jump AI Associate is the one to watch there. "Always-on advisor support" is a category a lot of vendors are chasing right now, and the differentiation will come down to how well it actually integrates into existing advisor workflows.
+
+ALEX: The Tamarac trading oversight addition is meaningful for firms running significant trade volumes — oversight tooling is often an afterthought until something goes wrong, so building it into the platform proactively is the right call.
+
+SARAH: Mission Wealth's Sara Clark gave a detailed look at how the firm has deployed automated workflows and AI tools to cut administrative drag. The core idea is prescribed client service models that free advisors to focus on personalized engagement rather than process overhead.
+
+ALEX: What's useful about this one is that it's a real-world RIA case study, not a vendor pitch. The prescribed service model approach — where the process is standardized so the advisor's attention isn't — is a replicable framework.
+
+SARAH: For firms still running heavily manual operations, this is the kind of concrete example that makes the transformation feel achievable rather than theoretical.
+
+SARAH: On the investment tools side, defined-outcome strategies, systematic approaches, and liquid alternatives are getting renewed attention as ways to manage downside without abandoning equity exposure during volatile markets.
+
+ALEX: The platform angle here is that advisors need tools that can generate client-ready narratives around these strategies, not just portfolio-level analytics. The "stay invested but smarter" pitch only works if the advisor can explain it clearly under pressure.
+
+SARAH: Morgan Stanley secured a FINRA waiver from disqualification following a 15 million dollar SEC settlement — the waiver lets them continue operating without the business restrictions that would normally accompany a disqualifying event.
+
+ALEX: The mechanics of that waiver process will likely draw scrutiny. When firms of that size can navigate disqualification relatively cleanly, it raises questions about whether the enforcement framework has the teeth advocates say it needs.
+
+SARAH: Washington state's new high-earner income tax is creating a concrete planning opportunity — in-state municipal bonds remain exempt from the levy, so advisors with affluent Washington clients have a fresh reason to revisit muni allocations.
+
+ALEX: State-level tax changes like this are exactly the kind of trigger that should be surfaced automatically in planning software. If a client's address flags a new tax exposure, the platform should be prompting the conversation.
+
+SARAH: On the gender diversity front, women represent about 26% of financial advisors and that number has stalled. Industry insiders are pointing to structural barriers — retention, advancement, and cultural reform — not a talent pipeline shortage, as the core problem.
+
+ALEX: The framing matters here. If firms keep treating this as a recruiting problem, they'll keep getting the same result. The data suggests the issue is what happens after someone joins.
+
+SARAH: And finally, gold pulled back recently and some clients are questioning whether it still works as a hedge — but experts cited in Financial Planning argue the macro fundamentals driving gold's long-term appeal are intact and the short-term pressure isn't a structural breakdown.
+
+ALEX: Advisors need a clear, grounded answer ready for that conversation — the core thesis hasn't changed even if the price chart has, and that's a distinction worth having rehearsed before the client call.
+
+SARAH: That's the digest for Saturday, March 28th — a lot of movement across platforms, people, and portfolios this week.

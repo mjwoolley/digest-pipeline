@@ -10,6 +10,12 @@
     <itunes:image href="https://wealthtechdigest.com/brand.png" />
     <itunes:category text="Technology" />
     <item>
+      <title>The WealthTech Daily Roundup — 2026-03-28</title>
+      <pubDate>Sat, 28 Mar 2026 12:00:00 +0000</pubDate>
+      <guid isPermaLink="true">https://wealthtechdigest.com/podcasts/2026-03-28.mp3</guid>
+      <enclosure url="https://wealthtechdigest.com/podcasts/2026-03-28.mp3" length="7680045" type="audio/mpeg" />
+    </item>
+    <item>
       <title>The WealthTech Daily Roundup — 2026-03-27</title>
       <pubDate>Fri, 27 Mar 2026 12:00:00 +0000</pubDate>
       <guid isPermaLink="true">https://wealthtechdigest.com/podcasts/2026-03-27.mp3</guid>
