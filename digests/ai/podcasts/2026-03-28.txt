@@ -1,0 +1,75 @@
+ALEX: Apple is about to blow up ChatGPT's exclusive deal with Siri, and that's just one of a dozen stories worth unpacking today.
+
+SARAH: Let's start with the voice AI front, because Google just dropped Gemini 3.1 Flash Live — faster, more natural, and already powering Search, Gemini Live, and the developer API.
+
+ALEX: The upgrades are specifically around speed, task completion, and conversational realism, which are the three things that make or break a real-time voice product — this raises the baseline for everyone competing in that space.
+
+SARAH: And right alongside that, Cohere released Transcribe, which just hit number one on HuggingFace's speech leaderboard across 14 languages — and it's completely free and open-source.
+
+ALEX: That's a direct pressure move on paid Whisper-based services — enterprise-grade multilingual transcription at zero cost changes the math for anyone building voice applications.
+
+SARAH: Two strong voice stories in one day. Let's move to the developer tools pile, because there's a lot happening there. OpenAI is bringing plugins to Codex, bundling integrations with Box, Figma, Linear, Notion, Sentry, Slack, Gmail, and Hugging Face into installable packages.
+
+ALEX: This mirrors what Anthropic did with Claude Code and what Google did with its Gemini CLI — the pattern is clear, everyone is trying to make their coding tool the center of the entire agentic workflow universe.
+
+SARAH: So Codex is OpenAI's bet on a developer superapp — that's the framing here.
+
+ALEX: Exactly. Speaking of coding agents, Letta released something called Claude Subconscious — an experimental open-source background agent that shadows Claude Code sessions and builds up persistent memory over time, then injects that context back into the agent.
+
+SARAH: Persistent memory is one of the loudest complaints about current coding agents, so this is a practical open-source fix rather than waiting for the closed-source vendors to get around to it.
+
+ALEX: And it's model-agnostic, which matters if you're not locked into one provider. On the pricing side, Fireworks AI has soft-launched an unlimited coding subscription using Kimi K2.5 Turbo — flat rate, unlimited inference for personal agentic coding, though capacity is limited enough that the sign-up page has a live availability progress bar.
+
+SARAH: Flat-rate unlimited inference is a genuinely disruptive pricing model — if it holds, it could push developers to pick tools based on economics rather than raw capability.
+
+ALEX: There's also a smaller but useful update from Simon Willison — the latest alpha of datasette-showboat adds the ability to export a Markdown file for incremental remote publishing, so you can push live updates without a full redeploy.
+
+SARAH: That's a real workflow gap for data journalists and developers running Datasette-powered apps — small update, but it closes something that was genuinely annoying.
+
+ALEX: And on the security tooling side, the creator of Gitleaks — one of the most widely used secrets scanners — has launched Betterleaks, a reworked version with faster scanning, more flexible validation, and a rethought detection approach. It's backed by Aikido, a billion-dollar security startup.
+
+SARAH: Leaked credentials are still one of the most common attack vectors in software supply chains, so a credible open-source successor here is a meaningful upgrade for the whole ecosystem.
+
+ALEX: Now for the infrastructure stories. H100 spot rental prices have reversed sharply upward since December 2025, after that brief dip following the DeepSeek R1 shock. What looked like a bubble bursting was apparently just a temporary floor.
+
+SARAH: So compute demand has structurally re-accelerated — that has real consequences for startup costs and model deployment economics across the board.
+
+ALEX: On a related infrastructure note, there's a good piece out about pgvector benchmarks being misleading. The short version is that many blog posts oversell pgvector as a drop-in replacement for dedicated vector databases, but the story has actually evolved a lot — HNSW indexing introduced in version 0.5.0 delivers meaningful improvements in recall and query performance.
+
+SARAH: Teams are often making infrastructure decisions based on outdated benchmarks, so knowing where pgvector actually stands today can save a costly migration in either direction.
+
+ALEX: Now for the research story, and this one is genuinely striking. Meta open-sourced TRIBE v2, a foundation model trained on over 1,000 hours of brain data from more than 700 subjects. It simulates neural activity across vision, hearing, and language at the scale of 70,000 brain regions — and its synthetic predictions actually matched population-level brain activity better than most real fMRI recordings.
+
+SARAH: Real fMRI data is often degraded by noise from heartbeats and movement, so a model that outperforms that baseline and correctly replicates decades of findings on face, speech, and text processing regions is a significant result — and Meta released it openly to researchers.
+
+ALEX: The comparison people are reaching for is AlphaFold for protein structure — if TRIBE v2 compresses months of expensive scanning into seconds of compute, that's a transformative tool for neuroscience.
+
+SARAH: Let's get to the Apple story, because this is a big one. Bloomberg is reporting that iOS 27 will let users route Siri queries to any AI model through an extensions settings panel — ending ChatGPT's exclusive integration, which reportedly saw minimal actual use. The initial overhaul will be powered by Gemini, and Apple is eyeing a revenue cut from AI subscriptions purchased through its devices.
+
+ALEX: Turning a billion-device install base into an open distribution battleground for every AI company is a massive strategic shift — and the fact that ChatGPT's exclusivity generated minimal use tells you something about how hard the mobile assistant problem actually is.
+
+SARAH: Suno also launched v5.5 of its AI music generator, adding voice cloning, custom model tuning, and personalized style learning for Pro subscribers — meaningfully narrowing the gap between AI output and artist-specific music.
+
+ALEX: Voice cloning in a consumer product is the part that creates real tension — the creative possibilities are real, but so are the consent and artist rights questions that nobody has resolved yet.
+
+SARAH: Simon Willison also shipped two functional macOS menu bar apps — a network usage monitor and a GPU monitor — using Claude Opus 4.6 and GPT-5.4, entirely without opening Xcode. Each app fits in a single SwiftUI text file.
+
+ALEX: Senior developers shipping real utilities without touching an IDE is a signal that vibe coding has genuinely crossed into legitimate rapid prototyping territory, not just demos.
+
+SARAH: On the enterprise side, OpenAI published a case study on STADLER — a 230-year-old company that's deployed ChatGPT across 650 employees to speed up knowledge work and reduce time on routine tasks.
+
+ALEX: When a business that's been around for two centuries is moving faster on AI adoption than many startups, it pretty much ends the argument that enterprise AI is still a future-looking story.
+
+SARAH: Now for some industry and business stories that have real implications for developers. Wikipedia's English-language volunteer editors passed a near-unanimous 40 to 2 ban on using LLMs to write or rewrite articles, citing AI-generated errors and quality degradation — with the policy author hoping it inspires similar rules elsewhere.
+
+ALEX: The context here is that AI-generated text reportedly surpassed human output on Wikipedia for the first time in 2025, so the editors are drawing a hard line before quality and trust erode further.
+
+SARAH: GitHub also announced it will start using Copilot interaction data — inputs, outputs, code snippets, and context — to train AI models starting April 24, sharing that data with Microsoft. The opt-out is in Account Settings under Copilot and then AI model training.
+
+ALEX: This affects all Free, Pro, and Pro+ users, so if you assumed your code interactions were private, you now have a concrete deadline to go toggle that setting.
+
+SARAH: And finally, a serious security incident — on March 19, a group called TeamPCP breached Aqua Security's Trivy vulnerability scanner by compromising its CI/CD pipeline and GitHub repositories, trojanizing binaries and GitHub Actions to harvest credentials from downstream pipelines.
+
+ALEX: Trivy is one of the most widely deployed container security scanners in the industry, so compromising it is a force-multiplier attack — thousands of DevOps pipelines potentially exposed in one move, and it's part of a broader wave targeting open-source projects.
+
+SARAH: A packed Saturday — if there's one thing to take away, it's that the security stories this week are not background noise, so go check your Copilot settings and your Trivy versions.
