@@ -26,7 +26,7 @@ export function RunDetail({ slug, date, refreshInterval }) {
     <div>
       <div class="page-header">
         <h1 class="page-title">
-          <a href={`#/${slug}/runs`} class="back-link">&larr;</a>
+          <a href={`#/${slug}/digest`} class="back-link">&larr;</a>
           {' '}Run: {date}
         </h1>
         <StatusBadge status={data.status} />
@@ -93,6 +93,7 @@ export function RunDetail({ slug, date, refreshInterval }) {
             <md-icon>source</md-icon>
             Source Files
           </div>
+          <div class="data-table-wrapper">
           <table class="data-table">
             <thead>
               <tr>
@@ -118,6 +119,7 @@ export function RunDetail({ slug, date, refreshInterval }) {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

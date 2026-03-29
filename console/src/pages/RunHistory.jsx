@@ -19,11 +19,12 @@ export function RunHistory({ slug, refreshInterval }) {
   return (
     <div>
       <div class="page-header">
-        <h1 class="page-title">Run History</h1>
+        <h1 class="page-title">Digest Runs</h1>
       </div>
       {!data || data.length === 0 ? (
         <div class="empty-state">No runs found.</div>
       ) : (
+        <div class="data-table-wrapper">
         <table class="data-table">
           <thead>
             <tr>
@@ -36,7 +37,7 @@ export function RunHistory({ slug, refreshInterval }) {
           </thead>
           <tbody>
             {data.map((run) => (
-              <tr key={run.date} class="clickable-row" onClick={() => { location.hash = `#/${slug}/runs/${run.date}`; }}>
+              <tr key={run.date} class="clickable-row" onClick={() => { location.hash = `#/${slug}/digest/${run.date}`; }}>
                 <td>{run.date}</td>
                 <td><StatusBadge status={run.status} /></td>
                 <td>{run.duration_s != null ? `${Math.round(run.duration_s)}s` : '-'}</td>
@@ -46,6 +47,7 @@ export function RunHistory({ slug, refreshInterval }) {
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );

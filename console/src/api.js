@@ -8,3 +8,16 @@ export async function fetchApi(path) {
   }
   return resp.json();
 }
+
+export async function mutateApi(path, method, body) {
+  const resp = await fetch(`${BASE}${path}`, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!resp.ok) {
+    const data = await resp.json().catch(() => ({}));
+    throw new Error(data.error || `HTTP ${resp.status}`);
+  }
+  return resp.json();
+}

@@ -7,12 +7,14 @@ Run via: digest-pipeline --console [--digests-dir DIR] [--port PORT]
 """
 import json
 import logging
+import os
 import re
+import tempfile
 import xml.etree.ElementTree as ET
 from collections import deque
 from pathlib import Path
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 
 from .config import load_config
 from .subscribers import load_subscribers
@@ -196,6 +198,53 @@ def _parse_rss_items(rss_path: Path) -> list[dict]:
         return []
 
 
+def _scan_podcast_runs(data_root: Path, days: int = 14) -> list[dict]:
+    """List recent podcast runs, newest first.
+
+    Reads {date}-run.json when available; synthesizes minimal records
+    for older episodes that predate structured logging.
+    """
+    podcasts_dir = data_root / "podcasts"
+    if not podcasts_dir.exists():
+        return []
+
+    # Read actual run.json files
+    run_files = sorted(
+        [f for f in podcasts_dir.glob("*-run.json") if DATE_RE.match(f.name[:10])],
+        key=lambda f: f.name,
+        reverse=True,
+    )
+    runs = []
+    known_dates = set()
+    for rf in run_files:
+        data = _read_json(rf)
+        if data:
+            runs.append(data)
+            known_dates.add(data.get("date", rf.name[:10]))
+
+    # Synthesize entries for MP3 files with no run.json
+    mp3_files = sorted(podcasts_dir.glob("*.mp3"), key=lambda f: f.name, reverse=True)
+    for mp3 in mp3_files:
+        date = mp3.stem
+        if date in known_dates or not DATE_RE.match(date):
+            continue
+        size = mp3.stat().st_size
+        # Estimate duration from file size (128kbps = 16000 bytes/sec)
+        est_duration = size / 16000
+        runs.append({
+            "date": date,
+            "pipeline_type": "podcast",
+            "status": "success",
+            "duration_s": None,
+            "stages": [],
+            "totals": {"audio_duration_s": est_duration, "mp3_size": size},
+            "_synthetic": True,
+        })
+
+    runs.sort(key=lambda r: r.get("date", ""), reverse=True)
+    return runs[:days]
+
+
 def _extract_article_count(run: dict) -> int:
     """Get article count from a run record (real or synthetic)."""
     if run.get("_article_count") is not None:
@@ -209,29 +258,168 @@ def _extract_article_count(run: dict) -> int:
     return count
 
 
+def _get_source_detail(config, source_type, key):
+    """Extract a single source's fields + shared settings from the config dict."""
+    sources = config.get("sources", {})
+
+    if source_type == "twitter":
+        twitter = sources.get("twitter", {})
+        accounts = twitter.get("accounts", [])
+        if key not in accounts:
+            return None
+        return {
+            "fields": {"account": key},
+            "shared_settings": {
+                "lookback": twitter.get("lookback"),
+                "max_per_account": twitter.get("max_per_account"),
+            },
+        }
+
+    if source_type in ("blog", "research"):
+        cfg_key = "blogs" if source_type == "blog" else "research"
+        section = sources.get(cfg_key, {})
+        if key not in section:
+            return None
+        return {"fields": dict(section[key]), "shared_settings": {}}
+
+    if source_type == "newsletter":
+        nl = sources.get("newsletters", {})
+        nl_sources = nl.get("sources", {})
+        if key not in nl_sources:
+            return None
+        return {
+            "fields": dict(nl_sources[key]),
+            "shared_settings": {"imap": nl.get("imap")},
+        }
+
+    if source_type == "github_trending":
+        gt = sources.get("github_trending")
+        if not gt:
+            return None
+        return {"fields": dict(gt), "shared_settings": {}}
+
+    return None
+
+
+def _validate_source(source_type, key, fields):
+    """Returns list of error strings for invalid source data."""
+    errors = []
+
+    def _valid_url(u):
+        return isinstance(u, str) and (u.startswith("http://") or u.startswith("https://"))
+
+    if source_type == "twitter":
+        if not key or not isinstance(key, str):
+            errors.append("key must be a non-empty string")
+
+    elif source_type in ("blog", "research"):
+        if not fields.get("name"):
+            errors.append("name is required")
+        strategy = fields.get("strategy", "rss")
+        if strategy not in ("rss", "html_scrape"):
+            errors.append("strategy must be one of: rss, html_scrape")
+        if strategy == "rss":
+            if not _valid_url(fields.get("feed_url", "")):
+                errors.append("feed_url is required and must be a valid URL for rss strategy")
+        if strategy == "html_scrape":
+            if not _valid_url(fields.get("url", "")):
+                errors.append("url is required and must be a valid URL for html_scrape strategy")
+            if not fields.get("scrape_parser"):
+                errors.append("scrape_parser is required for html_scrape strategy")
+
+    elif source_type == "newsletter":
+        if not fields.get("name"):
+            errors.append("name is required")
+        if not fields.get("from"):
+            errors.append("from is required")
+        lookback = fields.get("lookback_days")
+        if lookback is not None:
+            if not isinstance(lookback, int) or lookback <= 0:
+                errors.append("lookback_days must be a positive integer")
+
+    elif source_type == "github_trending":
+        if not fields.get("name"):
+            errors.append("name is required")
+        if not _valid_url(fields.get("url", "")):
+            errors.append("url is required and must be a valid URL")
+        min_stars = fields.get("min_stars_week")
+        if not isinstance(min_stars, int) or min_stars <= 0:
+            errors.append("min_stars_week is required and must be a positive integer")
+        ai_kw = fields.get("ai_keywords")
+        if not isinstance(ai_kw, list) or len(ai_kw) == 0:
+            errors.append("ai_keywords is required and must be a non-empty list")
+
+    return errors
+
+
+def _write_config(cfg_path, config):
+    """Atomic config write — re-reads disk, applies sources mutation, writes back."""
+    cfg_path = str(cfg_path)
+    with open(cfg_path) as f:
+        disk_config = json.load(f)
+
+    # Apply only the sources section from the in-memory config
+    disk_config["sources"] = config.get("sources", {})
+
+    # Strip internal keys
+    for k in ("_data_root", "_pipeline_dir"):
+        disk_config.pop(k, None)
+
+    content = json.dumps(disk_config, indent=2) + "\n"
+    dir_name = os.path.dirname(cfg_path)
+    fd, tmp_path = tempfile.mkstemp(dir=dir_name, suffix=".json")
+    try:
+        os.write(fd, content.encode())
+        os.close(fd)
+        fd = -1
+        os.replace(tmp_path, cfg_path)
+    except Exception:
+        if fd >= 0:
+            os.close(fd)
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+        raise
+
+
+def _clean_source_state(data_root, source_key):
+    """Remove source_key from .source_state.json if it exists."""
+    state_path = data_root / ".source_state.json"
+    if not state_path.exists():
+        return
+    try:
+        state = json.loads(state_path.read_text())
+        if source_key in state:
+            del state[source_key]
+            state_path.write_text(json.dumps(state, indent=2) + "\n")
+    except Exception:
+        pass
+
+
 def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
     """Flask app factory for the management console.
 
     Provide either digests_dir (multi-digest) or config_path (single-digest).
     """
-    # Build digest registry: {slug: {"config": dict, "data_root": Path}}
-    digests = {}
+    # Build digest registry: {slug: config_path}
+    # Configs are reloaded on each request so changes are picked up without restart.
+    digest_configs = {}
     if digests_dir:
         digests_path = Path(digests_dir)
         for cfg_file in sorted(digests_path.glob("*/config.json")):
             slug = cfg_file.parent.name
             try:
-                config = load_config(str(cfg_file))
-                digests[slug] = {"config": config, "data_root": config["_data_root"]}
+                # Validate config loads at startup, but don't cache it
+                load_config(str(cfg_file))
+                digest_configs[slug] = str(cfg_file)
                 logger.info(f"[CONSOLE] Loaded digest: {slug}")
             except Exception as e:
                 logger.warning(f"[CONSOLE] Failed to load {cfg_file}: {e}")
     elif config_path:
         config = load_config(config_path)
         slug = config["_data_root"].name
-        digests[slug] = {"config": config, "data_root": config["_data_root"]}
+        digest_configs[slug] = config_path
 
-    if not digests:
+    if not digest_configs:
         raise RuntimeError("No digest configs found")
 
     # Serve built frontend from console/dist/ if it exists
@@ -242,8 +430,15 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
         app = Flask(__name__)
 
     def _get_digest(slug):
-        """Return digest info or None."""
-        return digests.get(slug)
+        """Load and return digest info from disk, or None."""
+        cfg_path = digest_configs.get(slug)
+        if not cfg_path:
+            return None
+        try:
+            config = load_config(cfg_path)
+            return {"config": config, "data_root": config["_data_root"]}
+        except Exception:
+            return None
 
     def _validate_date(date_str):
         """Return True if date_str is a valid YYYY-MM-DD string."""
@@ -254,7 +449,10 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
     @app.route("/api/digests")
     def list_digests():
         result = []
-        for slug, info in sorted(digests.items()):
+        for slug in sorted(digest_configs):
+            info = _get_digest(slug)
+            if not info:
+                continue
             cfg = info["config"]
             data_root = info["data_root"]
             runs = _scan_runs(data_root, days=1)
@@ -483,6 +681,59 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
             "rss_item_count": len(rss_items),
         })
 
+    @app.route("/api/digests/<slug>/podcast/runs")
+    def list_podcast_runs(slug):
+        info = _get_digest(slug)
+        if not info:
+            return jsonify({"error": "Unknown digest"}), 404
+        runs = _scan_podcast_runs(info["data_root"])
+        result = []
+        for run in runs:
+            totals = run.get("totals") or {}
+            audio_s = totals.get("audio_duration_s")
+            result.append({
+                "date": run.get("date", ""),
+                "status": run.get("status", "unknown"),
+                "duration_s": run.get("duration_s"),
+                "cost": totals.get("cost"),
+                "audio_minutes": round(audio_s / 60, 1) if audio_s else None,
+                "mp3_size": totals.get("mp3_size"),
+            })
+        return jsonify(result)
+
+    @app.route("/api/digests/<slug>/podcast/runs/<date>")
+    def get_podcast_run(slug, date):
+        info = _get_digest(slug)
+        if not info:
+            return jsonify({"error": "Unknown digest"}), 404
+        if not _validate_date(date):
+            return jsonify({"error": "Invalid date"}), 400
+        run_path = info["data_root"] / "podcasts" / f"{date}-run.json"
+        data = _read_json(run_path)
+        if not data:
+            # Synthesize from MP3/script files
+            podcasts_dir = info["data_root"] / "podcasts"
+            mp3_path = podcasts_dir / f"{date}.mp3"
+            script_path = podcasts_dir / f"{date}.txt"
+            if not mp3_path.exists() and not script_path.exists():
+                return jsonify({"error": "Podcast run not found"}), 404
+            mp3_size = mp3_path.stat().st_size if mp3_path.exists() else 0
+            est_duration = mp3_size / 16000 if mp3_size else None
+            data = {
+                "date": date,
+                "digest": "",
+                "pipeline_type": "podcast",
+                "status": "success" if mp3_path.exists() else "unknown",
+                "duration_s": None,
+                "stages": [],
+                "totals": {
+                    "audio_duration_s": est_duration,
+                    "mp3_size": mp3_size or None,
+                },
+                "_synthetic": True,
+            }
+        return jsonify(data)
+
     @app.route("/api/digests/<slug>/config")
     def get_config(slug):
         info = _get_digest(slug)
@@ -490,9 +741,161 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
             return jsonify({"error": "Unknown digest"}), 404
         return jsonify(_sanitize_config(info["config"]))
 
+    # --- Source CRUD Routes ---
+
+    @app.route("/api/digests/<slug>/sources/<source_type>/<key>")
+    def get_source_detail(slug, source_type, key):
+        info = _get_digest(slug)
+        if not info:
+            return jsonify({"error": "Unknown digest"}), 404
+        detail = _get_source_detail(info["config"], source_type, key)
+        if not detail:
+            return jsonify({"error": "Source not found"}), 404
+        return jsonify(detail)
+
+    @app.route("/api/digests/<slug>/sources", methods=["POST"])
+    def create_source(slug):
+        info = _get_digest(slug)
+        if not info:
+            return jsonify({"error": "Unknown digest"}), 404
+
+        body = request.get_json(silent=True) or {}
+        source_type = body.get("source_type", "")
+        key = body.get("key", "")
+        fields = body.get("fields", {})
+
+        valid_types = ("twitter", "blog", "research", "newsletter", "github_trending")
+        if source_type not in valid_types:
+            return jsonify({"error": f"source_type must be one of: {', '.join(valid_types)}"}), 400
+
+        # Validate key format
+        if not key or not re.match(r"^[a-z0-9_]+$", key):
+            return jsonify({"error": "key must be non-empty, lowercase alphanumeric + underscores only"}), 400
+
+        if source_type == "github_trending" and key != "trending":
+            return jsonify({"error": "key must be 'trending' for github_trending"}), 400
+
+        # Check source doesn't already exist
+        config = info["config"]
+        if _get_source_detail(config, source_type, key) is not None:
+            return jsonify({"error": "Source already exists"}), 409
+
+        # Validate fields
+        errors = _validate_source(source_type, key, fields)
+        if errors:
+            return jsonify({"error": "Validation failed", "details": errors}), 400
+
+        # Apply mutation
+        sources = config.setdefault("sources", {})
+        if source_type == "twitter":
+            twitter = sources.setdefault("twitter", {"accounts": []})
+            twitter.setdefault("accounts", []).append(key)
+        elif source_type == "blog":
+            sources.setdefault("blogs", {})[key] = fields
+        elif source_type == "research":
+            sources.setdefault("research", {})[key] = fields
+        elif source_type == "newsletter":
+            nl = sources.setdefault("newsletters", {"sources": {}})
+            nl.setdefault("sources", {})[key] = fields
+        elif source_type == "github_trending":
+            sources["github_trending"] = fields
+
+        _write_config(digest_configs[slug], config)
+        return jsonify({"ok": True}), 201
+
+    @app.route("/api/digests/<slug>/sources/<source_type>/<key>", methods=["PUT"])
+    def update_source(slug, source_type, key):
+        info = _get_digest(slug)
+        if not info:
+            return jsonify({"error": "Unknown digest"}), 404
+
+        body = request.get_json(silent=True) or {}
+        fields = body.get("fields", {})
+
+        config = info["config"]
+        if _get_source_detail(config, source_type, key) is None:
+            return jsonify({"error": "Source not found"}), 404
+
+        # Merge with existing fields to prevent data loss on partial updates
+        existing = _get_source_detail(config, source_type, key)
+        merged = {**existing["fields"], **fields}
+        fields = merged
+
+        errors = _validate_source(source_type, key, fields)
+        if errors:
+            return jsonify({"error": "Validation failed", "details": errors}), 400
+
+        # Apply mutation
+        sources = config.get("sources", {})
+        if source_type == "twitter":
+            return jsonify({"error": "Twitter sources have no editable fields"}), 400
+        elif source_type == "blog":
+            sources.get("blogs", {})[key] = fields
+        elif source_type == "research":
+            sources.get("research", {})[key] = fields
+        elif source_type == "newsletter":
+            sources.get("newsletters", {}).get("sources", {})[key] = fields
+        elif source_type == "github_trending":
+            sources["github_trending"] = fields
+
+        _write_config(digest_configs[slug], config)
+        return jsonify({"ok": True})
+
+    @app.route("/api/digests/<slug>/sources/<source_type>/<key>", methods=["DELETE"])
+    def delete_source(slug, source_type, key):
+        info = _get_digest(slug)
+        if not info:
+            return jsonify({"error": "Unknown digest"}), 404
+
+        config = info["config"]
+        if _get_source_detail(config, source_type, key) is None:
+            return jsonify({"error": "Source not found"}), 404
+
+        # Remove from config
+        sources = config.get("sources", {})
+        if source_type == "twitter":
+            accounts = sources.get("twitter", {}).get("accounts", [])
+            if key in accounts:
+                accounts.remove(key)
+            if not accounts:
+                sources.pop("twitter", None)
+        elif source_type == "blog":
+            blogs = sources.get("blogs", {})
+            blogs.pop(key, None)
+            if not blogs:
+                sources.pop("blogs", None)
+        elif source_type == "research":
+            research = sources.get("research", {})
+            research.pop(key, None)
+            if not research:
+                sources.pop("research", None)
+        elif source_type == "newsletter":
+            nl_sources = sources.get("newsletters", {}).get("sources", {})
+            nl_sources.pop(key, None)
+            if not nl_sources:
+                sources.pop("newsletters", None)
+        elif source_type == "github_trending":
+            sources.pop("github_trending", None)
+
+        _write_config(digest_configs[slug], config)
+
+        # Clean source state
+        state_key_map = {
+            "twitter": f"twitter:{key}",
+            "blog": f"blog:{key}",
+            "research": f"research:{key}",
+            "newsletter": f"newsletter:{key}",
+            "github_trending": "github_trending:trending",
+        }
+        state_key = state_key_map.get(source_type, "")
+        if state_key:
+            _clean_source_state(info["data_root"], state_key)
+
+        return jsonify({"ok": True})
+
     @app.route("/health")
     def health():
-        return jsonify({"status": "ok", "digests": list(digests.keys())})
+        return jsonify({"status": "ok", "digests": list(digest_configs.keys())})
 
     # Serve frontend
     @app.route("/")

@@ -56,7 +56,7 @@ export function SourceHealth({ slug, refreshInterval }) {
     <div>
       <div class="page-header">
         <h1 class="page-title">Source Health</h1>
-        <div style="display: flex; gap: 12px">
+        <div style="display: flex; gap: 12px; align-items: center">
           {staleCount > 0 && (
             <span class="badge badge--failure">{staleCount} stale</span>
           )}
@@ -66,6 +66,10 @@ export function SourceHealth({ slug, refreshInterval }) {
           {staleCount === 0 && warningCount === 0 && (
             <span class="badge badge--success">All healthy</span>
           )}
+          <md-filled-button href={`#/${slug}/sources/new`}>
+            <md-icon slot="icon">add</md-icon>
+            Add Source
+          </md-filled-button>
         </div>
       </div>
 
@@ -81,6 +85,7 @@ export function SourceHealth({ slug, refreshInterval }) {
               ({grouped[type].length})
             </span>
           </div>
+          <div class="data-table-wrapper">
           <table class="data-table">
             <thead>
               <tr>
@@ -95,7 +100,15 @@ export function SourceHealth({ slug, refreshInterval }) {
                 const status = healthStatus(src);
                 const days = daysSince(src.last_updated);
                 return (
-                  <tr key={src.source_key}>
+                  <tr
+                    key={src.source_key}
+                    class="clickable-row"
+                    onClick={() => {
+                      const [srcType, ...rest] = src.source_key.split(':');
+                      const key = rest.join(':');
+                      location.hash = `#/${slug}/sources/${srcType}/${key}`;
+                    }}
+                  >
                     <td>
                       {src.url ? (
                         <a href={src.url} target="_blank" rel="noopener" style="color: var(--md-sys-color-primary); text-decoration: none">{src.name}</a>
@@ -122,6 +135,7 @@ export function SourceHealth({ slug, refreshInterval }) {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       ))}
     </div>

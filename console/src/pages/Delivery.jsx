@@ -63,6 +63,7 @@ export function Delivery({ slug, refreshInterval }) {
             <md-icon>calendar_month</md-icon>
             Send History by Date
           </div>
+          <div class="data-table-wrapper">
           <table class="data-table">
             <thead>
               <tr>
@@ -92,6 +93,7 @@ export function Delivery({ slug, refreshInterval }) {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
@@ -102,6 +104,7 @@ export function Delivery({ slug, refreshInterval }) {
             <md-icon>send</md-icon>
             Recent Sends
           </div>
+          <div class="data-table-wrapper">
           <table class="data-table">
             <thead>
               <tr>
@@ -126,6 +129,7 @@ export function Delivery({ slug, refreshInterval }) {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>
