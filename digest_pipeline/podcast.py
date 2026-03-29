@@ -11,6 +11,7 @@ from email.utils import format_datetime
 from pathlib import Path
 
 from .config import load_config, render_prompt, get_voice_map, get_speaker_tags
+from .run_log import RunLog
 from . import llm
 from . import log
 from . import delivery
@@ -97,6 +98,11 @@ def main():
 
     podcasts_dir.mkdir(parents=True, exist_ok=True)
 
+    run_log = None if dry_run else RunLog(
+        podcast_cfg.get("name", "Podcast"), date, podcasts_dir,
+        path=podcasts_dir / f"{date}-run.json", pipeline_type="podcast",
+    )
+
     try:
         # ── Stage 7: SCRIPTGEN ──────────────────────────────────────────
         digest_path = data_root / f"{date}.md"
@@ -107,8 +113,14 @@ def main():
         logger.info(f"[SCRIPTGEN] Loaded digest: {len(digest_text)} chars")
 
         llm.configure(provider)
+        # Format date as spoken English: "March 28th, 2026"
+        _dt = datetime.strptime(date, "%Y-%m-%d")
+        _day = _dt.day
+        _suffix = "th" if 11 <= _day <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(_day % 10, "th")
+        spoken_date = f"{_dt.strftime('%B')} {_day}{_suffix}, {_dt.year}"
+
         prompt = render_prompt("podcast_script.md", config,
-                               {"DIGEST": digest_text})
+                               {"DIGEST": digest_text, "DATE": spoken_date})
 
         model = llm.MODELS[provider]["sonnet"]
         messages = [
@@ -132,6 +144,14 @@ def main():
             raise ValueError("Script parsing produced no turns")
         logger.info(f"[SCRIPTGEN] Parsed {len(turns)} turns")
 
+        if run_log:
+            run_log.log_stage("ScriptGen",
+                f"Script: {len(script_text)} chars, {len(turns)} turns",
+                {"duration": scriptgen_duration,
+                 "input_tokens": usage.get("input_tokens", usage.get("prompt_tokens", 0)),
+                 "output_tokens": usage.get("output_tokens", usage.get("completion_tokens", 0)),
+                 "cost": usage.get("cost", 0.0)})
+
         if dry_run:
             logger.info("[PODCAST] Dry run — skipping TTS and delivery")
             print(f"Script saved to {script_path}")
@@ -154,6 +174,12 @@ def main():
         swap_usage = _get_swap_usage()
         logger.info(f"[AUDIO] Complete in {audio_duration:.1f}s: {audio_usage}, Swap: {swap_usage}")
 
+        if run_log:
+            run_log.log_stage("Audio",
+                f"TTS: {audio_usage['total_chars']} chars, {audio_usage['total_turns']} turns, "
+                f"{audio_usage['duration_seconds']:.0f}s audio",
+                {"duration": audio_duration})
+
         # ── Stage 9: DELIVER ────────────────────────────────────────────
         t0 = time.time()
         podcast_name = podcast_cfg.get("name", "The AI Daily Roundup")
@@ -167,13 +193,30 @@ def main():
             # Generate/update RSS feed
             _update_rss_feed(podcasts_dir, date, audio_usage, config, logger)
             _update_landing_page(podcasts_dir, config, logger)
+            if run_log:
+                run_log.log_stage("Deliver",
+                    f"Sent + RSS updated ({deliver_duration:.1f}s)",
+                    {"duration": deliver_duration})
         else:
             logger.error("[DELIVER] Audio send failed")
+            if run_log:
+                run_log.log_error("Deliver", "Audio send failed")
             delivery.send_alert("DELIVER", "Failed to send podcast audio",
                                 config)
 
+        if run_log:
+            run_log.complete_raw({
+                "input_tokens": usage.get("input_tokens", usage.get("prompt_tokens", 0)),
+                "output_tokens": usage.get("output_tokens", usage.get("completion_tokens", 0)),
+                "cost": round(usage.get("cost", 0.0), 4),
+                "audio_duration_s": audio_usage.get("duration_seconds", 0),
+                "mp3_size": mp3_path.stat().st_size if mp3_path.exists() else 0,
+            })
+
     except Exception as e:
         logger.error(f"[PODCAST] Fatal error: {e}", exc_info=True)
+        if run_log:
+            run_log.fail(str(e))
         delivery.send_alert("PODCAST", str(e)[:500], config)
         sys.exit(1)
 
