@@ -1,0 +1,25 @@
+ALEX: Welcome to The WealthTech Daily Roundup for March 30th, 2026. The race to own your financial life just got a lot more interesting — SY Taylor is out with a piece arguing that the real wallet war isn't about apps anymore, it's about who controls your financial agent, and in a thirty-eight-point-six trillion dollar industry, nobody has a clean lead yet.
+
+SARAH: That framing is striking — because most advisors and fintechs are still thinking about this as a product competition, not a platform ownership battle. The implications for who actually controls the client relationship long-term are pretty significant.
+
+ALEX: Right, and Taylor's piece lays out a scorecard across six capability dimensions — Apple, Google, banks, fintechs, and AI labs are all in the mix. The key unlock he's pointing to is what he calls "guardian agents" — AI that taps email receipts, location history, and financial accounts to do things like tax prep on autopilot, but hardened with robust identity, authentication, and behavioral monitoring.
+
+SARAH: The trust infrastructure problem is the real bottleneck there. It's easy to build an agent that can act — it's much harder to build one that users and regulators will actually trust to act on their behalf.
+
+ALEX: Which connects directly to the next two stories, because they're both tackling pieces of exactly that infrastructure problem. Natural is building what they're calling payment accounts designed natively for AI agent use cases — essentially a bank account for the agent itself, not the human behind it.
+
+SARAH: That's a small company but a telling signal. If agents are going to execute real financial transactions autonomously, they need their own rails — you can't just bolt that onto existing consumer payment infrastructure and expect it to hold up.
+
+ALEX: And then Pay AI is coming at the trust gap from the authorization side — they're adding biometric approval as a human-in-the-loop checkpoint for agent-initiated payments. So before your agent moves money, you're getting a biometric confirmation step.
+
+SARAH: That's a practical near-term fix while the broader "Know Your Agent" frameworks are still being worked out. It's not a permanent architecture, but it's the kind of guardrail that could actually get deployed today.
+
+ALEX: Shifting over to planning and workflow — Axiom Trust is positioning itself as a tech-forward fiduciary trust company, bringing a more modern operational approach to trust administration and management. Details are still pretty sparse on what exactly they're building.
+
+SARAH: But the positioning alone says something. Trust administration is genuinely one of the most paper-heavy, friction-laden corners of wealth management, and the fact that there's appetite for a digitally-native alternative there suggests advisors are feeling that pain acutely.
+
+ALEX: And then one more to close out — moving into the broader fintech space, Orca Fraud is launching as a fraud prevention platform specifically built for emerging markets. The comparison being made is to Sardine, suggesting a real-time, behavior-based approach adapted for local market conditions in geographies where sophisticated risk tooling has historically been pretty scarce.
+
+SARAH: The timing makes sense — fintech is growing fastest in exactly those higher-risk, lower-infrastructure markets, and purpose-built fraud tooling is the kind of thing that becomes a critical enabler, not just a nice feature, when you're operating there.
+
+ALEX: That's everything for today — short digest but a lot of connective tissue across these stories around what agentic finance actually needs to function at scale. We'll see you tomorrow on The WealthTech Daily Roundup.

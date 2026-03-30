@@ -184,21 +184,6 @@
     ],
     "last_updated": "2026-03-24"
   },
-  "twitter:zocksio": {
-    "seen_ids": [
-      "https://x.com/zocksio/status/2015816331145134364",
-      "https://x.com/zocksio/status/1999118721911005546",
-      "https://x.com/zocksio/status/1995902547735757181",
-      "https://x.com/zocksio/status/1990820273310871636",
-      "https://x.com/zocksio/status/1981452743429468166",
-      "https://x.com/zocksio/status/1980739132918743135",
-      "https://x.com/zocksio/status/1978452236314288183",
-      "https://x.com/zocksio/status/1974144736928694480",
-      "https://x.com/zocksio/status/1973050111799292173",
-      "https://x.com/zocksio/status/1966515829127688605"
-    ],
-    "last_updated": "2026-03-22"
-  },
   "blog:wealth_solutions_report": {
     "seen_ids": [
       "https://www.wealthsolutionsreport.com/goldman-sachs-invests-42-5-million-in-geowealth/",
@@ -248,8 +233,9 @@
   },
   "newsletter:sytaylor": {
     "seen_ids": [
-      "msgid:Eff04FtmTu-5A9gErLWsRQ@geopod-ismtpd-35"
+      "msgid:Eff04FtmTu-5A9gErLWsRQ@geopod-ismtpd-35",
+      "msgid:DvH_mSL3T_qepHRlm4f1Aw@geopod-ismtpd-53"
     ],
-    "last_updated": "2026-03-25"
+    "last_updated": "2026-03-30"
   }
 }
