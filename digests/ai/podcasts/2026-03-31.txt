@@ -1,0 +1,81 @@
+ALEX: Welcome to The AI Daily Roundup for March 31st, 2026. Anthropic accidentally leaked their next flagship model — it's called Claude Mythos, it sits in a brand new tier above Opus, and internally they flagged it as "currently far ahead of any other AI model in cyber capabilities."
+
+SARAH: An accidental leak is basically a forced announcement, and the cyber capabilities warning is the detail I can't stop thinking about — that's not a marketing line, that's an internal risk flag.
+
+ALEX: Exactly. According to a CMS misconfiguration that exposed draft launch materials, Anthropic categorized Mythos under a new tier called "Capybara," above Opus, with warnings that it could help hackers outpace defenders. Anthropic has since confirmed a new general purpose model with meaningful advances in reasoning, coding, and cybersecurity is in testing.
+
+SARAH: The fact that they confirmed it rather than denying it tells you the leak was real. And framing cybersecurity as a headline capability is a deliberate competitive signal — that's a direct shot at the enterprise security market.
+
+ALEX: Shifting over to other model releases — Mistral dropped Voxtral, their new text-to-speech model, and paired it with a podcast featuring TTS lead Pavan Kumar Reddy and co-founder Guillaume Lample. The conversation also teases what's coming with Mistral 4.
+
+SARAH: Mistral keeps shipping at a pace that's easy to underestimate. The fact that they're already teasing Mistral 4 while launching a whole new voice product tells you they're not pausing to consolidate — they're racing.
+
+ALEX: Also in the voice space, Microsoft released VibeVoice as an open-source project — it covers both text-to-speech and automatic speech recognition, comes with technical reports on arXiv and a HuggingFace collection, and hit nearly 4,800 GitHub stars in a single week.
+
+SARAH: Microsoft bringing institutional weight to open-source voice AI is a different kind of pressure than a startup doing it. That star count in one week suggests the developer community has been waiting for exactly this.
+
+ALEX: And rounding out model releases, there's a delightful one — Trip Venturella trained a 340-million-parameter model called Mr. Chatterbox entirely from scratch on 28,035 Victorian-era texts from the British Library, about 2.93 billion tokens, covering 1837 to 1899 only. It weighs just 2.05 gigabytes and has a live HuggingFace demo.
+
+SARAH: So zero post-1899 vocabulary or concepts — it's a completely sealed historical corpus. What's the practical takeaway there beyond being a fun experiment?
+
+ALEX: Simon Willison framed it as a proof-of-concept that domain-specific, era-constrained pretraining can produce coherent, historically authentic models, and that one person with a well-curated corpus can still do interesting things at small scale. It's a reminder that not every valuable model needs to be trained on the entire internet.
+
+SARAH: Moving over to developer tools — there's a lot happening in the Claude Code ecosystem today specifically.
+
+ALEX: Right, two big Claude Code updates. First, computer use is now in Claude Code as a research preview for Pro and Max plan users on macOS. Claude can write code, compile it, launch the app, click through the UI, find bugs, fix them, and verify the fix — all from a single CLI prompt. It works on SwiftUI apps, Electron builds, and any GUI tool without a CLI, enabled via slash-MCP.
+
+SARAH: That write-run-debug loop collapsing into one prompt is significant. How far does that get you toward truly autonomous software development in practice?
+
+ALEX: The framing in the announcement is exactly that — a meaningful step toward autonomous software development. Second update: Claude Code's auto mode, where Claude makes permission decisions itself rather than asking for approval on every file write or bash command, is now available for Enterprise plan and API users. You enable it with claude dash dash enable-auto-mode after updating.
+
+SARAH: That approval friction was the real bottleneck for hands-off enterprise workflows. There's a difference between a tool that can technically do something autonomously and one where the permissions model actually lets it.
+
+ALEX: Also on the tooling side, Simon Willison shipped two updates to the Datasette ecosystem. datasette-files 0.1a3 adds owners-can-edit and owners-can-delete config options scoped to a new FileResource, a web component file picker for embedding in other plugins, and a get-file Python API for inter-plugin file access.
+
+SARAH: So it's becoming a composable building block rather than a standalone feature — that's the kind of maturation that makes an ecosystem stickier.
+
+ALEX: And datasette-llm 0.1a3 adds the ability to configure which LLMs are available for which specific purpose, letting admins restrict model choices on a per-plugin basis rather than exposing the full list everywhere.
+
+SARAH: Per-purpose model restrictions sounds like table stakes for enterprise deployment — you don't want every plugin reaching for your most expensive model by default.
+
+ALEX: Jumping into research — llama.cpp creator Georgi Gerganov laid out why local coding agents are broken in ways that are hard to diagnose. His diagnosis is that it's rarely the model itself causing problems — it's the fragile chain of chat templates, prompt construction, and inference bugs across components built by entirely different teams.
+
+SARAH: That's a really specific and honest assessment from the person closest to local inference infrastructure. It reframes the whole "local models aren't good enough" conversation — the stack around the model is the actual problem.
+
+ALEX: On the applications side — Microsoft's Copilot Researcher agent now has an optional critique mode where GPT drafts a response and Claude reviews it for accuracy, completeness, and citation integrity. Microsoft says it may eventually flip the flow so Claude writes and GPT checks.
+
+SARAH: Using competing frontier models as checks on each other in production is genuinely novel architecture. It's also a fascinating strategic position for Microsoft — they're essentially running a quality layer that neither OpenAI nor Anthropic controls independently.
+
+ALEX: Also in applications, Google expanded Live Translate to iOS, enabling real-time interpretation through any pair of headphones across more than 70 languages. Previously the platform availability was more limited.
+
+SARAH: Commodity headphones, 70-plus languages, real-time — that's the combination that actually changes behavior for regular people rather than just travelers with specialized gear.
+
+ALEX: Now for the business and industry side, and there's a lot here. The WSJ published a deep dive on the Altman-Amodei rivalry tracing back to a shared San Francisco group house in 2016. The details are explosive — Dario Amodei privately compared Altman and Musk to Hitler and Stalin, called a Trump PAC donation "evil," and likened OpenAI to Big Tobacco. Altman reportedly accused the Amodeis of plotting against him to the board, then denied it when confronted.
+
+SARAH: And a Brockman proposal to sell AGI to UN nuclear powers was reportedly considered "tantamount to treason" internally. These are the two most powerful AI labs in the world being steered by people with decade-long personal grievances — that's essential context for understanding every competitive move either company makes.
+
+ALEX: On the legal front, Anthropic won a federal injunction against the Trump administration's supply-chain-risk designation. The judge called it "classic illegal First Amendment retaliation."
+
+SARAH: A federal court using that language — calling it classic illegal First Amendment retaliation — sets a precedent well beyond Anthropic. Any AI company worried about government pressure as a competitive weapon should be watching this ruling carefully.
+
+ALEX: Connecting the two Anthropic stories — Sam Altman claimed in internal OpenAI Slack messages, seen by Axios, that he tried to intervene on Anthropic's behalf during the Pentagon standoff, even as OpenAI simultaneously secured its own competing deal with the Department of Defense.
+
+SARAH: So he's positioning himself as Anthropic's would-be savior in internal communications while outmaneuvering them commercially at the same time. That's the competitive strategy in one sentence.
+
+ALEX: On the pharma side, Eli Lilly signed a $2.75 billion licensing deal with Insilico Medicine, a Hong Kong AI drug discovery company, gaining access to 28 AI-discovered compounds already in development. It's one of the largest AI-pharma deals to date.
+
+SARAH: The volume matters here — 28 compounds, not a pilot program. Big Pharma paying billions for the actual output of AI drug discovery pipelines is a different signal than funding experiments.
+
+ALEX: At xAI, Ross Nordeen — reportedly the final remaining original co-founder besides Elon Musk — has departed the company, and the exit comes as Musk manages the ramp-up toward a SpaceX IPO.
+
+SARAH: Losing the last original co-founder while the CEO's attention is split across a major IPO is a lot of leadership continuity risk at once for a company trying to compete at the frontier.
+
+ALEX: And finally, Kelsey Hightower headlined KubeCon 2026 in Amsterdam, where Electrolux engineer Kristina Kondrashevich demoed InfraKitchen — an open-source developer platform built directly in response to Hightower's 2023 KubeCon talk. Hightower stress-tested the demo with tough questions before approving it.
+
+SARAH: Real production open-source work shipped years after a single conference talk — that's a remarkable example of how much the cloud-native community still orients around Hightower's thinking, and his quote that everyone is a junior engineer on AI is the kind of framing that tends to stick.
+
+ALEX: And before we wrap — the axios npm package, 300 million weekly downloads, has been actively compromised. Version 1.14.1 now pulls in a package called plain-crypto-js at version 4.2.1 that didn't exist before the attack. Karpathy noted that the real fix isn't on individual developers — it requires npm and pip to change their defaults to prevent single infections from propagating via unpinned dependencies.
+
+SARAH: If the most downloaded HTTP client in the JavaScript ecosystem can be hijacked this way, the trust model for the entire npm ecosystem is broken at the infrastructure level — and that's a problem no individual developer can patch their way out of.
+
+ALEX: That's everything for March 31st — stay safe out there, especially if you're running unpinned npm dependencies.
