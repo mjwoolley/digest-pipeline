@@ -1,0 +1,87 @@
+ALEX: Welcome to The WealthTech Daily Roundup for March 31st, 2026. Zocks just closed a forty-five million dollar Series B, grew from one thousand to five thousand advisor firms in a single year, and dropped what feels like six product updates in the same news cycle — so today is basically a Zocks episode with some other stories around it.
+
+SARAH: That funding number is striking on its own, but when you stack it next to all the integrations and the CB Insights recognition, you start to see a company that's clearly in execution mode. Let's get into it — but first there's a lot of platform news to cover.
+
+ALEX: Starting with advisor platforms — RightCapital just added 401k loan modeling directly inside a client's financial plan. Advisors select the loan type, enter the amount, term, and rate, and the software automatically projects income, repayment schedules, and expenses across the full plan.
+
+SARAH: That's the kind of feature that sounds small but saves real time — advisors were probably toggling over to a spreadsheet or a separate calculator to do this before. Keeping it inside the plan keeps the conversation cleaner.
+
+ALEX: Right alongside that, there's a piece worth noting about the direction of 401k plan fees. Fees keep falling even as advisor and recordkeeper quality continues to rise, and the question being raised is whether the race to the bottom on cost is compressing margins faster than efficiency gains can compensate.
+
+SARAH: This is a real tension for retirement plan advisors specifically — if price is no longer a differentiator, the whole value articulation conversation has to change. Firms that haven't figured out how to communicate quality over cost are going to feel this.
+
+ALEX: Shifting over to planning and workflow — there's a trend piece on RIAs and CPA firms increasingly formalizing strategic partnerships. As clients expect more holistic planning, firms are teaming up with CPA shops to deliver integrated tax expertise without building it internally.
+
+SARAH: The driver here is client demand, which is the strongest forcing function there is. Firms that can credibly offer tax-integrated planning are winning clients who would otherwise split their relationships across multiple advisors.
+
+ALEX: There's also a firm-building piece out of Wealth Solutions Report making the case that succession planning isn't just an exit strategy — it's a growth strategy. The argument is that single-advisor firms are structurally fragile, and team-based operations with documented systems command higher valuations and attract better talent.
+
+SARAH: The framing of succession as enterprise readiness rather than retirement planning is the key shift there. A firm that's built to run without any one person is just a more valuable firm, full stop, regardless of when anyone actually leaves.
+
+ALEX: On the client engagement side, there's an opinion piece in Financial Planning about what advisors get wrong about women investors. The core point is that women tend to evaluate financial decisions through the lens of community and relationships rather than purely individual outcomes — and most advisors aren't adapting their approach accordingly.
+
+SARAH: With the Great Wealth Transfer accelerating, that's not a soft issue — it's a retention and referral issue. Advisors who get this right stand to see it show up directly in their book.
+
+ALEX: There's also a report on crypto investors and tax compliance. Most crypto holders know their transactions are taxable but struggle to actually follow through, and the gap isn't about intent — it's education, tooling, and guidance.
+
+SARAH: That's a clean opening for advisors. This is a growing client segment that's actively underserved on tax planning and is apparently asking for help — that's not always the case.
+
+ALEX: Wrapping up the planning section — there's a piece on navigating the generational divide in philanthropy. Wealthy families are increasingly split along generational lines on priorities, structures, and values, and the article offers practical guidance for advisors helping bridge those gaps without fracturing family dynamics.
+
+SARAH: Philanthropy conversations are often a gateway into broader multigenerational planning, so advisors who handle this well are earning trust that extends well beyond the giving strategy itself.
+
+ALEX: Now let's get into the AI and automation news, and this is where Zocks really dominates the day. Starting with their new Document Intelligence feature — it reads brokerage statements, estate plans, and intake forms, and pushes extracted data directly into eMoney Advisor in under sixty seconds. This is their first planning platform partnership.
+
+SARAH: The PDF-to-platform copy-paste problem is genuinely one of the most complained-about friction points in the advisor workflow, so if this works as described, it's a meaningful time save right at the onboarding stage.
+
+ALEX: Separately, Zocks also has a live integration with RightCapital that syncs over two hundred fields captured from client and prospect meetings directly into the planning platform — turning conversations into financial plans without manual data entry.
+
+SARAH: The timing angle here matters — they specifically frame it as preventing prospects from losing momentum during information gathering. That drop-off point is real, and anything that tightens that loop is worth attention.
+
+ALEX: They also announced an integration with Holistiplan for tax planning. Advisors get client-specific tax insights surfaced during meeting prep, real-time tax question answering during live calls, and instant post-meeting email responses grounded in Holistiplan data.
+
+SARAH: So the AI meeting assistant is now tax-aware — that's a meaningful upgrade in the quality of what it can surface. Advisors don't have to context-switch to pull in tax context, it's just there.
+
+ALEX: And there's a broader product update from Zocks that adds or enhances integrations with Holistiplan, AdvisorEngine, and RedtailCRM, alongside new workflow features including email flows, form citation, branded PDF output, meeting trimming, and referral tracking. Subscription tier changes were also included.
+
+SARAH: The breadth of that single update is notable. This is not a point solution for meeting notes anymore — they're clearly trying to become a central operating layer for the whole advisor workflow.
+
+ALEX: And then Carson Group built their own thing in-house — in partnership with AWS, they've deployed a conversational AI tool that lets advisors query across both proprietary and third-party wealth systems from a single interface, giving instant household-level insight.
+
+SARAH: This is the large RIA response to the fragmented data problem. Carson has the scale to build it themselves — most firms will rely on vendors like Zocks to deliver something similar.
+
+ALEX: Moving to infrastructure and regulatory news — the DOL released a new rule that provides clearer legal cover for offering private equity, private credit, real estate, and crypto within 401k plans. The safe harbors reduce the fiduciary liability that has historically kept plan sponsors away from alternatives.
+
+SARAH: This is a meaningful distribution unlock for asset managers. Getting alts into 401k plans has been a long-running conversation, and clearer safe harbors could be what actually moves the needle for plan sponsors who've been sitting on the sideline.
+
+ALEX: Related — the DOL is also proposing to expand the qualified default investment alternative list to include variable annuities, which would open the door to guaranteed-income products becoming default 401k options.
+
+SARAH: Defaulting participants into annuities would be a significant shift for the retirement industry. The distribution implications for insurers are enormous if this moves forward — that's a very different competitive landscape for 401k allocations.
+
+ALEX: Also on the regulatory front, the SEC's proposal to move public companies from quarterly to semiannual reporting has advanced to White House review. Chairman Atkins has framed it as reducing short-termism and compliance burden, with the possibility it gets scaled by company size.
+
+SARAH: Less frequent disclosures would change how advisors and analysts monitor holdings — if you're used to quarterly earnings as a cadence for portfolio review conversations, that rhythm gets disrupted. Something to watch.
+
+ALEX: On the business and industry side, the Zocks Series B we teased at the top — forty-five million dollars, total funding now at sixty-five million, backed by Lightspeed, QED, and Motive Partners. They grew from one thousand to five thousand-plus advisor firms in a single year and are expanding beyond meeting notes into AI-driven admin automation and growth insights.
+
+SARAH: The investor lineup here is serious — Lightspeed and QED are not wealthtech-specific shops, which tells you this is being evaluated as a broader fintech infrastructure bet. That's a different signal than a typical wealthtech raise.
+
+ALEX: Cerulli published new data identifying the mass-affluent segment — roughly 46.9 million households with a hundred thousand to two million in assets — as a twenty-five trillion dollar opportunity. U.S. financial wealth topped a hundred and two trillion at end of 2025, and this segment is largely untapped, younger, less advised, and actively seeking advisor relationships.
+
+SARAH: The barrier has always been that traditional asset minimums make this segment uneconomical to serve. Technology is the obvious answer, and firms that crack scalable personalized advice for this group are positioned for the next major growth wave.
+
+ALEX: Zocks also landed on CB Insights' 2025 Top Fintech 100, chosen from over fifteen thousand companies based on partnerships, investor quality, hiring momentum, and predictive commercial traction scores.
+
+SARAH: Third-party validation like that does real work in enterprise sales cycles — it gives procurement committees and compliance teams something external to point to. For a company trying to get into large RIAs and broker-dealers, that matters.
+
+ALEX: And Zocks also partnered with CreativeOne, extending platform access to affiliated advisors managing ten billion across life insurance, annuities, wealth, and securities.
+
+SARAH: This is the distribution playbook for AI wealthtech — partner with aggregators and networks to reach thousands of advisors without direct sales overhead. CreativeOne is an interesting channel because it brings them into the insurance-adjacent advisory world, which is a different buyer than the pure RIA.
+
+ALEX: Last story — a piece on millionaire tax migration. Democratic-led states are pushing millionaire surtaxes while Southern states are actively cutting taxes to attract high-net-worth residents, and the divergence is accelerating an already visible wealth migration trend.
+
+SARAH: Advisors serving HNW clients in high-tax states should already be having domicile change conversations proactively — the piece specifically notes that clients are increasingly asking, which means if an advisor isn't bringing it up, someone else will.
+
+ALEX: That's everything for today — a heavy Zocks day wrapped around some genuinely significant regulatory moves and a twenty-five trillion dollar market opportunity that's still sitting on the table.
+
+SARAH: A lot to track — we'll see you tomorrow on The WealthTech Daily Roundup.
