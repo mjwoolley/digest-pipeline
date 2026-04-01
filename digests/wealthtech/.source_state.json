@@ -86,9 +86,22 @@
       "https://www.wealthmanagement.com/regulation-compliance/new-dol-rule-opens-safe-harbors-for-alts-access-in-401ks",
       "https://www.wealthmanagement.com/retirement/ten-retirement-tips-for-clients-in-sketches",
       "https://www.wealthmanagement.com/rpa-news/are-declining-401-k-plan-fees-helpful-or-harmful-",
-      "https://www.wealthmanagement.com/ria-news/carson-group-expands-ai-offering-with-client-intelligence-giving-advisors-instant-household-insight"
+      "https://www.wealthmanagement.com/ria-news/carson-group-expands-ai-offering-with-client-intelligence-giving-advisors-instant-household-insight",
+      "https://www.wealthmanagement.com/ria-edge/ai-won-t-alter-client-advisor-ratios-but-create-shadow-efficiencies-say-edge-100-rias",
+      "https://www.wealthmanagement.com/regulation-compliance/advisors-dol-s-alts-401-k-rule-lowers-temperature-not-fiduciary-standard",
+      "https://www.wealthmanagement.com/etfs/opening-the-door-not-the-floodgates-the-real-impact-of-etf-share-classes",
+      "https://www.wealthmanagement.com/etfs/11-investment-must-reads-for-this-week-march-31-2026-",
+      "https://www.wealthmanagement.com/alternative-investments/preqin-limited-risk-seen-in-private-credit-bdc-portfolios",
+      "https://www.wealthmanagement.com/investment-news/equity-performance-and-innovation-puts-emphasis-on-drawdown-risk",
+      "https://www.wealthmanagement.com/ria-news/alti-global-ceo-michael-tiedemann-steps-down-from-93bn-publicly-listed-wealth-manager",
+      "https://www.wealthmanagement.com/ria-news/carlyle-ups-interest-in-mai-capital-with-full-majority-stake",
+      "https://www.wealthmanagement.com/ria-news/ria-sellers-seek-to-mitigate-market-impact-on-payout-potential",
+      "https://www.wealthmanagement.com/artificial-intelligence/ai-oversight-becomes-key-focus-for-sec-compliance",
+      "https://www.wealthmanagement.com/alternative-investments/how-corastone-aims-to-streamline-private-market-transactions",
+      "https://www.wealthmanagement.com/ria-news/rfg-advisory-expands-capital-solutions-with-first-majority-acquisition-of-rva-wealth-management",
+      "https://www.wealthmanagement.com/ria-news/mercer-advisors-expands-new-england-footprint-with-charter-oak-capital-management"
     ],
-    "last_updated": "2026-03-31"
+    "last_updated": "2026-04-01"
   },
   "blog:addepar": {
     "seen_ids": [
@@ -107,9 +120,10 @@
       "https://www.addepar.com/blog/client-portal-email-experience-hackathon-2025",
       "https://www.addepar.com/blog/config-based-feeds-hackathon-2025",
       "https://www.addepar.com/blog/contextual-audit-log-hackathon-2025",
-      "https://www.addepar.com/blog/embracing-jooq-for-database-precision-and-speed-at-scale"
+      "https://www.addepar.com/blog/embracing-jooq-for-database-precision-and-speed-at-scale",
+      "https://www.addepar.com/blog/putting-ai-inside-investment-management-workflows"
     ],
-    "last_updated": "2026-03-27"
+    "last_updated": "2026-04-01"
   },
   "blog:financial_planning": {
     "seen_ids": [
@@ -150,9 +164,12 @@
       "https://www.financial-planning.com/news/client-demand-has-rias-cpas-rethinking-strategic-partnerships",
       "https://www.financial-planning.com/news/first-editions-offer-a-different-book-of-business-for-advisors",
       "https://www.financial-planning.com/news/crypto-investors-want-to-comply-with-tax-rules-but-arent-sure-how",
-      "https://www.financial-planning.com/opinion/what-many-advisors-get-wrong-about-women-investors"
+      "https://www.financial-planning.com/opinion/what-many-advisors-get-wrong-about-women-investors",
+      "https://www.financial-planning.com/news/how-a-former-marine-built-a-veteran-niche-on-linkedin",
+      "https://www.financial-planning.com/news/dol-rule-could-reshape-401k-access-to-alternatives",
+      "https://www.financial-planning.com/news/ai-for-advisor-marketing-without-alienating-clients"
     ],
-    "last_updated": "2026-03-31"
+    "last_updated": "2026-04-01"
   },
   "twitter:RightCapitalHQ": {
     "seen_ids": [
@@ -201,9 +218,10 @@
       "https://x.com/orionwealthtech/status/2031731710145057234",
       "https://x.com/orionwealthtech/status/2031428390431936572",
       "https://x.com/orionwealthtech/status/2029947713324720266",
-      "https://x.com/orionwealthtech/status/2029675575351107657"
+      "https://x.com/orionwealthtech/status/2029675575351107657",
+      "https://x.com/orionwealthtech/status/2039043850031751317"
     ],
-    "last_updated": "2026-03-24"
+    "last_updated": "2026-04-01"
   },
   "blog:wealth_solutions_report": {
     "seen_ids": [
@@ -224,9 +242,13 @@
       "https://www.wealthsolutionsreport.com/diamond-consultants-report-advisor-movement-accelerated-in-2025/",
       "https://www.wealthsolutionsreport.com/holistiplan-appoints-stephen-langlois-to-board-of-directors/",
       "https://www.wealthsolutionsreport.com/cerulli-mass-affluent-are-a-25-trillion-market-opportunity/",
-      "https://www.wealthsolutionsreport.com/how-to-build-a-firm-that-thrives-for-decades/"
+      "https://www.wealthsolutionsreport.com/how-to-build-a-firm-that-thrives-for-decades/",
+      "https://www.wealthsolutionsreport.com/cambridge-launches-ai-enabled-chat-assistant/",
+      "https://www.wealthsolutionsreport.com/mercer-adds-1-5-billion-new-hampshire-ria/",
+      "https://www.wealthsolutionsreport.com/wealthtech-roundup-envestnet-orion-nitrogen-and-more/",
+      "https://www.wealthsolutionsreport.com/deals-recruiting-roundup-composition-cyndeo-amplify-and-more/"
     ],
-    "last_updated": "2026-03-31"
+    "last_updated": "2026-04-01"
   },
   "twitter:ThinkAdvisor": {
     "seen_ids": [
@@ -252,9 +274,11 @@
       "https://x.com/ThinkAdvisor/status/2037681899892810228",
       "https://x.com/ThinkAdvisor/status/2038044278732308702",
       "https://x.com/ThinkAdvisor/status/2038769639132676190",
-      "https://x.com/ThinkAdvisor/status/2038769041960296921"
+      "https://x.com/ThinkAdvisor/status/2038769041960296921",
+      "https://x.com/ThinkAdvisor/status/2039131953287606703",
+      "https://x.com/ThinkAdvisor/status/2039131290889507166"
     ],
-    "last_updated": "2026-03-31"
+    "last_updated": "2026-04-01"
   },
   "newsletter:sytaylor": {
     "seen_ids": [

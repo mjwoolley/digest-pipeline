@@ -1,0 +1,75 @@
+ALEX: Welcome to The WealthTech Daily Roundup for April 1st, 2026. Carlyle just paid two point eight billion dollars for a single RIA — and that number tells you everything about where private equity thinks the independent wealth channel is headed.
+
+SARAH: That valuation is going to echo through every M&A negotiation happening right now, and we've got a ton of deal news today on top of it. But let's start with AI, because there's a lot happening on that front too.
+
+ALEX: Cambridge Investment Research launched an AI assistant called Indy — short for Independence — and this one is notable because it's trained on Cambridge's internal knowledge base and held to the same regulatory standards as human associates. It's not a general-purpose chatbot bolted on from outside.
+
+SARAH: And Cambridge already has an agentic account-opening tool live, so this is part of a real in-house AI stack being built by a broker-dealer with over two billion in annual revenue. Indy is meant to become a centralized hub across operations, research, and advisor tools over time.
+
+ALEX: Over at Addepar, their AI partner Addison is being embedded directly into investment workflows to automate extraction and standardization of complex financial documents. The framing is important — this is infrastructure-level AI, not a feature layer on top of existing pipelines.
+
+SARAH: Document processing is one of those persistent bottlenecks that's always been hard to fix cleanly, so doing it at the infrastructure level rather than as an add-on is the right architectural call. Freeing analyst capacity at that layer has compounding benefits.
+
+ALEX: There's a really interesting strategic signal out of the RIA Edge 100 survey. Top RIA executives are saying AI-driven time savings won't go toward adding more clients — it'll go toward deepening existing relationships. They're calling these gains "shadow efficiencies."
+
+SARAH: That's a direct message to AI vendors who are pitching on client-to-advisor ratio expansion. If leading RIAs have already decided the ROI story is about relationship quality, not volume, the sales pitch needs to change.
+
+ALEX: On the regulatory side, the SEC is sharpening its focus on AI oversight and moving toward principle-based governance. That means firms need documented frameworks across supervisory structures, cybersecurity, and third-party vendor relationships — you can't just check a box.
+
+SARAH: Principle-based regulation is harder to comply with than prescriptive rules because the firm has to demonstrate accountability, not just point to a checklist. Compliance teams are being asked to own a risk category that genuinely didn't exist in prior tech cycles.
+
+ALEX: Cetera is rolling out Zocks' AI assistant across its advisor network. Details are thin, but this is another large broker-dealer enterprise deployment for Zocks, which has been building meaningful footprint at scale.
+
+SARAH: Landing Cetera is real validation for a point-solution AI tool. The question for Zocks and tools like it is whether BD-level deployments stay as standalone features or get absorbed into broader platform stacks over time.
+
+ALEX: And there's a piece on AI in advisor marketing — the core finding is that clients still value human authenticity, and the risk isn't AI itself, it's AI content that sounds like AI. The differentiation goes to advisors who use these tools to amplify their own voice, not replace it.
+
+SARAH: That's a harder execution challenge than it sounds. Scaling content without losing voice is a real craft problem, and most AI marketing tools aren't built to solve it by default.
+
+ALEX: Shifting over to planning and workflow — there's a great case study on advisor Andy Leung, a former Marine who built a veteran-focused niche on LinkedIn and is generating warm and hot leads at rates generic advisor marketing just doesn't hit.
+
+SARAH: The insight there is that niche authenticity compounds. He knows this community from the inside, and that credibility converts in a way that broad audience content can't replicate. It's a replicable playbook for any advisor with a well-defined community identity.
+
+ALEX: Jumping to infrastructure — Corastone is targeting the back-office mess in private market transactions. Co-founder Hamid Gayibov describes a landscape where manual processes and fragmented systems are still the norm for private wealth deal execution, and Corastone is rebuilding the transaction management layer.
+
+SARAH: The timing makes sense — alts allocations are expanding downstream to retail wealth, but the operational infrastructure hasn't kept pace. That's a big and underserved gap, and it's only going to grow as more advisors add alternatives.
+
+SARAH: Now to the business news — Carlyle acquiring a majority stake in MAI Capital, which manages seventy-two point six billion in AUM, at a two point eight billion dollar valuation. That's a significant number.
+
+ALEX: And the strategic read is straightforward — top-tier PE firms view large RIAs as durable, high-multiple businesses. That conviction at the Carlyle level is going to keep pushing M&A multiples up across the board.
+
+SARAH: Mercer Advisors also closed on Charter Oak Capital Management out of Portsmouth, New Hampshire — one point five billion AUM, a nineteen-person team including six partners, and a full-service financial, tax, and estate planning model that fits Mercer's positioning exactly.
+
+ALEX: What stands out there is the team structure — all six partners came over as senior wealth advisors with client relationships intact. Mercer's been disciplined about regional build-out and this deepens their New England coverage without disruption.
+
+SARAH: There's a proposed DOL rule that would ease the regulatory path for alternative investments inside 401k plans, but it comes with heightened due diligence and communication expectations. Leaders at Captrust, Wealthspire, and Creative Planning described it as lowering the temperature for fiduciaries without lowering the fiduciary standard itself.
+
+ALEX: The phrase "lowering the temperature" is doing a lot of work there. Adoption is expected to be gradual — this isn't a floodgate moment — but it does reshape what plan advisors need to be ready to document and explain if they go down this path.
+
+ALEX: The weekly wealthtech roundup is dense this week. Orion integrated with Hamachi.ai and called AI a top force multiplier. eMoney launched CoPlanner. Nitrogen added tax and meeting tools. Altruist launched personalized indexing. Envestnet rolled out multiple platform updates. And JIFFYAI, april, Jump, OneVest, and WealthFeed all had AI-native launches or enhancements. Plus Apex Fintech partnered with Wavvest, Arch integrated with Bipsync, and SurgeONE.ai partnered with United Planners.
+
+SARAH: The sheer volume of releases is the story. The platforms that integrate these cohesively will pull ahead — shipping features in isolation just adds noise to an already crowded stack.
+
+SARAH: On the deals and recruiting front: Composition Wealth merged with Edgewater, Beacon Pointe made two acquisitions, Creative Planning will acquire MASECO, and LPL added Gibson Financial Group. Executive moves include Amplify naming a President and CRO, PPB Capital naming Bob Oros as President, and Cetera appointing Ed O'Brien as COO.
+
+ALEX: Deal and recruiting activity staying elevated despite market volatility says something — acquirers aren't sitting on their hands waiting for calmer conditions. The strategic window matters more to them than the macro backdrop.
+
+SARAH: On the M&A mechanics side, there's a piece on RIA sellers pushing back on earnout structures. With market volatility creating AUM swings, sellers are renegotiating how earnouts are calculated to protect against payouts being eroded by market moves they can't control.
+
+ALEX: Earnout disputes are already a leading source of post-close friction, and macro uncertainty is forcing this to the top of term sheet conversations earlier. Expect more creative structuring as both sides try to price in the risk.
+
+SARAH: Michael Tiedemann is stepping down as CEO of AlTi Global, the ninety-three billion dollar publicly listed wealth manager he founded. Global CIO Nancy Curtin has taken on the interim CEO role, and no permanent successor has been named yet.
+
+ALEX: Leadership transitions at publicly listed wealth managers move fast under investor scrutiny. AlTi needs a credible permanent appointment relatively quickly to avoid this becoming a distraction for clients and the firm's growth story.
+
+SARAH: RFG Advisory made its first majority acquisition of a platform RIA, fully acquiring partner firm RVA Wealth Management. President Ed Swenson is framing it explicitly as a succession planning solution — not a strategic pivot — and positioning it as a replicable template for affiliated advisors.
+
+ALEX: That framing matters. If platform RIAs can offer an internal majority acquisition path that provides liquidity and continuity without forcing a rebrand or full exit, that's a genuinely differentiated recruiting and retention tool.
+
+ALEX: Wrapping up with a few market and product stories — on ETF share classes, the analysis is that this is a measured structural shift, not a disruptive overhaul. Mutual funds being able to offer ETF share classes will happen gradually, with real but not overnight implications for cost and tax efficiency.
+
+SARAH: Preqin released analysis on private credit BDC portfolios, finding first-lien loans dominating holdings and maturities spread across manageable timelines. The data pushes back on concentrated credit risk concerns — BDC books look more resilient than the macro noise suggests.
+
+ALEX: And finally, a wave of new ETF strategies is putting drawdown risk front and center as an explicit design principle — balancing downside protection with upside participation in response to both volatile markets and growing client anxiety about sequence-of-returns risk.
+
+SARAH: Capital preservation as a product design priority is a direct response to where clients' heads are right now, and advisors working with late-stage accumulators and early retirees have a real use for these tools — that's a wrap on April 1st, 2026.
