@@ -1,0 +1,107 @@
+ALEX: Welcome to The WealthTech Daily Roundup for April 2nd, 2026. A year after LPL swallowed Commonwealth, the final tally is in — 654 advisor departures — and it is a masterclass in what happens when a megadeal meets advisor autonomy.
+
+SARAH: That number is striking because it's not just about retention failure — it's about how fast competitors mobilized to pick off advisors the moment the deal closed. We'll dig into that, but there's a lot on the plate today.
+
+ALEX: Let's start with the platform side of things. Orion kicked off its 2026 Wealthtech Outlook series with a pretty pointed argument — advisors should stop chasing feature-rich platforms and start asking whether their tech actually creates usable capacity. The framing is "feature fit beats feature count."
+
+SARAH: That's a smart hill for Orion to plant a flag on early in the year. As platform sprawl keeps growing, the ROI question really does shift from what a platform can do to whether advisors actually use it.
+
+ALEX: And owning that conversation in January puts them ahead of every vendor that's just going to release a feature dump at their next conference.
+
+SARAH: Shifting over to planning and workflow — there's a stat that stopped me cold. Only 44% of financial advisors feel prepared for the great wealth transfer, even though both advisors and clients say it's already happening.
+
+ALEX: Awareness without readiness is the exact phrase in the piece, and it's a real operational problem. Advisors who can't navigate multigenerational transitions with different heir expectations are simply going to lose those assets.
+
+SARAH: And the next-gen heirs aren't just bringing different values — they're bringing different communication styles, different risk tolerances, different platform expectations. That gap compounds fast.
+
+ALEX: On the tooling side, RightCapital dropped its Q1 2026 update, and the headline features are AI and OCR-powered data entry, streamlined CSV uploads, and expanded plan modeling. The theme is straightforward — less time on inputs, more time on advice.
+
+SARAH: Incremental, sure, but those workflow improvements compound. Every quarter RightCapital shaves a little more manual work, and over time that's a meaningful moat against competitors.
+
+ALEX: Two planning articles out of Wealth Solutions Report worth flagging. First, Silver Oak's Billy Hopkins and Docupace's Ryan George both making the case that delayed succession planning kills advisor options. Hopkins specifically says if you leave it for later, your options shrink.
+
+SARAH: And Ryan George's angle is that firms need decisive operational action now rather than waiting for market certainty — which is a shot across the bow for anyone sitting on the sidelines hoping conditions clarify.
+
+ALEX: The piece also calls out cultural misalignment as the silent deal-killer in post-acquisition integrations, which ties directly back to the LPL-Commonwealth story we'll get to.
+
+SARAH: The second Wealth Solutions Report piece is about recruiting solo and duo advisor practices. The argument is that home offices chasing large teams are overlooking a segment that integrates faster and with less complexity.
+
+ALEX: The catch is that smaller advisors are especially sensitive to autonomy, brand identity, and operational independence — so a cookie-cutter pitch is going to fall flat every time.
+
+SARAH: Growth ambition, not headcount, should drive the recruiting strategy. That's a reframe that a lot of home offices probably need to hear.
+
+ALEX: Staying in planning — two pieces from WealthManagement.com on the estate side. First, rising private market allocations are creating a liquidity vulnerability for ultra-high-net-worth families. Illiquid alternative assets can't easily cover estate obligations, and life insurance is emerging as a practical bridge.
+
+SARAH: As alternatives take up a bigger share of UHNW portfolios, liquidity planning really can't be an afterthought anymore. Advisors who aren't having that conversation proactively are going to get caught.
+
+ALEX: Second estate piece covers charitable giving strategies in a shifting estate tax environment. The legislative landscape is in flux, and that creates both urgency and opportunity for advisors who stay current.
+
+SARAH: Changing tax rules are one of those moments where advisors can demonstrate real value in client conversations — this is exactly the kind of thing that justifies the relationship.
+
+ALEX: There's also a piece on split-dollar life insurance arrangements post-OBBBA — the One Big Beautiful Budget Act reshaped the landscape for these plans, with direct implications for business owner exit planning.
+
+SARAH: Legislative changes to insurance-linked strategies have a habit of flying under the radar until it's too late to optimize. Advisors with business owner clients should be looking at this now, not at year-end.
+
+ALEX: And then there's a genuinely underappreciated operational issue — managing client data after death. Credit reporting errors and identity theft don't stop when a client passes, and estate fiduciaries are increasingly caught managing digital footprints that persist.
+
+SARAH: Most practices aren't operationally equipped for that. It's one of those problems that sounds niche until it happens to a client and the executor is calling the advisor in a panic.
+
+ALEX: Jumping into AI and automation — there's a sharp piece arguing that AI note-takers are improving in-meeting efficiency but leaving the broader operational tax on RIAs completely unaddressed. Fragmented workflows, redundant data entry, disconnected systems — all still there.
+
+SARAH: That's the distinction between tactical AI tools and strategic transformation. Firms that conflate the two are going to be disappointed when the productivity needle doesn't move at the practice level.
+
+ALEX: Architecturally, the point is that a note-taker is a point solution. It doesn't touch the data flow problems that exist before and after the meeting.
+
+SARAH: Second AI story is interesting — UX Wealth launched a platform called riskDNA. It combines risk intelligence, portfolio analytics, and CRM in a single AI-native platform. And it's free to advisors — asset managers are funding it.
+
+ALEX: That's the distribution subsidy model — mirrors how other fintech platforms have built advisor adoption. From an architecture standpoint, bundling risk, analytics, and CRM in one native layer is meaningful for under-resourced firms.
+
+SARAH: The objectivity question is fair though. When asset managers are paying the bills, advisors should know that going in. But for smaller RIAs that don't have robust tooling, this could still be a genuine capability lift.
+
+ALEX: On the infrastructure side, there's a piece from interop.io that's worth paying attention to. Desktop integration platforms started as a way to unify disparate apps on a single device, but the category is maturing into a full enterprise interoperability layer — spanning cloud services, browser environments, and AI-driven workflows.
+
+SARAH: Why does that matter strategically right now?
+
+ALEX: Because as AI agents increasingly initiate and complete cross-application workflows, the interoperability layer is what holds the advisor desktop together. Without it, AI actions in one tool don't propagate cleanly to the others — and you get a different kind of fragmentation.
+
+SARAH: Let's get into the industry news. Cetera and Ameriprise are the latest wealth management firms hit with class action suits over data breaches — joining Hightower, Mercer, and Edelman Financial Engines on that list. FINRA responded by launching a dedicated cybersecurity reporting portal.
+
+ALEX: The sheer number of firms on that list signals that this isn't isolated incidents anymore. Cybersecurity is systemic liability risk for the whole industry, not just an IT department problem.
+
+SARAH: And FINRA standing up a dedicated reporting portal is a signal that they're treating it the same way.
+
+ALEX: Now to that LPL-Commonwealth story. One year out from the acquisition, 654 advisors have departed. That number reflects both LPL's retention struggles and how aggressively competitors moved to recruit away from the combined firm.
+
+SARAH: This is a case study that every firm planning a megadeal should be reading carefully. Advisors watch ownership changes closely, and competitors know exactly when to call.
+
+ALEX: It also connects back to that cultural misalignment point from earlier — when you're absorbing a firm with a strong identity like Commonwealth, the integration has to account for what those advisors valued about their old home.
+
+SARAH: NorthRock Partners is the M&A story on the growth side today. Backed by Sammons Financial Group, they acquired Vantage Financial Partners and five new Midwest locations, pushing AUM to twelve billion dollars.
+
+ALEX: Steady regional expansion strategy — Sammons-backed consolidation is accelerating and NorthRock is becoming a significant Midwest force worth tracking.
+
+SARAH: The NAIC is moving to regulate annuity performance illustrations that regulators view as misleading or unrealistically optimistic. The signal is that they want to move swiftly on this.
+
+ALEX: If illustration standards tighten significantly, that reshapes how indexed and variable annuities get marketed — and potentially how they get sold at the point of recommendation.
+
+SARAH: Big implications for product manufacturers and the advisors distributing those products.
+
+ALEX: Quick look at people moves — Kestra and Benjamin F. Edwards are both expanding their advisor recruiting teams, T. Rowe Price named Bill Cashel as head of alternatives for its wealth channel, Moneta added marketing and organic growth leadership, and Beacon Trust brought in advisors from Truist, Merrill, and Cetera.
+
+SARAH: Recruiting team expansions at Kestra and Edwards heading into mid-2026 tells you there's still real competition for advisor talent — nobody's backing off.
+
+ALEX: Wrapping up with a few items worth flagging. The IRS introduced Form 1099-DA to handle the tax reporting complexity coming from crypto, stablecoins, and tokenized assets. Advisors with digitally-exposed clients need to get up to speed fast.
+
+SARAH: This is becoming baseline competency. Advisors who can walk clients through 1099-DA during tax season are going to look very different from those who can't.
+
+ALEX: There's also a piece flagging the hidden risks in transfer-on-death designations. TOD accounts are pitched as clean and probate-avoiding, but the fine print can leave beneficiaries exposed in complex family or asset situations.
+
+SARAH: The gap between easy to set up and actually works as intended is exactly where quiet estate planning mistakes happen. Default tools deserve a second look.
+
+ALEX: And finally, Congress is advancing updates to the HEAR Act — the Holocaust Expropriated Art Recovery Act. The proposed changes would explicitly remove time-based defenses like laches, making it harder for current holders of looted art to prevail on procedural grounds.
+
+SARAH: For advisors working with high-net-worth collectors or estates with European art holdings, HEAR Act exposure is a real legal and reputational risk — even if it rarely comes up in practice.
+
+ALEX: That's the full digest for April 2nd — a lot of ground covered today, from the LPL scorecard to riskDNA to digital asset tax rules, and the through line is the same as always: the operational and regulatory environment keeps moving whether advisors are ready or not.
+
+SARAH: Stay ready — we'll see you tomorrow.
