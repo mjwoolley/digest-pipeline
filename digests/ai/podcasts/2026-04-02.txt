@@ -1,0 +1,81 @@
+ALEX: Welcome to The AI Daily Roundup for April 2nd, 2026. Anthropic accidentally shipped Claude Code with over half a million lines of unobfuscated TypeScript — and what was inside is genuinely wild, including a Tamagotchi-style AI pet with a stat called SNARK.
+
+SARAH: That's the kind of leak that writes its own roadmap. Before we dig in, I'm also watching a Quinnipiac poll out today showing AI usage up but public trust in absolute freefall — we'll get to that too.
+
+ALEX: Starting with model releases — Arcee dropped Trinity-Large-Thinking today, open weights on Hugging Face under Apache 2.0, also available via their API.
+
+SARAH: Apache 2.0 on a thinking model is a real statement. That keeps pressure on closed labs and gives developers something they can actually run, fine-tune, and ship without legal headaches.
+
+ALEX: Now over to developer tools, and there's a lot here starting with that Claude Code leak. Version 2.1.88 shipped with a 59.8 megabyte source map — 512,000-plus lines of TypeScript — pulled within hours but already forked over 41,500 times.
+
+SARAH: What did the leak actually surface?
+
+ALEX: Forty-four feature flags and three unreleased projects: persistent cross-session memory, a deep-planning system, and something called BUDDY — a Tamagotchi-style terminal pet with 18 species and stats including CHAOS and SNARK. There's also an internal codename Capybara mapped to a Claude 4.6 variant already at version 8, and code that literally tracks when users swear at Claude.
+
+SARAH: That last one might be the most relatable engineering decision I've ever heard. The roadmap implications here are significant — persistent memory and deep planning in a coding tool is a serious agentic leap.
+
+ALEX: And the community responded immediately. A visual guide to Claude Code called claude-howto shot to number one on GitHub trending with 13,593 stars this week.
+
+SARAH: Timing is obviously not a coincidence, but it does show how hungry developers are for structured Claude Code guidance — community resources are moving faster than official docs right now.
+
+ALEX: On the performance side, Anthropic also shipped an experimental NO_FLICKER renderer for Claude Code. It tracks frame buffers in memory, virtualizes scrolling, and handles mouse and keyboard — fixing the notorious ANSI flicker issue. CPU and RSS usage are now constant rather than growing with transcript length.
+
+SARAH: That's a meaningful fix for anyone running long sessions. Memory that scales with your transcript is the kind of thing that quietly kills productivity over hours.
+
+ALEX: And separately, Boris Cherny — Anthropic's product lead on Claude Code — addressed user complaints publicly. Scrollback issues, rate limits, forced one-million-token context, Opus quality regression — he attributed most of it to, quote, insane user growth.
+
+SARAH: He also gave a concrete opt-out path for the context issue though, right?
+
+ALEX: Yes — CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=20 lets you dial it back, and he invited power users to tag him directly with specific bugs. Rare to see that level of direct engagement from a product lead.
+
+SARAH: And then separately he had to clarify the DMCA situation — because automated takedowns were hitting the forks of the leaked source on GitHub.
+
+ALEX: Right, Cherny confirmed no one at Anthropic intentionally filed those takedowns and said they're investigating what happened on GitHub's end. Accidental DMCA notices on your own accidentally-leaked code is quite a day.
+
+SARAH: Transparency was absolutely the right call there. Moving along — OpenClaw shipped version 2026.4.1 with some notable features.
+
+ALEX: GLM 5.1 with non-looping failover, AWS Bedrock Guardrails integration, a slash-tasks feature that logs agent action receipts, and cron per-job tool allowlists, plus 40-plus stability fixes. They also floated a rename to ClankerBot — described as half joke, half not.
+
+SARAH: The Bedrock Guardrails integration is the enterprise signal there, and the agent receipts feature is exactly the auditability that production teams have been asking for.
+
+ALEX: Also in developer tools — there's a practical guide out for connecting VS Code to a locally-run Ollama instance as an AI coding assistant, emphasizing privacy and efficiency over cloud-dependent setups.
+
+SARAH: On-device options are increasingly important for privacy-conscious teams and anything air-gapped. This fills a real gap.
+
+ALEX: And two small but notable releases from Simon Willison — datasette-llm 0.1a6 and datasette-enrichments-llm 0.2a1. The main changes: redundant model ID config is removed, and the enrichments version now passes the triggering actor through to the LLM call.
+
+SARAH: That actor-passing change is small but meaningful — if you're running AI enrichments in a data pipeline, knowing who triggered what is foundational for audit trails.
+
+ALEX: Shifting over to infrastructure — Akamai used KubeCon plus CloudNativeCon Europe 2026 to pitch itself as the layer between fully centralized and fully edge AI inference, positioning as a developer-focused AI cloud platform.
+
+SARAH: The argument being that latency-sensitive AI workloads don't belong exclusively in hyperscaler data centers or at the raw edge. If inference cost and latency become the next big battleground, Akamai's existing edge footprint is a real card to play against AWS, Azure, and GCP.
+
+ALEX: Also on infrastructure — OpenClaw launched an official China mirror of ClawHub at clawhub.volcanoengine.com, hosted on ByteDance's VolcanoEngine and sponsored by BytePlus Global.
+
+SARAH: ByteDance putting cloud infrastructure behind an AI agent skill marketplace is a quiet but telling move — it signals both ByteDance's cloud ambitions and how global agentic tooling distribution is becoming.
+
+ALEX: On the applications side — Anthropic cut the Claude Team plan minimum for nonprofits from five seats to two, now at eight dollars per user per month, with Claude Code and Cowork included on every seat. Effective April 1st.
+
+SARAH: Bundling Claude Code as table stakes rather than a premium add-on is a real statement about where Anthropic sees coding assistance fitting. And lowering the floor for small nonprofits is a smart trust-building play.
+
+ALEX: Also in applications — Google partnered with the Brazilian government to build a satellite imagery map for monitoring and fighting deforestation, putting near-real-time Earth observation data directly in the hands of government agencies.
+
+SARAH: High-leverage AI application right there. Measurable environmental impact at government scale is exactly the kind of use case that builds broader public legitimacy for this technology.
+
+ALEX: And there's a free 34-page guide out from The AI Engineer called How to Break Into AI Engineering in 2026 — covers market data, five learning tracks, three role-specific transition paths with monthly milestones, and explicit skip lists of what not to bother learning.
+
+SARAH: The skip list is the underrated part. Opinionated guidance on what to ignore is genuinely more valuable than another list of things you should theoretically know.
+
+ALEX: On the industry side — a new Quinnipiac University poll shows AI adoption up 14 percent, but sentiment metrics all moved negative. Seventy percent of respondents expect AI to shrink job opportunities, up 14 points. Only 5 percent believe AI developers represent their interests. And 74 percent say government regulation is insufficient.
+
+SARAH: The income split is striking — 52 percent of people earning $200K or more say AI does more good than harm, versus 60 percent of those under $50K saying it causes more harm. That's not just a PR problem, that's a political and regulatory time bomb.
+
+ALEX: Also out of industry — Mistral AI announced it's heading to NVIDIA GTC in San Jose to demo its newest frontier models, with a teaser for unspecified "major news."
+
+SARAH: GTC is NVIDIA's highest-profile AI event, so hyping major news there isn't nothing. Could be a significant model release, could be a partnership — but they're clearly timing something intentional.
+
+ALEX: And wrapping up — Simon Willison's March 2026 newsletter is out, sponsors-only for now with February now free. It covers agentic engineering patterns, streaming MoE experts on a Mac, PyPI and NPM supply chain attacks, and his personal tool stack — plus museum recommendations because it's Willison.
+
+SARAH: The supply chain attack coverage alone is worth finding a way in — that's exactly the kind of practitioner-level detail that doesn't get enough mainstream attention.
+
+ALEX: That's everything for today — a lot of Claude Code chaos and a trust gap worth watching. See you tomorrow.
