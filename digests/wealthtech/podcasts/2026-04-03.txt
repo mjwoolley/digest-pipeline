@@ -1,0 +1,81 @@
+ALEX: Welcome to The WealthTech Daily Roundup for April 3rd, 2026. Apollo's Jim Zelter went on record calling private credit concerns "growing pains" — and then almost immediately, Blue Owl Capital announced redemption limits on two of its private credit funds. The timing is something.
+
+SARAH: That's the kind of irony that writes itself. We'll get into that, but there's a lot moving today — consolidation, AI leadership appointments, regulatory limbo — it's a full Friday digest.
+
+ALEX: Let's start on the platform side. Addepar launched a Capital Activity Dashboard within its Alts Data Management suite, specifically built to handle capital calls and distributions. The goal is giving advisors more speed and structure when managing alternative investment activity.
+
+SARAH: Makes sense given how much alts exposure has grown across client portfolios. Reducing manual overhead there isn't just a convenience — it's an operational risk story.
+
+ALEX: Shifting over to planning and workflow — eMoney dropped a new feature called CoPlanner, which pulls from existing client data to generate personalized planning actions in seconds. The key design choice is that advisors stay in control, with full transparency and audit trails built in.
+
+SARAH: That audit trail piece is doing a lot of work. Speed is nice, but if compliance can't follow the logic, it doesn't fly in most firm environments. Positioning it as an accelerator rather than a replacement is the right framing.
+
+SARAH: Also in the planning category, WealthManagement.com published its April 2026 tax law update — the monthly roundup of legislative and regulatory shifts advisors need to track heading into mid-year planning season.
+
+ALEX: With how fast the tax landscape has been moving, that kind of regular digest is genuinely useful. Missing even one update can mean outdated advice and real client exposure.
+
+SARAH: And staying on estate planning — there's a piece out reimagining the Wandry clause, covering design, drafting best practices, and post-appraisal administration. It's pushing back on some conventional approaches to how these valuation clauses get used.
+
+ALEX: Wandry clauses don't get a lot of airtime, but with estate planning windows potentially narrowing under shifting tax law, getting the drafting right is increasingly high stakes.
+
+SARAH: Rounding out the workflow section — ThinkAdvisor broke down 20 distinct prospecting strategies for advisors, pros and cons for each. It's framed as a practical reference for where to actually focus business development effort.
+
+ALEX: Twenty strategies is a lot to sift through, but if organic growth is harder to come by, knowing which approaches actually deliver ROI on time and energy is a real competitive edge.
+
+ALEX: Moving into AI — there was a panel at T3 featuring leaders from Ascentix, The Oasis Group, TIAA, and Practifi, focused on how AI is reshaping CRM strategy, back-office operations, and advisor-client relationships. The consensus was that AI isn't replacing advisors, but it is fundamentally rewriting how operational workflows run.
+
+SARAH: CRM is really the connective tissue of an advisory practice, so if AI-native CRM strategy becomes a differentiator, firms that ignore it won't just be inefficient — they'll be outgrown by competitors who leaned in earlier.
+
+ALEX: Also on the AI front — there's a piece on generative engine optimization, or GEO, emerging as a discipline alongside traditional SEO. As AI-driven search changes how clients discover advisors, firms are being pushed to rethink how they build digital authority and visibility.
+
+SARAH: This is one of those things where the window to act is probably shorter than firms think. Advisors who ignore GEO now risk being invisible to the next generation of clients who are finding everything through AI-powered search tools.
+
+ALEX: And RightCapital launched a 24/7 AI-powered Help Center Assistant — essentially a round-the-clock product expert for advisors navigating the platform. It's aimed at reducing support friction and accelerating onboarding and troubleshooting.
+
+SARAH: Always-on support is a real differentiator for platforms, especially for smaller advisory teams that don't have dedicated ops staff sitting around waiting for business hours to get an answer.
+
+SARAH: On the infrastructure side — Orion's Wealthtech Outlook series published a piece arguing that disconnected systems aren't just a workflow annoyance, they're actively killing capacity. The core argument is that integration gaps translate directly into lost growth potential.
+
+ALEX: The framing matters here. Every hour an advisor spends reconciling fragmented systems is an hour not spent on clients or business development. Calling it a strategic imperative rather than an IT problem is the right way to get firm leadership to pay attention.
+
+SARAH: Switching to industry news — there's a notable consolidation story out of the Midwest. Socium Advisors, based in St. Louis, merged with Milwaukee's Amplify Wealth Partners, adding 1.6 billion in AUM and 26 financial professionals to reach 4.3 billion total. Amplify founder Jerod Spaeth joins as a Partner, and Milwaukee becomes Socium's eighth city.
+
+ALEX: This is within the Northwestern Mutual network, which is interesting context. It signals continued consolidation pressure even within affiliated ecosystems, not just in the independent RIA space.
+
+SARAH: Also on acquisitions — NorthRock Partners has closed its purchase of Vantage Financial Partners, a 19-person team managing around 950 million across six offices in Ohio, South Dakota, and Wisconsin. Vantage joins under NorthRock's Personal Office model, which wraps advisor teams with dedicated support across estate planning, taxes, legal, and philanthropy.
+
+ALEX: That Personal Office structure is a compelling pitch. You're getting scale benefits without stripping out the service depth that made the target firm attractive in the first place.
+
+SARAH: And Artisancap — the Osaic-affiliated DBA of NWF Advisory Group — has grown to 11.1 billion in AUM after adding 3.4 billion since January 2025. CEO Shehab Mohammad credits community and culture as the core differentiator — a tightly connected advisor network with tech discounts, coaching, and peer collaboration built in.
+
+ALEX: That's a meaningful growth rate. And it's an interesting counterpoint to purely financially motivated roll-ups. If culture and connectivity are driving advisor retention and recruitment, that's a different playbook than just writing the biggest check.
+
+ALEX: On the regulatory front — the Trump DOL has officially killed the Biden-era fiduciary rule and says it has no current plans for further rulemaking. That statement directly contradicts the DOL's own prior regulatory agenda notice, so the industry is left in a genuine holding pattern.
+
+SARAH: Regulatory ambiguity like this creates real compliance planning headaches for firms. Without a clear replacement standard, you're essentially planning around a void — which is its own kind of risk.
+
+SARAH: Vestmark made a notable leadership move — the company elevated its CTO Freedom Dumlao to a newly created Chief AI Officer role, tasking him with leading AI strategy across portfolio management, trading, and compliance.
+
+ALEX: Creating a dedicated C-suite AI role at infrastructure level is significant. The decisions made in that seat at a firm like Vestmark flow downstream to advisors at scale, so this isn't just an internal org chart change.
+
+SARAH: Modern Wealth hit a milestone — its 20th acquisition and its first foothold in Florida, picking up Legacy Wealth Management, a former LPL affiliate. It's a continuation of their steady national expansion.
+
+ALEX: Florida is one of the most competitive wealth management markets in the country, so entering via acquisition rather than greenfield makes strategic sense. It gets you a client base and operational presence immediately.
+
+SARAH: And rounding out the breakaway side — Seattle-area advisor Willy Gevers and his team, including son Trey, left broker-dealer Cetera after nearly doubling AUM, citing growing client complexity as the driver for going independent. They're now operating Gevers Wealth at around 300 million.
+
+ALEX: This is a textbook breakaway catalyst. Growth creates complexity, complexity creates the pressure to control your own platform and the services you offer clients. The pattern keeps repeating.
+
+ALEX: Now to that Apollo story. Jim Zelter publicly dismissed growing scrutiny around private credit as just "growing pains" — and then almost immediately after, Blue Owl Capital announced redemption limits on two of its private credit funds. The juxtaposition was hard to ignore.
+
+SARAH: Redemption gates at funds that size are exactly the kind of liquidity event that can spook retail allocators. If the democratization of alts is a trend, this is the kind of headline that slows it down.
+
+SARAH: There's a new FINRA study out with a counterintuitive finding — social media users and finfluencer followers are more vulnerable to fraud, not less. They suffer higher losses and lower fraud detection rates despite doing more due diligence than average investors. The explanation is that the confidence generated by research can actually lower your defenses.
+
+ALEX: That's a direct challenge to the "do your own research" culture. For advisors trying to counter finfluencer influence with clients, this gives them something concrete to point to.
+
+ALEX: And finally — the WMIQ Advisor Sentiment Index shows that advisors remain long-term optimists but are increasingly pessimistic about near-term market and economic conditions. The gap between long-run confidence and short-run anxiety is widening.
+
+SARAH: Advisor sentiment is a real leading indicator for how firms invest in growth — if near-term pessimism keeps rising, we could start seeing that translate into tighter tech and hiring budgets across the industry, which is worth watching heading into the back half of the year.
+
+ALEX: That's everything for today — have a good weekend, and we'll see you Monday on The WealthTech Daily Roundup.
