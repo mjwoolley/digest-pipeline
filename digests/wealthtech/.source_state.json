@@ -123,9 +123,20 @@
       "https://www.wealthmanagement.com/estate-planning/estate-administration-in-the-age-of-data-persistence",
       "https://www.wealthmanagement.com/estate-planning/help-trustee-clients-navigate-capacity-challenges",
       "https://www.wealthmanagement.com/advisor-support-platforms/new-ai-risk-platform-launches-for-financial-advisors",
-      "https://www.wealthmanagement.com/ria-news/northrock-partners-expands-across-the-midwest-with-addition-of-950m-vantage-financial-partners"
+      "https://www.wealthmanagement.com/ria-news/northrock-partners-expands-across-the-midwest-with-addition-of-950m-vantage-financial-partners",
+      "https://www.wealthmanagement.com/estate-planning/reimagining-wandry",
+      "https://www.wealthmanagement.com/estate-planning/tax-law-update-april-2026",
+      "https://www.wealthmanagement.com/regulation-compliance/social-media-users-finfluencer-followers-face-higher-fraud-risk",
+      "https://www.wealthmanagement.com/ria-news/300m-gevers-wealth-goes-independent-after-client-needs-grew-in-complexity",
+      "https://www.wealthmanagement.com/career-moves/vestmark-names-cto-freedom-dumlao-chief-ai-officer",
+      "https://www.wealthmanagement.com/ria-news/socium-advisors-expands-with-16b-amplify-deal",
+      "https://www.wealthmanagement.com/alternative-investments/apollo-s-zelter-calls-private-credit-concerns-growing-pains",
+      "https://www.wealthmanagement.com/investment-news/zephyr-s-adjusted-for-risk-deciphering-risk-in-private-credit-markets",
+      "https://www.wealthmanagement.com/growth-strategies/the-diamond-podcast-for-financial-advisors-orchestrating-success-after-edward-jones",
+      "https://www.wealthmanagement.com/ria-edge/advisor-sentiment-index-the-ever-optimistic-financial-advisor",
+      "https://www.wealthmanagement.com/ria-news/modern-wealth-enters-florida-market-with-20th-acquisition-to-date"
     ],
-    "last_updated": "2026-04-02"
+    "last_updated": "2026-04-03"
   },
   "blog:addepar": {
     "seen_ids": [
@@ -145,9 +156,10 @@
       "https://www.addepar.com/blog/config-based-feeds-hackathon-2025",
       "https://www.addepar.com/blog/contextual-audit-log-hackathon-2025",
       "https://www.addepar.com/blog/embracing-jooq-for-database-precision-and-speed-at-scale",
-      "https://www.addepar.com/blog/putting-ai-inside-investment-management-workflows"
+      "https://www.addepar.com/blog/putting-ai-inside-investment-management-workflows",
+      "https://www.addepar.com/blog/alts-data-management-capital-activity-dashboard"
     ],
-    "last_updated": "2026-04-01"
+    "last_updated": "2026-04-03"
   },
   "blog:financial_planning": {
     "seen_ids": [
@@ -194,9 +206,11 @@
       "https://www.financial-planning.com/news/ai-for-advisor-marketing-without-alienating-clients",
       "https://www.financial-planning.com/news/with-trillions-in-motion-just-44-of-advisors-feel-prepared",
       "https://www.financial-planning.com/news/654-departures-a-look-at-the-lpl-commonwealth-deal-one-year-later",
-      "https://www.financial-planning.com/opinion/what-to-know-about-the-new-irs-digital-asset-rules"
+      "https://www.financial-planning.com/opinion/what-to-know-about-the-new-irs-digital-asset-rules",
+      "https://www.financial-planning.com/news/the-biden-fiduciary-rule-is-dead-what-comes-next",
+      "https://www.financial-planning.com/list/the-biggest-bang-for-your-tax-buck"
     ],
-    "last_updated": "2026-04-02"
+    "last_updated": "2026-04-03"
   },
   "twitter:RightCapitalHQ": {
     "seen_ids": [
@@ -214,25 +228,10 @@
       "https://x.com/RightCapitalHQ/status/2036444237777055973",
       "https://x.com/RightCapitalHQ/status/2037518616116019360",
       "https://x.com/RightCapitalHQ/status/2038624693117129022",
-      "https://x.com/RightCapitalHQ/status/2039350542678331766"
+      "https://x.com/RightCapitalHQ/status/2039350542678331766",
+      "https://x.com/RightCapitalHQ/status/2039718760613904799"
     ],
-    "last_updated": "2026-04-02"
-  },
-  "twitter:here_browser": {
-    "seen_ids": [
-      "https://x.com/here_browser/status/2029217947114254820",
-      "https://x.com/here_browser/status/2028825279720796256",
-      "https://x.com/here_browser/status/2026341355803246972",
-      "https://x.com/here_browser/status/2025949002345173146",
-      "https://x.com/here_browser/status/2025201401932976578",
-      "https://x.com/here_browser/status/2024888311139942874",
-      "https://x.com/here_browser/status/2018793053801082987",
-      "https://x.com/here_browser/status/2018395512337056052",
-      "https://x.com/here_browser/status/2018395018533199919",
-      "https://x.com/here_browser/status/2018394509793529934",
-      "https://x.com/here_browser/status/2036865215078244829"
-    ],
-    "last_updated": "2026-03-26"
+    "last_updated": "2026-04-03"
   },
   "twitter:orionwealthtech": {
     "seen_ids": [
@@ -248,9 +247,10 @@
       "https://x.com/orionwealthtech/status/2029947713324720266",
       "https://x.com/orionwealthtech/status/2029675575351107657",
       "https://x.com/orionwealthtech/status/2039043850031751317",
-      "https://x.com/orionwealthtech/status/2039401169638883714"
+      "https://x.com/orionwealthtech/status/2039401169638883714",
+      "https://x.com/orionwealthtech/status/2039811368518369476"
     ],
-    "last_updated": "2026-04-02"
+    "last_updated": "2026-04-03"
   },
   "blog:wealth_solutions_report": {
     "seen_ids": [
@@ -280,9 +280,13 @@
       "https://www.wealthsolutionsreport.com/carlyle-to-acquire-majority-stake-in-mai-at-2-8-billion-valuation/",
       "https://www.wealthsolutionsreport.com/succession-planning-and-cultural-issues-in-integration/",
       "https://www.wealthsolutionsreport.com/dear-ryan-wealthtech-industry-advice-for-all/",
-      "https://www.wealthsolutionsreport.com/approaches-for-home-offices-recruiting-solo-and-duo-teams/"
+      "https://www.wealthsolutionsreport.com/approaches-for-home-offices-recruiting-solo-and-duo-teams/",
+      "https://www.wealthsolutionsreport.com/top-5-most-read-articles-of-march/",
+      "https://www.wealthsolutionsreport.com/socium-advisors-merges-with-1-6-billion-amplify-wealth-partners/",
+      "https://www.wealthsolutionsreport.com/artisancap-adds-3-4-billion-in-assets-since-january-2025/",
+      "https://www.wealthsolutionsreport.com/northrock-buys-950-million-midwest-ria/"
     ],
-    "last_updated": "2026-04-02"
+    "last_updated": "2026-04-03"
   },
   "twitter:ThinkAdvisor": {
     "seen_ids": [
@@ -312,9 +316,12 @@
       "https://x.com/ThinkAdvisor/status/2039131953287606703",
       "https://x.com/ThinkAdvisor/status/2039131290889507166",
       "https://x.com/ThinkAdvisor/status/2039493831079665826",
-      "https://x.com/ThinkAdvisor/status/2039493175157600544"
+      "https://x.com/ThinkAdvisor/status/2039493175157600544",
+      "https://x.com/ThinkAdvisor/status/2039901254667980968",
+      "https://x.com/ThinkAdvisor/status/2039856702200369527",
+      "https://x.com/ThinkAdvisor/status/2039855966796300778"
     ],
-    "last_updated": "2026-04-02"
+    "last_updated": "2026-04-03"
   },
   "newsletter:sytaylor": {
     "seen_ids": [
