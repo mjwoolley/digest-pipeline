@@ -1,0 +1,41 @@
+ALEX: Welcome to The WealthTech Daily Roundup for April 4th, 2026. A St. Louis RIA just published hard numbers from a 28-day AI pilot — 700 hours saved in a single month — and it's one of the most credible productivity cases we've seen come out of wealth management.
+
+SARAH: That's the kind of concrete ROI data the industry has been starving for. Most AI case studies are vague about outcomes, so let's dig into what Plancorp actually found.
+
+ALEX: So Plancorp ran a 28-day pilot of CogniCor's Advisor Copilot and tracked savings at two points in the workflow — 45 to 60 minutes per meeting on prep, and another 60 minutes on post-meeting tasks like notes, action items, and client emails. Across the team, that stacked to 700-plus hours in one month, with measurable gains across 17 efficiency metrics.
+
+SARAH: The insight buried in there is telling — advisors were spending more time assembling information than actually advising. That's not an AI problem, that's a workflow design problem that AI happened to solve.
+
+ALEX: Exactly, and that framing connects directly to the next story. HERE is making a similar argument — that bolting AI onto broken processes is why firms keep reporting murky ROI. They're bringing a unified platform pitch to the Automating Alpha 2026 conference.
+
+SARAH: The "AI didn't deliver" frustration is genuinely widespread right now, so the firms that lead with workflow consolidation before layering in AI may have the more credible sell at this point.
+
+ALEX: Shifting over to infrastructure — HERE had a strong week on the recognition front. They took home Best Desktop Interoperability Framework at the A-Team Group's Trading Tech Insight Awards USA 2026, and they were also nominated for Best Trading Tech Stack Platform and Best Integration Platform.
+
+SARAH: What caught my eye is the range of activity alongside that — a U.S. Army partnership with Defense Unicorns and a showcase at the Gartner Digital Workplace Summit. HERE is clearly positioning beyond fintech into broader enterprise infrastructure.
+
+ALEX: They're claiming 90 percent of the world's leading financial institutions as users of their enterprise browser platform, which is a striking number if it holds up.
+
+SARAH: That kind of penetration would make them infrastructure, not just a tool — and that changes how you think about their competitive moat.
+
+ALEX: On the asset management side, HERE is specifically targeting the legacy workflow problem — the context-switching tax that comes from running hybrid old-and-new tech stacks. The enterprise browser sits at the browser layer, which is a relatively low-friction entry point compared to ripping out core systems.
+
+SARAH: Asset managers with legacy dependencies are a massive addressable market, and if you can solve the switching cost problem without a full platform migration, that's a compelling pitch to a CIO who's been burned before.
+
+ALEX: HERE is also taking the stage at Automating Alpha to tackle what they're framing as the front office's thorniest trade-off — getting data to decision-makers faster without breaking governance frameworks. It's aimed squarely at data teams caught between business pressure for speed and compliance requirements.
+
+SARAH: That speed-versus-governance tension is only getting sharper as AI pipelines move closer to actual trading decisions, so this is a conversation that has real stakes attached to it.
+
+ALEX: On the business side of things, RIA consolidation is showing zero signs of slowing. This week: Savant Wealth acquires six-billion-dollar Exencial, Cerity Partners absorbs 1.1 billion dollar Covenant Partners, Integrated Partners pulls a 609 million dollar team out of Ameriprise, and EP Wealth closes its fourth deal of the year.
+
+SARAH: Ameriprise keeps showing up as a source of breakaway talent, which says something about the pull of independence even when larger platforms are competing hard for scale. Smaller independent firms need to be making a strategic call right now — join a platform or differentiate hard before the window closes.
+
+ALEX: Jumping over to the ETF market — over 1,000 new ETFs launched last year into a 19 trillion dollar market, and the average product lifespan is collapsing. Sponsors are chasing scale and shutting down underperformers faster than ever, and most new funds will mathematically never reach economic viability.
+
+SARAH: For advisors building model portfolios, that rising closure rate is a real due diligence risk — a fund shutting down forces repositioning, and that rarely happens at a convenient time.
+
+ALEX: Finally, on the regulatory front — the SEC is suing the estate of John Brodacki, a deceased advisor accused of misappropriating 1.68 million dollars in client funds to cover personal expenses and luxury purchases. The case is notable specifically because they're going after his estate posthumously.
+
+SARAH: That's a significant signal from the SEC — fraud liability doesn't end with the advisor's death, and that's something compliance teams and estate planners across the industry should be paying attention to.
+
+ALEX: That's everything for today. We'll see you Monday on The WealthTech Daily Roundup.

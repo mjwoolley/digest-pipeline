@@ -134,9 +134,14 @@
       "https://www.wealthmanagement.com/investment-news/zephyr-s-adjusted-for-risk-deciphering-risk-in-private-credit-markets",
       "https://www.wealthmanagement.com/growth-strategies/the-diamond-podcast-for-financial-advisors-orchestrating-success-after-edward-jones",
       "https://www.wealthmanagement.com/ria-edge/advisor-sentiment-index-the-ever-optimistic-financial-advisor",
-      "https://www.wealthmanagement.com/ria-news/modern-wealth-enters-florida-market-with-20th-acquisition-to-date"
+      "https://www.wealthmanagement.com/ria-news/modern-wealth-enters-florida-market-with-20th-acquisition-to-date",
+      "https://www.wealthmanagement.com/etfs/average-etf-lifespan-collapses-with-wall-street-antsy-for-scale",
+      "https://www.wealthmanagement.com/regulation-compliance/sec-claims-deceased-advisor-defrauded-clients-of-168m",
+      "https://www.wealthmanagement.com/investing-strategies/girard-a-univest-wealth-division-zeroing-in-on-quality",
+      "https://www.wealthmanagement.com/ria-news/deals-moves-cerity-integrated-partners-add-teams",
+      "https://www.wealthmanagement.com/advisor-support-platforms/plancorp-saves-700-hours-with-ai-advisor-copilot"
     ],
-    "last_updated": "2026-04-03"
+    "last_updated": "2026-04-04"
   },
   "blog:addepar": {
     "seen_ids": [
@@ -248,9 +253,10 @@
       "https://x.com/orionwealthtech/status/2029675575351107657",
       "https://x.com/orionwealthtech/status/2039043850031751317",
       "https://x.com/orionwealthtech/status/2039401169638883714",
-      "https://x.com/orionwealthtech/status/2039811368518369476"
+      "https://x.com/orionwealthtech/status/2039811368518369476",
+      "https://x.com/orionwealthtech/status/2040073611709501479"
     ],
-    "last_updated": "2026-04-03"
+    "last_updated": "2026-04-04"
   },
   "blog:wealth_solutions_report": {
     "seen_ids": [
@@ -284,9 +290,11 @@
       "https://www.wealthsolutionsreport.com/top-5-most-read-articles-of-march/",
       "https://www.wealthsolutionsreport.com/socium-advisors-merges-with-1-6-billion-amplify-wealth-partners/",
       "https://www.wealthsolutionsreport.com/artisancap-adds-3-4-billion-in-assets-since-january-2025/",
-      "https://www.wealthsolutionsreport.com/northrock-buys-950-million-midwest-ria/"
+      "https://www.wealthsolutionsreport.com/northrock-buys-950-million-midwest-ria/",
+      "https://www.wealthsolutionsreport.com/modern-wealth-enters-florida-market-with-purchase-of-1-2-billion-ex-lpl-affiliate/",
+      "https://www.wealthsolutionsreport.com/cognicor-case-study-demonstrates-time-savings/"
     ],
-    "last_updated": "2026-04-03"
+    "last_updated": "2026-04-04"
   },
   "twitter:ThinkAdvisor": {
     "seen_ids": [
@@ -319,9 +327,11 @@
       "https://x.com/ThinkAdvisor/status/2039493175157600544",
       "https://x.com/ThinkAdvisor/status/2039901254667980968",
       "https://x.com/ThinkAdvisor/status/2039856702200369527",
-      "https://x.com/ThinkAdvisor/status/2039855966796300778"
+      "https://x.com/ThinkAdvisor/status/2039855966796300778",
+      "https://x.com/ThinkAdvisor/status/2040219351522185716",
+      "https://x.com/ThinkAdvisor/status/2040218694597636137"
     ],
-    "last_updated": "2026-04-03"
+    "last_updated": "2026-04-04"
   },
   "newsletter:sytaylor": {
     "seen_ids": [
@@ -350,5 +360,20 @@
       "https://interop.io/blog/what-is-a-desktop-integration-platform-anyway/"
     ],
     "last_updated": "2026-04-02"
+  },
+  "twitter:here_browser": {
+    "seen_ids": [
+      "https://x.com/here_browser/status/2036865215078244829",
+      "https://x.com/here_browser/status/2029217947114254820",
+      "https://x.com/here_browser/status/2028825279720796256",
+      "https://x.com/here_browser/status/2026341355803246972",
+      "https://x.com/here_browser/status/2025949002345173146",
+      "https://x.com/here_browser/status/2025201401932976578",
+      "https://x.com/here_browser/status/2024888311139942874",
+      "https://x.com/here_browser/status/2018793053801082987",
+      "https://x.com/here_browser/status/2018395512337056052",
+      "https://x.com/here_browser/status/2018395018533199919"
+    ],
+    "last_updated": "2026-04-04"
   }
 }
