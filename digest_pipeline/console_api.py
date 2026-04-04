@@ -156,6 +156,96 @@ def _list_sources(config: dict) -> list[dict]:
     return result
 
 
+def _compute_source_metrics(data_root: Path, days: int = 14) -> dict:
+    """Compute per-source metrics from pipeline artifacts over recent runs.
+
+    Scans work/{date}/ directories and aggregates extracted, in-digest,
+    exclusive, and priority score metrics per source_key.
+    """
+    from datetime import date, timedelta
+
+    cutoff = (date.today() - timedelta(days=days)).isoformat()
+    work_dir = data_root / "work"
+    if not work_dir.exists():
+        return {}
+
+    # Per-source accumulators
+    metrics = {}  # source_key -> {extracted, in_digest, exclusive, scores, dates}
+
+    def _ensure(sk):
+        if sk not in metrics:
+            metrics[sk] = {
+                "extracted": 0,
+                "in_digest": 0,
+                "exclusive": 0,
+                "scores": [],
+                "dates": set(),
+            }
+
+    for day_dir in sorted(work_dir.iterdir()):
+        if not day_dir.is_dir() or not DATE_RE.match(day_dir.name):
+            continue
+        if day_dir.name < cutoff:
+            continue
+
+        # Extracted: count by source_key
+        extracted = _read_json(day_dir / "extracted.json")
+        if extracted:
+            for art in extracted:
+                sk = art.get("source_key", "")
+                if sk:
+                    _ensure(sk)
+                    metrics[sk]["extracted"] += 1
+                    metrics[sk]["dates"].add(day_dir.name)
+
+        # Prioritized (kept): in-digest count + scores
+        kept = _read_json(day_dir / "prioritized.json")
+        if kept:
+            for art in kept:
+                score = art.get("_priority_score")
+                for sk in art.get("source_keys", []):
+                    _ensure(sk)
+                    metrics[sk]["in_digest"] += 1
+                    if score is not None:
+                        metrics[sk]["scores"].append(score)
+
+        # Prioritized (dropped): scores only
+        dropped = _read_json(day_dir / "prioritized_dropped.json")
+        if dropped:
+            for art in dropped:
+                score = art.get("_priority_score")
+                if score is not None:
+                    for sk in art.get("source_keys", []):
+                        _ensure(sk)
+                        metrics[sk]["scores"].append(score)
+
+        # Deduped: exclusive count (sole source in story)
+        deduped = _read_json(day_dir / "deduped.json")
+        if deduped:
+            for art in deduped:
+                skeys = art.get("source_keys", [])
+                if len(skeys) == 1:
+                    sk = skeys[0]
+                    _ensure(sk)
+                    metrics[sk]["exclusive"] += 1
+
+    # Finalize: compute derived metrics
+    result = {}
+    for sk, m in metrics.items():
+        extracted = m["extracted"]
+        in_digest = m["in_digest"]
+        scores = m["scores"]
+        result[sk] = {
+            "extracted": extracted,
+            "in_digest": in_digest,
+            "yield_rate": round(in_digest / extracted, 3) if extracted > 0 else None,
+            "exclusive": m["exclusive"],
+            "avg_score": round(sum(scores) / len(scores), 1) if scores else None,
+            "days_active": len(m["dates"]),
+        }
+    return result
+
+
 def _sanitize_config(config: dict) -> dict:
     """Return config with internal/secret keys removed."""
     sanitized = {}
@@ -594,6 +684,7 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
         cfg_sources = _list_sources(info["config"])
         source_state = _read_json(info["data_root"] / ".source_state.json") or {}
+        source_metrics = _compute_source_metrics(info["data_root"])
 
         result = []
         for src in cfg_sources:
@@ -601,10 +692,17 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
             state = source_state.get(key, {})
             seen_ids = state.get("seen_ids", [])
             seen_count = len(seen_ids) if isinstance(seen_ids, list) else len(seen_ids.keys())
+            m = source_metrics.get(key, {})
             result.append({
                 **src,
                 "last_updated": state.get("last_updated"),
                 "seen_count": seen_count,
+                "extracted": m.get("extracted", 0),
+                "in_digest": m.get("in_digest", 0),
+                "yield_rate": m.get("yield_rate"),
+                "exclusive": m.get("exclusive", 0),
+                "avg_score": m.get("avg_score"),
+                "days_active": m.get("days_active", 0),
             })
         return jsonify(result)
 
