@@ -1,0 +1,43 @@
+ALEX: Welcome to The AI Daily Roundup for April 7th, 2026. Anthropic just crossed a thirty billion dollar annualized revenue run-rate — more than tripling from nine billion at the end of last year — and the same week they're locking in a multi-gigawatt TPU deal and cutting off third-party developers from their subscription plans.
+
+SARAH: That combination tells you a lot about where Anthropic thinks it's headed — scaling hard on the compute side while tightening control of the monetization layer. A lot to unpack there, but let's start with the model news first.
+
+ALEX: Right, so Gemma 4 from Google has hit roughly two million downloads in its first week alone. To put that in context, Gemma 2 never hit that number across its entire lifetime since June 2024, and Gemma 3 took a full year to reach six point seven million.
+
+SARAH: The comparison to Qwen's twenty-seven million is a useful reality check — Gemma 4 isn't at the top of the open-weight charts yet — but that velocity in week one is hard to ignore. What's driving the uptake, do we know?
+
+ALEX: The digest doesn't break out specific reasons, but there's a Gemma 4 keynote set for London in three days, so presumably more detail is coming. The framing is that this is landing as a serious open-weight contender, not just a marketing exercise from Google.
+
+SARAH: Makes sense to watch that keynote closely. Shifting over to developer tooling now, there were two significant MCP stories today.
+
+ALEX: First one: maintainers from Anthropic, AWS, Microsoft, and OpenAI got together at the MCP Dev Summit in New York to map out an enterprise roadmap for the protocol — think hardened security, reliability, and governance features. Stewardship has been handed to the Agentic AI Foundation, which already has a hundred and seventy members since launching in December.
+
+SARAH: The fact that you've got all four of those major players aligned behind a single spec under neutral governance is pretty significant. MCP as the connective tissue of the agentic stack starts to look less like a bet and more like a fait accompli.
+
+ALEX: And the second MCP story is more hands-on — MCP servers now let Claude connect directly to private datasets, like five years of enterprise sales history, without any manual data wrangling. Anthropic has made server-building accessible enough that you can wire something like a calculator app into Claude Desktop through an IDE as a starting point.
+
+SARAH: So the shift here is Claude moving from a chatbot you query to an analytical layer embedded in actual business workflows, operating on live data. That's a meaningful change in how enterprises will think about deploying it.
+
+ALEX: Exactly. Okay, on the research side, Netflix Research open-sourced something called VOID this week — and it's not a standard inpainting tool. It reasons about the physical consequences of removing objects from video, so if you erase a person holding a balloon, the balloon floats away. It uses a structured mask to distinguish what to remove, what's physically affected, and what to preserve, then runs a judge model to propagate those consequences through the scene.
+
+SARAH: And they tested it against six baselines including Runway, and human evaluators preferred VOID's output nearly two-thirds of the time. That's a pretty strong result — what makes it notable beyond the benchmark?
+
+ALEX: This is actually Netflix Research's first public AI release, which is a signal in itself. It suggests production-grade video editing is moving toward physics-aware simulation rather than just pixel-level patching, which is a qualitatively different approach.
+
+SARAH: Interesting that Netflix is the one opening that door publicly. Let's talk about on-device AI for a second — there was a Google story on that front too.
+
+ALEX: Google's AI Edge Gallery — an open showcase for running LLMs directly on mobile and edge hardware, no cloud required — pulled in over two thousand GitHub stars in a single week. It's positioning itself as the go-to destination for deploying capable open-source models at the edge.
+
+SARAH: Two thousand stars in a week is a meaningful signal of developer appetite. The privacy and latency angle makes sense — not everything should be going to a cloud endpoint, especially for enterprise use cases.
+
+ALEX: Alright, back to the business side, and this is where things get complicated for Anthropic. The thirty billion run-rate and the multi-gigawatt TPU capacity agreement with Google and Broadcom — with next-gen chips coming online from 2027 — are the headline numbers. That's a direct bet that frontier training is only going to get more compute-intensive.
+
+SARAH: The more than three-x jump from nine billion at year-end is striking. But the other Anthropic story today complicates the narrative — they've blocked agent platforms like OpenClaw from piggybacking on flat-rate Claude subscriptions, pushing developers to pay-as-you-go via API keys instead.
+
+ALEX: They're offering one month of credits and up to thirty percent discounts to soften it, but OpenClaw's creator publicly accused Anthropic of cloning popular features into its own closed ecosystem before locking out open-source alternatives. And OpenAI is apparently actively courting the same developer community right now.
+
+SARAH: The timing is rough — you're announcing record revenue and a massive compute deal the same week you're frustrating your developer base. How Anthropic manages that tension will matter a lot for whether it keeps its reputation as the developer-friendly option.
+
+ALEX: And on that note, the last story today — OpenAI has launched a pilot Safety Fellowship program to support independent safety and alignment research and build the next generation of safety practitioners.
+
+SARAH: The digest is candid that it's hard to know whether this is genuine commitment or reputation management, but either way, structured pipelines for safety talent are something the field genuinely needs as capabilities keep accelerating. That's today's roundup — see you tomorrow.
