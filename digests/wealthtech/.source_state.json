@@ -139,9 +139,15 @@
       "https://www.wealthmanagement.com/regulation-compliance/sec-claims-deceased-advisor-defrauded-clients-of-168m",
       "https://www.wealthmanagement.com/investing-strategies/girard-a-univest-wealth-division-zeroing-in-on-quality",
       "https://www.wealthmanagement.com/ria-news/deals-moves-cerity-integrated-partners-add-teams",
-      "https://www.wealthmanagement.com/advisor-support-platforms/plancorp-saves-700-hours-with-ai-advisor-copilot"
+      "https://www.wealthmanagement.com/advisor-support-platforms/plancorp-saves-700-hours-with-ai-advisor-copilot",
+      "https://www.wealthmanagement.com/alternative-investments/morgan-stanley-plans-private-credit-fund-even-as-investors-flee",
+      "https://www.wealthmanagement.com/ria-news/-42b-lido-adds-broker-dealer-as-it-keeps-scaling",
+      "https://www.wealthmanagement.com/regulation-compliance/new-york-advisor-pleads-guilty-to-160-million-investment-fraud",
+      "https://www.wealthmanagement.com/rpa-news/the-10-biggest-mistakes-401-k-plan-sponsors-make-with-their-advisor",
+      "https://www.wealthmanagement.com/etfs/blackrock-files-to-challenge-invesco-s-nasdaq-100-etf-monopoly",
+      "https://www.wealthmanagement.com/investment-news/zephyr-s-adjusted-for-risk-skill-over-style-redefining-investment-success"
     ],
-    "last_updated": "2026-04-04"
+    "last_updated": "2026-04-07"
   },
   "blog:addepar": {
     "seen_ids": [
@@ -213,9 +219,13 @@
       "https://www.financial-planning.com/news/654-departures-a-look-at-the-lpl-commonwealth-deal-one-year-later",
       "https://www.financial-planning.com/opinion/what-to-know-about-the-new-irs-digital-asset-rules",
       "https://www.financial-planning.com/news/the-biden-fiduciary-rule-is-dead-what-comes-next",
-      "https://www.financial-planning.com/list/the-biggest-bang-for-your-tax-buck"
+      "https://www.financial-planning.com/list/the-biggest-bang-for-your-tax-buck",
+      "https://www.financial-planning.com/news/iran-conflict-pushes-advisor-sentiment-to-lowest-in-nearly-a-year",
+      "https://www.financial-planning.com/news/with-new-president-rockefeller-sets-to-redefine-meaning-of-family-office",
+      "https://www.financial-planning.com/news/treasury-picks-bny-robinhood-for-trump-accounts-rollout",
+      "https://www.financial-planning.com/news/highly-confident-investors-struggle-to-detect-fraud-finra-finds"
     ],
-    "last_updated": "2026-04-03"
+    "last_updated": "2026-04-07"
   },
   "twitter:RightCapitalHQ": {
     "seen_ids": [
@@ -234,9 +244,10 @@
       "https://x.com/RightCapitalHQ/status/2037518616116019360",
       "https://x.com/RightCapitalHQ/status/2038624693117129022",
       "https://x.com/RightCapitalHQ/status/2039350542678331766",
-      "https://x.com/RightCapitalHQ/status/2039718760613904799"
+      "https://x.com/RightCapitalHQ/status/2039718760613904799",
+      "https://x.com/RightCapitalHQ/status/2041207279664386120"
     ],
-    "last_updated": "2026-04-03"
+    "last_updated": "2026-04-07"
   },
   "twitter:orionwealthtech": {
     "seen_ids": [
@@ -254,9 +265,10 @@
       "https://x.com/orionwealthtech/status/2039043850031751317",
       "https://x.com/orionwealthtech/status/2039401169638883714",
       "https://x.com/orionwealthtech/status/2039811368518369476",
-      "https://x.com/orionwealthtech/status/2040073611709501479"
+      "https://x.com/orionwealthtech/status/2040073611709501479",
+      "https://x.com/orionwealthtech/status/2041213154315669819"
     ],
-    "last_updated": "2026-04-04"
+    "last_updated": "2026-04-07"
   },
   "blog:wealth_solutions_report": {
     "seen_ids": [
@@ -292,9 +304,11 @@
       "https://www.wealthsolutionsreport.com/artisancap-adds-3-4-billion-in-assets-since-january-2025/",
       "https://www.wealthsolutionsreport.com/northrock-buys-950-million-midwest-ria/",
       "https://www.wealthsolutionsreport.com/modern-wealth-enters-florida-market-with-purchase-of-1-2-billion-ex-lpl-affiliate/",
-      "https://www.wealthsolutionsreport.com/cognicor-case-study-demonstrates-time-savings/"
+      "https://www.wealthsolutionsreport.com/cognicor-case-study-demonstrates-time-savings/",
+      "https://www.wealthsolutionsreport.com/the-efficiency-illusion-busy-rias-are-quietly-capping-their-growth-and-value/",
+      "https://www.wealthsolutionsreport.com/insurance-firms-are-leaning-into-wealth-management-with-impressive-results/"
     ],
-    "last_updated": "2026-04-04"
+    "last_updated": "2026-04-07"
   },
   "twitter:ThinkAdvisor": {
     "seen_ids": [
@@ -330,9 +344,11 @@
       "https://x.com/ThinkAdvisor/status/2039855966796300778",
       "https://x.com/ThinkAdvisor/status/2040219351522185716",
       "https://x.com/ThinkAdvisor/status/2040218694597636137",
-      "https://x.com/ThinkAdvisor/status/2040943612108972166"
+      "https://x.com/ThinkAdvisor/status/2040943612108972166",
+      "https://x.com/ThinkAdvisor/status/2041305851391357206",
+      "https://x.com/ThinkAdvisor/status/2041305278126367119"
     ],
-    "last_updated": "2026-04-06"
+    "last_updated": "2026-04-07"
   },
   "newsletter:sytaylor": {
     "seen_ids": [
@@ -359,9 +375,10 @@
   },
   "blog:interop": {
     "seen_ids": [
-      "https://interop.io/blog/what-is-a-desktop-integration-platform-anyway/"
+      "https://interop.io/blog/what-is-a-desktop-integration-platform-anyway/",
+      "https://interop.io/blog/io-intelligence-ai-release/"
     ],
-    "last_updated": "2026-04-02"
+    "last_updated": "2026-04-07"
   },
   "twitter:here_browser": {
     "seen_ids": [

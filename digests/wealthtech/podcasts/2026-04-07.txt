@@ -1,0 +1,79 @@
+ALEX: Welcome to The WealthTech Daily Roundup for April 7th, 2026. BlackRock just filed to launch a direct Nasdaq 100 ETF called IQQ — and if it gets off the ground, Invesco's QQQ, one of the most traded funds on the planet, has its first real challenger.
+
+SARAH: That's a bold move, and the timing is interesting given everything else rattling markets right now — we'll get into that. But let's start with something that's been nagging at a lot of RIA operators: the idea that looking busy and actually being scalable are two very different things.
+
+ALEX: Right, and Wealth Solutions Report put a sharp lens on that today. The argument is that most RIAs have what they're calling "invisible work" — inconsistent processes, client information stored in advisors' heads, ad-hoc decisions that compound into firm-wide friction. The real problem isn't busyness, it's variability.
+
+SARAH: And where this really bites is at the deal table. If your processes live in people rather than systems, that's a direct hit to your valuation in any M&A conversation — buyers are pricing that risk in.
+
+ALEX: Staying in the planning space, RightCapital rolled out a phased retirement planning feature. Advisors can now model retirement in distinct stages with a single setting, recognizing that retirement is a multi-phase transition, not a single event.
+
+SARAH: That's a practical win for advisors with clients doing semi-retirement or gradual wind-downs — those conversations require nuance that a simple retirement date just doesn't capture.
+
+ALEX: Also on the planning side, Wealth Management dot com published a piece on the ten biggest mistakes plan sponsors make when working with retirement plan advisors. The core issue is a fundamental misunderstanding of vendor roles — who does what, who's accountable — and that confusion creates real gaps in plan governance.
+
+SARAH: With fiduciary scrutiny intensifying, that's not a small problem. Plan sponsors who don't understand the advisory relationship are leaving themselves genuinely exposed on the compliance side.
+
+SARAH: Shifting over to AI — interop.io made a significant move today on its io.Intelligence platform. They're rolling out three new components: io.Assist, which is an embedded ready-to-deploy assistant with MCP integration and conversation threading; AI Web, a framework-agnostic SDK for building fully custom copilots; and MCP-Core, which connects to existing applications and feeds context automatically.
+
+ALEX: What stands out to me technically is that the whole design philosophy is about extending existing systems rather than replacing them — they're explicitly eliminating the need for manual context engineering and prompt input limitations. For wealth tech teams that have been stuck in AI pilot mode, this is a credible on-ramp to production without a full platform overhaul.
+
+SARAH: That "pilot purgatory" problem is real — a lot of firms have AI projects that never get to production because the integration lift is too high.
+
+SARAH: On the advisor platform side, Morgan Stanley is filing to launch a nontraded private credit vehicle — and the timing is conspicuous because the broader private credit market is facing its most significant liquidity squeeze in recent memory.
+
+ALEX: So they're going contrarian into a cooling market. Is the read that this is a long-term structural bet on private credit's role in client portfolios, or a product launch that might have misjudged the cycle?
+
+SARAH: The digest frames it as institutional conviction, but the question marks are real. A Morgan Stanley entry does signal something about where they see the category going regardless of near-term conditions.
+
+ALEX: Zephyr is making a different kind of argument today — they're pushing allocators to retire backward-looking style-box performance reporting in favor of analytics that isolate repeatable manager skill from market and style-factor exposure. Essentially reframing how investment success gets measured at the manager selection level.
+
+SARAH: That's a meaningful shift for active managers trying to survive in a world where passive dominates. If you can actually demonstrate skill-based alpha rather than just style-factor returns, that's a real differentiator.
+
+SARAH: Moving to industry and business news — the Treasury has picked BNY and Robinhood to build the platform infrastructure behind the administration's government-seeded retirement accounts for children, the so-called Baby Accounts.
+
+ALEX: The pairing is interesting architecturally — you've got an established custodial bank in BNY handling the institutional backbone, and Robinhood on the consumer-facing side for accessibility and scale. That combination is clearly intentional.
+
+SARAH: And it puts Robinhood at the center of government-backed financial infrastructure, which is a significant positioning shift for a company that started as a retail trading app.
+
+ALEX: Insurance firms are also making noise in wealth management. Wealth Solutions Report says insurers are leveraging their existing agent networks, financial stability, and client relationships to push aggressively into the space through M&A and expanded advisory services — and advisors from both independent and captive channels are increasingly drawn to them.
+
+SARAH: The insurance-to-wealth pipeline is real and accelerating. For independent RIAs, this is another consolidation pressure vector they need to be paying attention to.
+
+ALEX: Rockefeller Global Family Office has a new president, Michael Outlaw, and he's already staking out a provocative position — arguing that the family office label should be defined by the services delivered, not by the client relationships behind it.
+
+SARAH: That reframing is strategically significant. If family office is a service construct rather than a client category, Rockefeller's addressable market gets a lot bigger — they're not just competing for ultra-high-net-worth families anymore.
+
+SARAH: Lido Advisors, the forty-two billion dollar RIA, is adding broker-dealer capability to broaden its advisor recruitment appeal while maintaining its core fee-only identity. It's a hybrid optionality play.
+
+ALEX: The pattern of large fee-only RIAs building BD infrastructure is becoming harder to ignore. If recruitment increasingly demands flexibility in compensation and product access, even purist firms have to respond.
+
+SARAH: And then there's BlackRock going after QQQ. They've filed to launch IQQ, which would exclusively track the Nasdaq 100 — putting them in direct competition with Invesco's QQQ, one of the most traded ETFs in the world.
+
+ALEX: A credible BlackRock challenger in that space could meaningfully reshape fee competition and flows in one of the most lucrative ETF categories out there. Invesco has had that category largely to itself for a long time.
+
+SARAH: Now for a few stories on the compliance and fraud front. A New York advisor named Vincent Camarda pleaded guilty to a hundred and sixty million dollar investment fraud — he misrepresented client funds that were funneled into his son's failed businesses, including a mining operation and a drive-through coffee company. He faces up to twenty years.
+
+ALEX: The family-linked conflicts of interest here are glaring. This is exactly the kind of scenario that compliance frameworks are supposed to catch, and it didn't.
+
+SARAH: FINRA also published research today with a finding that should make advisors stop and think — investors who rate themselves as highly knowledgeable are among the least likely to detect investment fraud. Online scams are driving losses into the hundreds of billions.
+
+ALEX: That's a real vulnerability in client bases. If advisors assume confident clients self-screen for fraud, they're underestimating the risk significantly.
+
+ALEX: FINRA also fined J.P. Morgan Securities three point two five million dollars over a registered rep's use of an unsuitable, high-risk investment strategy. It's another action in a pattern of regulator scrutiny on wirehouse supervision.
+
+SARAH: Fines at that level signal FINRA isn't treating supervisory failures at large firms as routine anymore — they're leaning in.
+
+ALEX: On the geopolitical side, escalating tensions tied to the Iran conflict have pushed advisor sentiment to its lowest reading in nearly a year. But here's the paradox — many of those same advisors say they're planning to increase allocations to foreign equities.
+
+SARAH: The sentiment-versus-action divergence is telling. Advisors are clearly pessimistic but also looking through the near-term noise to find value in international markets.
+
+ALEX: Orion's The Weighing Machine podcast tackled a related question today — how advisors should parse geopolitical headlines from genuine market signals, with a focus on oil volatility and current macro risks. The episode frames it as separating noise from actionable intelligence in client conversations.
+
+SARAH: A structured framework for that is genuinely useful right now given how much geopolitical noise is hitting advisors' inboxes every morning.
+
+ALEX: And wrapping up — new analysis finds that New York City families now need more than a hundred and twenty-five thousand dollars annually just to cover basic living costs, and that threshold holds across every borough.
+
+SARAH: For advisors serving NYC-area clients, that number has direct implications for savings capacity, retirement projections, and really any financial plan that assumed a lower cost baseline — that's a meaningful recalibration moment.
+
+ALEX: That's everything for today — thanks for listening to The WealthTech Daily Roundup, and we'll see you back here tomorrow.
