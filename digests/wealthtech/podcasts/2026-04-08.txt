@@ -1,0 +1,89 @@
+ALEX: Welcome to The WealthTech Daily Roundup for April 8th, 2026. Forty-two percent of heirs blow through their entire inheritance within twelve months — and that number is sitting at the center of a much bigger conversation about whether advisors are actually doing multi-generational planning or just multi-generational hoping.
+
+SARAH: That stat is genuinely alarming, and it connects to almost every deal, every platform move, and every planning story we're covering today. Let's get into it.
+
+ALEX: Starting with advisor platforms — there's a finding out from Financial Planning that half of advisors have dropped asset minimums entirely. The argument is that rigid thresholds lead to arbitrary rejections that have nothing to do with actual planning fit.
+
+SARAH: The framing I'd pay attention to is "goals-based over AUM gatekeeping" — that's not just a philosophy shift, it's a business model shift, and it opens up client segments that minimums were quietly locking out.
+
+ALEX: Also on the Orion side, Eclipse University is heading to Omaha on May 12 for hands-on workflow training directly with the platform team. Extended Early Bird pricing closes this Friday.
+
+SARAH: Worth flagging for ops teams specifically — and the timing is relevant because Eclipse's held-away account capabilities are expanding, which is actually the next story.
+
+ALEX: Right — Orion and Pontera have expanded their integration to bring 401k and 403b held-away retirement accounts directly into Eclipse for rebalancing and tax-aware portfolio strategies. Advisors get a complete household view without asking clients to move assets.
+
+SARAH: That's a significant workflow unlock. Held-away retirement accounts are one of the largest pools of unmanaged assets sitting outside an advisor's direct view — pulling those into Eclipse without a custodian transfer is a real competitive differentiator.
+
+ALEX: And it strengthens the fiduciary case too, because you're actually accounting for the full picture when you're building a strategy.
+
+SARAH: Shifting over to planning and workflow — there's a lot here. On the estate side, WealthManagement.com is running a piece on what they're calling three fiscal landmines for family offices. The core point is that delayed trust structuring isn't just a planning oversight — every quarter of inaction is effectively subsidizing federal budget reconciliation with clients' own compound growth.
+
+ALEX: And the legislative environment makes that worse — with estate and gift tax provisions perpetually in play, the cost of waiting is measurable and climbing.
+
+SARAH: The second planning story is a striking one. A Wells Fargo executive who received a cancer diagnosis is using her own experience to teach advisors how candid family conversations paired with the right trust structures can create what she's calling estate tax magic.
+
+ALEX: The uncomfortable truth in that piece is that these conversations almost always happen after a health crisis rather than before — which is exactly when the planning options start narrowing.
+
+SARAH: That segues directly into the inheritance stat we opened with. A new study finds that 42 percent of heirs spend their entire inheritance within twelve months. That's not just a sobering number — it's a client conversation framework for advisors building heir education and next-gen engagement programs.
+
+ALEX: The data basically makes the case that wealth transfer preparedness is a gap most families haven't closed, which is a significant planning opportunity.
+
+SARAH: There's also a court ruling worth flagging for advisors and estate attorneys. A court has confirmed that IRS liens properly attach to a taxpayer's interest in real property held in other states, even when an asset protection trust is in place.
+
+ALEX: So the assumption that a trust shelters multi-state real estate holdings — that assumption is now legally on thin ice. Advisors need to go back and look at any cross-state property holdings in trust designs with fresh eyes.
+
+SARAH: Over to AI — BetaNXT has officially launched InsightX, their enterprise AI platform targeting data aggregation, workflow automation, business intelligence, and predictive analytics for advisory firms. Alongside it they've unveiled an AI Innovation Lab, described as a virtual accelerator designed to take AI initiatives from concept to production-ready in as little as 90 days.
+
+ALEX: The 90-day figure is the number I'd pressure-test. Moving from concept to production-ready in a quarter is aggressive for enterprise wealthtech — but if BetaNXT actually delivers that for early adopter clients, it sets a new pace expectation across the industry. They're already in proof-of-concept stage with early clients, with solutions going into an InsightX Solutions Hub.
+
+SARAH: Jumping to the business side — there's a lot of M&A activity to work through. The big strategic read from Wealth Solutions Report is that Carlyle is acquiring a majority stake in MAI, while Modern Wealth, Mercer, Savant, NorthRock, EP Wealth, and others completed deals targeting specific geographies, client niches, and capabilities rather than raw AUM. LPL and Lincoln Investment added teams through recruiting.
+
+ALEX: The editorial framing there is that strategic acquisitions — buying a footprint in Maryland or UHNW expertise — are clearly trending over commodity asset grabs. Which is a different calculus than what drove a lot of the consolidation wave earlier.
+
+SARAH: The RIA roundup from WSR fills in more of that picture. Constellation Wealth invested in BIP Wealth, Savant partnered with Heritage Financial, Wealth Enhancement acquired three teams, and Creative Planning agreed to buy MASECO. But the Altruist headline is the one I'd watch — Gerber Kawasaki chose Altruist as custodian.
+
+ALEX: Altruist keeps stacking custodial wins. The question has always been whether they could move beyond early adopters, and at this point the wins are consistent enough that Schwab and Fidelity should be paying attention.
+
+SARAH: Also from that roundup, Mercer launched a dedicated Women and Wealth practice — a capability-building move that fits the niche-focused M&A pattern we're seeing.
+
+ALEX: Hightower Signature is also in the news — they're acquiring Lexington Wealth Management, which will push the Signature division past 29 billion in AUM at close.
+
+SARAH: Hightower's tiered affiliation model is one of the more interesting aggregator plays right now. Signature is specifically for larger, more independent practices, and that 29 billion figure is becoming a serious proof point for the model.
+
+ALEX: On the breakaway front, Jason Stephens and Mic Lundon have left UBS to launch Evertern Wealth in Naples, Florida — 2.4 billion in client assets, backed by Dynasty Financial Partners.
+
+SARAH: Dynasty is becoming the default infrastructure for large wirehouse breakaways. This is another data point in what's become a very consistent pattern — teams prioritizing independence and landing in Dynasty's ecosystem.
+
+ALEX: Wealthspire's institutional arm is integrating Indianapolis-based Axia Advisory, adding 1.9 billion in plan sponsor clients and retirement plan participants to their institutional retirement division.
+
+SARAH: Institutional retirement plan advisory is sticky, recurring revenue — building scale there is a durable business strategy as the market gets more competitive.
+
+ALEX: There's also a people story worth noting. A younger RIA team — Gabe Lapito and partners, mostly in their 30s and early 40s — left Commonwealth for Merit Financial Advisors with a stated mandate to build, not sell. Growth over liquidity event.
+
+SARAH: That growth RIA versus lifestyle RIA tension is real and it's defining how next-gen owners choose affiliation partners. Merit, Hightower, and others are actively recruiting this cohort — it's a meaningful differentiator.
+
+ALEX: On the regulatory side, WealthManagement.com is reporting that the Trump administration's deregulatory push is pulling financial watchdogs back across crypto, banking, and capital markets. Industry observers are flagging regulatory gaps and systemic risk concerns.
+
+SARAH: Short-term it reduces compliance burden, but the longer-term exposure — particularly in crypto and private markets — could reshape fiduciary obligations for advisors in ways that aren't fully priced in yet.
+
+ALEX: Goldman Sachs is also in the news. Their private credit fund reportedly sidestepped the retail redemption wave by leaning on institutional capital, and now Goldman says they're positioned to move opportunistically as retail outflows create distress in parts of the market.
+
+SARAH: This is a real stress test for the democratization of alternatives thesis. Goldman's institutional-first approach is looking prescient right now, and advisors who put clients into retail private credit vehicles are probably having some uncomfortable conversations.
+
+ALEX: A brand play to flag — U.S. Bank has signed on as the official bank and wealth management partner of the NFL. The explicit goal is to shed their regional Midwest identity and compete for HNW clients nationally.
+
+SARAH: NFL-scale brand visibility is blunt but effective. Watch for U.S. Bank to use this to accelerate wealth management client acquisition in markets where they don't have a branch footprint to drive awareness.
+
+ALEX: WSR also named its CFO 5 list, recognizing the top CFOs in wealth management — with Osaic's Kristy Britt among the honorees. The framing is that CFOs are becoming as strategically pivotal as CEOs as consolidation accelerates.
+
+SARAH: M&A, tech investment cycles, capital raises — the CFO is sitting at the center of all of it right now. It's a quiet but meaningful shift in where strategic influence lives inside these firms.
+
+ALEX: Wrapping up — on ETFs, nearly 500 billion flowed into ETFs in Q1 2026 despite market volatility, confirming the vehicle's status as the default allocation tool. But rising redemption requests are creating pressure on liquidity management and client communication at the same time.
+
+SARAH: Those two things existing simultaneously tells you a lot about where advisor energy is going right now — defending the allocation framework while managing client anxiety.
+
+ALEX: And one enforcement note to close — a former Raymond James representative is under FINRA scrutiny for improper account conversions. Details are still emerging, but it's a reminder for firms to audit their authorization and conversion workflows.
+
+SARAH: Account conversion abuse is a persistent compliance risk, and with regulators pulling back in other areas, firms can't assume the enforcement environment is uniformly lighter.
+
+ALEX: That's the WealthTech Daily Roundup for April 8th, 2026 — we'll see you tomorrow.
