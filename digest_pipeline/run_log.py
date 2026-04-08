@@ -8,12 +8,14 @@ from pathlib import Path
 class RunLog:
     """Writes a structured run.json to the work directory, updated after each stage."""
 
-    def __init__(self, digest_name: str, date: str, work_dir: Path):
-        self._path = work_dir / "run.json"
+    def __init__(self, digest_name: str, date: str, work_dir: Path,
+                 path: Path = None, pipeline_type: str = "digest"):
+        self._path = path if path else work_dir / "run.json"
         self._start = time.time()
         self._data = {
             "digest": digest_name,
             "date": date,
+            "pipeline_type": pipeline_type,
             "started_at": _now(),
             "completed_at": None,
             "status": "running",
@@ -59,6 +61,14 @@ class RunLog:
             "output_tokens": tracker.total_output,
             "cost": round(tracker.total_cost, 4),
         }
+        self._flush()
+
+    def complete_raw(self, totals: dict = None):
+        """Mark run as success with explicit totals dict (no TokenTracker needed)."""
+        self._data["status"] = "success"
+        self._data["completed_at"] = _now()
+        self._data["duration_s"] = round(time.time() - self._start, 1)
+        self._data["totals"] = totals
         self._flush()
 
     def fail(self, error: str):
