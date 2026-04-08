@@ -156,8 +156,8 @@ def _markdown_to_email_html(md: str, config: dict,
     emoji = digest_cfg.get("emoji", "📰")
     section_emojis = [c["emoji"] for c in config.get("categories", [])]
 
-    # Branding: match podcast name and logo
-    brand_name = podcast_cfg.get("name", digest_cfg.get("name", "AI Daily Digest"))
+    # Branding: use digest name as the canonical brand name
+    brand_name = digest_cfg.get("name", podcast_cfg.get("name", "Daily Roundup"))
     brand_logo = podcast_cfg.get("image_url", "")
 
     lines = md.split("\n")
@@ -173,7 +173,7 @@ def _markdown_to_email_html(md: str, config: dict,
     if brand_logo:
         header_parts.append(
             f'<img src="{brand_logo}" alt="{brand_name}" '
-            f'style="width: 80px; height: 80px; border-radius: 14px; '
+            f'style="width: 160px; height: 160px; border-radius: 20px; '
             f'display: block; margin: 0 auto 10px;">'
         )
     title_text = brand_name
