@@ -1,6 +1,6 @@
 {
   "digest": {
-    "name": "Wealth Management Tech Digest",
+    "name": "The WealthTech Daily Roundup",
     "tagline": "WEALTHTECH DIGEST",
     "emoji": "💼",
     "tone": "informed, direct, slightly opinionated",
@@ -68,7 +68,7 @@
       "method": "resend",
       "resend": {
         "api_key_env": "RESEND_API_KEY",
-        "from": "The WealthTech Daily Roundup <digest@wealthtechdigest.com>"
+        "from": "The WealthTech Daily Roundup <wealthtech@aidailyroundup.com>"
       }
     },
     "notify": {

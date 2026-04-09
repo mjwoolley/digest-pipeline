@@ -1,8 +1,8 @@
 {
   "digest": {
-    "name": "AI Daily Digest",
+    "name": "The AI Daily Roundup",
     "tagline": "AI DIGEST",
-    "emoji": "⚡",
+    "emoji": "\u26a1",
     "tone": "informed, direct, slightly opinionated",
     "max_articles": 20
   },
@@ -10,50 +10,50 @@
     {
       "id": "model-release",
       "label": "Model Releases",
-      "emoji": "🚀",
+      "emoji": "\ud83d\ude80",
       "description": "Major new models or capability upgrades (GPT/Claude/Gemini releases, benchmark improvements, reasoning models, multimodal upgrades)"
     },
     {
       "id": "dev-tools",
       "label": "Developer Tools",
-      "emoji": "🛠️",
+      "emoji": "\ud83d\udee0\ufe0f",
       "description": "Tools that help people build AI systems (Claude Code, OpenClaw, LangChain, MCP tools, agent frameworks, coding copilots)"
     },
     {
       "id": "infra-platform",
       "label": "Infrastructure & Platforms",
-      "emoji": "🏗️",
+      "emoji": "\ud83c\udfd7\ufe0f",
       "description": "Infrastructure for deploying AI (inference engines, GPU infrastructure, vector databases, model hosting, AI cloud platforms)"
     },
     {
       "id": "research",
       "label": "Research & Techniques",
-      "emoji": "🔬",
+      "emoji": "\ud83d\udd2c",
       "description": "Papers or new technical approaches (agent architectures, reasoning techniques, training methods, evaluation methods)"
     },
     {
       "id": "applications",
       "label": "Applications & Products",
-      "emoji": "📱",
+      "emoji": "\ud83d\udcf1",
       "description": "AI applied to real-world products (new AI apps, consumer tools, enterprise deployments, AI assistants)"
     },
     {
       "id": "industry",
       "label": "Industry & Business",
-      "emoji": "💼",
+      "emoji": "\ud83d\udcbc",
       "description": "Market moves and ecosystem changes (funding rounds, partnerships, regulation, company strategy)"
     },
     {
       "id": "other",
       "label": "Other",
-      "emoji": "🌐",
+      "emoji": "\ud83c\udf10",
       "description": "Anything that doesn't fit the above categories"
     }
   ],
   "podcast": {
     "enabled": true,
     "name": "The AI Daily Roundup",
-    "image_url": "https://aidailyroundup.com/digests/ai/podcast-logo.png",
+    "image_url": "https://aidailyroundup.com/podcast-logo.png",
     "hosts": [
       {
         "tag": "ALEX",
@@ -86,7 +86,10 @@
   },
   "subscriptions": {
     "public_base_url": "https://aidailyroundup.com",
-    "cors_origins": ["https://aidailyroundup.com", "https://ai-digest.duckdns.org"],
+    "cors_origins": [
+      "https://aidailyroundup.com",
+      "https://ai-digest.duckdns.org"
+    ],
     "port": 5100
   },
   "llm": {
@@ -116,7 +119,10 @@
         "dejavucoder",
         "zenoware",
         "simonw",
-        "karpathy"
+        "karpathy",
+        "MistralAI",
+        "AnthropicAI",
+        "googleaistudio"
       ],
       "lookback": "36h",
       "max_per_account": 8
@@ -148,12 +154,12 @@
       "simon_willison": {
         "name": "Simon Willison",
         "feed_url": "https://simonwillison.net/atom/everything/",
-        "description": "AI/LLM thinker — prompt engineering, agent patterns, tooling"
+        "description": "AI/LLM thinker \u2014 prompt engineering, agent patterns, tooling"
       },
       "the_ai_engineer": {
         "name": "The AI Engineer",
         "feed_url": "https://theaiengineer.substack.com/feed",
-        "description": "Deep technical explainers on AI engineering — MCP, agents, coding tools"
+        "description": "Deep technical explainers on AI engineering \u2014 MCP, agents, coding tools"
       },
       "latent_space": {
         "name": "Latent Space",
@@ -170,22 +176,10 @@
         "feed_url": "https://openai.com/blog/rss.xml",
         "description": "Model releases and product launches"
       },
-      "anthropic_blog": {
-        "name": "Anthropic News",
-        "strategy": "html_scrape",
-        "url": "https://www.anthropic.com/news",
-        "scrape_parser": "anthropic_news",
-        "description": "Claude model releases, research, and tooling"
-      },
       "google_ai_blog": {
         "name": "Google AI Blog",
         "feed_url": "https://blog.google/technology/ai/rss/",
         "description": "Gemini and DeepMind updates"
-      },
-      "mistral_blog": {
-        "name": "Mistral AI",
-        "feed_url": "https://mistral.ai/news/rss.xml",
-        "description": "Open-weight model announcements"
       },
       "huggingface_blog": {
         "name": "Hugging Face Blog",

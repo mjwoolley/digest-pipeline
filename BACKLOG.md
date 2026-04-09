@@ -84,36 +84,6 @@ Add a preheader (preview text) to digest emails — the snippet Gmail shows next
 - Extract the first 1-2 story titles from the digest
 - Inject as a hidden preheader div at the top of the HTML email body
 
-## Management Console for Multiple Digests
-
-### Goal
-Add a management console that supports multiple daily digests, not just the AI Daily Roundup.
-
-### What it should show
-- all configured digests
-- current enabled/disabled sources per digest
-- source metadata and source type
-- recent run history per digest
-- stage-by-stage run status
-- recent errors / failures / warnings
-- source health signals (for example repeated zero-yield sources)
-- high-level stats such as article counts, dedupe counts, dropped counts, and delivery outcomes
-
-### Design goals
-- design it as a multi-digest control plane, not a one-off AI digest debug page
-- support both digest-specific views and an all-digests overview
-- make it easy to answer:
-  - what sources are active?
-  - what ran recently?
-  - what failed?
-  - which sources are unhealthy or stale?
-- reuse existing logs/work artifacts/source-state where practical before inventing new storage
-
-### Notes
-- read-only operational visibility first; mutating controls can come later
-- should complement source-health auditing and source-state checkpoint work rather than duplicating it
-- should be useful for diagnosing broken sources, delivery issues, and schema drift across multiple digests
-
 ## Register Podcast with Directories
 
 ### Goal
@@ -137,6 +107,12 @@ Submit the AI Daily Roundup podcast RSS feed to major podcast directories so lis
 ---
 
 ## Completed
+
+### Console: Rename "Runs" to "Digest", add Podcast run history
+- **Done 2026-03-25.** Restructured sidebar (Sources > Digest > Podcast > Delivery), added podcast run history table and detail page with stage logs.
+
+### Console: Responsive mobile layout
+- **Done 2026-03-25.** Collapsible sidebar, responsive tables and cards for phone/tablet viewports.
 
 ### Management Console for Multiple Digests
 - **Done 2026-03-25.** Read-only Preact + Material Web dashboard served by Flask on port 5200 (Tailscale only). Views: Overview (all digests at a glance), Run History + Detail (stage timeline, article funnel, source files), Source Health (grouped by type with stale/healthy flags), Delivery (subscriber count, 7-day success rate, send history), Podcast (episode list, RSS sync check). Auto-refresh toggle (5s poll). CLI: `digest-pipeline --console [--digests-dir DIR] [--port PORT]`. Deploy as systemd service `digest-console.service`.
