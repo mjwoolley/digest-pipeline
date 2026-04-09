@@ -7,6 +7,16 @@ from pathlib import Path
 def load_config(config_path: str) -> dict:
     """Load config JSON and resolve data_root from config file's parent dir.
 
+    If the ``DIGEST_ENV`` environment variable is set (e.g. ``staging``), a
+    sibling overlay file named ``config.{DIGEST_ENV}.json`` is deep-merged on
+    top of the base config. This lets non-production deployments override
+    only the fields that differ (public URLs, ports, archive flags, telegram
+    chat id, etc.) without forking the base config. Overlay files are
+    gitignored — they are per-deployment artifacts, not source-of-truth.
+
+    Deep-merge semantics: dicts merge recursively; lists and scalars in the
+    overlay replace the base value wholesale.
+
     Args:
         config_path: Path to config.json
 
@@ -18,6 +28,14 @@ def load_config(config_path: str) -> dict:
         raise FileNotFoundError(f"Config not found: {path}")
 
     config = json.loads(path.read_text())
+
+    env = os.environ.get("DIGEST_ENV", "").strip()
+    if env:
+        overlay_path = path.with_name(f"config.{env}.json")
+        if overlay_path.exists():
+            overlay = json.loads(overlay_path.read_text())
+            config = _deep_merge(config, overlay)
+
     config["_data_root"] = path.parent
     config["_pipeline_dir"] = Path(__file__).resolve().parent
 
@@ -33,6 +51,22 @@ def load_config(config_path: str) -> dict:
                 os.environ[key] = value
 
     return config
+
+
+def _deep_merge(base: dict, overlay: dict) -> dict:
+    """Return a new dict with ``overlay`` deep-merged on top of ``base``.
+
+    Dicts merge recursively. Lists and scalar values in the overlay replace
+    the base value entirely — there is no list concatenation.
+    """
+    result = dict(base)
+    for key, overlay_value in overlay.items():
+        base_value = result.get(key)
+        if isinstance(base_value, dict) and isinstance(overlay_value, dict):
+            result[key] = _deep_merge(base_value, overlay_value)
+        else:
+            result[key] = overlay_value
+    return result
 
 
 def render_prompt(template_name: str, config: dict, extra_vars: dict = None) -> str:

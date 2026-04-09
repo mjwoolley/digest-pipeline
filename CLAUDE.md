@@ -84,6 +84,31 @@ Six-stage pipeline orchestrated by `digest_pipeline/digest.py`:
 
 All configuration is external via a JSON file passed with `--config`. Key sections: `sources`, `digest`, `categories`, `podcast`, `delivery`, `llm`, `archive`, `subscriptions`. API keys are loaded from environment variables, typically set via `secrets.env` at the repo root.
 
+### Environment-specific overlays (staging, etc.)
+
+Set the `DIGEST_ENV` environment variable (e.g. `DIGEST_ENV=staging`) and `load_config` will look for a sibling file named `config.{DIGEST_ENV}.json` next to the base `config.json`. If it exists, its contents are deep-merged on top of the base config — dicts merge recursively, lists and scalars replace wholesale.
+
+This lets non-prod deployments override only the fields that differ (public URLs, ports, archive flags, telegram chat id, etc.) without forking the base config. Overlay files are gitignored; they are per-deployment artifacts, not source-of-truth.
+
+Example `digests/ai/config.staging.json`:
+
+```json
+{
+  "digest": { "name": "[STAGING] The AI Daily Roundup" },
+  "archive": { "enabled": false, "push": false },
+  "subscriptions": {
+    "public_base_url": "https://staging.aidailyroundup.com",
+    "cors_origins": ["https://staging.aidailyroundup.com"],
+    "port": 5101
+  },
+  "delivery": {
+    "notify": { "telegram": { "chat_id_env": "TELEGRAM_CHAT_ID_STAGING" } }
+  }
+}
+```
+
+Activate by setting `DIGEST_ENV=staging` in the systemd unit's `Environment=` line (and in the shell when running `run.sh` manually).
+
 ### Archive Config
 
 ```json
