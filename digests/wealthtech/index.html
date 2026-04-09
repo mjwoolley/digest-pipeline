@@ -284,7 +284,7 @@
       <div class="podcast-stack">
         <div>
           <div class="rss-field">
-            <input class="rss-input" id="rssInput" type="text" readonly value="https://wealthtechdigest.com/podcast.xml" aria-label="Podcast RSS feed URL">
+            <input class="rss-input" id="rssInput" type="text" readonly value="{{PUBLIC_BASE_URL}}/podcast.xml" aria-label="Podcast RSS feed URL">
             <button class="copy-btn" type="button" id="copyRssBtn">Copy RSS</button>
           </div>
           <span class="copy-status" id="copyStatus" aria-live="polite"></span>
@@ -392,7 +392,7 @@
 </footer>
 
 <script>
-  const feedUrl = 'https://wealthtechdigest.com/podcast.xml';
+  const feedUrl = '{{PUBLIC_BASE_URL}}/podcast.xml';
   const copyStatus = document.getElementById('copyStatus');
   const copyBtn = document.getElementById('copyRssBtn');
 

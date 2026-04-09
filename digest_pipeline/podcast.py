@@ -314,7 +314,7 @@ def _update_landing_page(podcasts_dir: Path, config: dict,
         sub_cfg = config.get("subscriptions", {})
         pages_base = podcast_cfg.get("pages_base_url",
                                       sub_cfg.get("public_base_url",
-                                                   "https://aidailyroundup.com"))
+                                                   "https://aidailyroundup.com")).rstrip("/")
         base_url = f"{pages_base}/podcasts"
 
         index_path = data_root / "index.html"
@@ -345,6 +345,12 @@ def _update_landing_page(podcasts_dir: Path, config: dict,
         ep_block = "\n".join(ep_html_lines)
 
         html = index_path.read_text()
+        # Substitute the PUBLIC_BASE_URL placeholder used in the static parts of
+        # the template (RSS input field, feedUrl JS constant, etc). Episode MP3
+        # URLs are regenerated below from {base_url}, which is also derived from
+        # pages_base, so staging deployments with a different public_base_url
+        # get a fully self-consistent landing page.
+        html = html.replace("{{PUBLIC_BASE_URL}}", pages_base)
         html = re.sub(
             r'<!-- EPISODES_START -->.*?<!-- EPISODES_END -->',
             f'<!-- EPISODES_START -->\n{ep_block}\n  <!-- EPISODES_END -->',
