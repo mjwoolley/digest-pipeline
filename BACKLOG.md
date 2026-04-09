@@ -84,6 +84,29 @@ Add a preheader (preview text) to digest emails — the snippet Gmail shows next
 - Extract the first 1-2 story titles from the digest
 - Inject as a hidden preheader div at the top of the HTML email body
 
+## Split landing page template from build output
+
+### Goal
+Stop `_update_landing_page()` in `digest_pipeline/podcast.py` from writing into the same `digests/*/index.html` file that is also the tracked source-of-truth template. Today that file is both input and output, which causes working-tree drift on any deployment where the archive cron isn't committing the regenerated output (e.g. the staging environment, where `archive.enabled=false`).
+
+### What it should do
+- Rename the tracked file to `digests/*/index.template.html` (or similar).
+- Update `_update_landing_page()` to read the template, substitute `{{PUBLIC_BASE_URL}}` + episode block, and write out `digests/*/index.html`.
+- Gitignore `digests/*/index.html`.
+- Update `archive.artifacts` defaults in `config.py` / CLAUDE.md so prod no longer commits the built HTML (the template is the source of truth).
+- Caddy's file server keeps serving `/index.html` as before — no vhost changes needed.
+
+### Why
+The staging environment currently has to `git checkout -- digests/*/index.html` before every `git pull`, because `_update_landing_page()` rewrites the file with staging URLs on every podcast run and the archive cron isn't around to commit it. Splitting template from output removes this last paper cut.
+
+## Podcast pronunciation rewrites
+
+### Goal
+Fix mispronunciations in Kokoro TTS output (e.g. `401(k)`, `FINRA`, `AWS`, `S&P`) by rewriting podcast turn text after script parsing but before TTS synthesis, without affecting the saved script, digest markdown, RSS, or archive text.
+
+### Plan
+See [pronunciation.md](pronunciation.md) for the full design: a new `digest_pipeline/pronunciation.py` module, a `podcast.pronunciation` config section with a friendly terms map and optional regex escape hatch, and a hook point in `podcast.py` between `parse_script()` and `synthesize_script()`.
+
 ## Register Podcast with Directories
 
 ### Goal
