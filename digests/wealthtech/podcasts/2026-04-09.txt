@@ -1,0 +1,75 @@
+ALEX: Welcome to The WealthTech Daily Roundup for April 9th, 2026. Zocks just closed a forty-five million dollar Series B, quintupled its customer base to over five thousand firms in a single year, and dropped a product update so broad it's hard to call them a meeting-notes tool anymore — this company is having a moment.
+
+SARAH: And the timing is interesting — they're not just growing, they're expanding into book-of-business insights, referral tracking, growth opportunity identification. That's a very different product than what most advisors signed up for a year ago.
+
+ALEX: Let's start with the Morgan Stanley news first though. Morgan launched MSBT, their spot Bitcoin ETF, priced at fourteen basis points — that's below everyone else in the field right now.
+
+SARAH: The price point is the whole story here. Morgan Stanley has the brand and the distribution network, and they're undercutting the competition from day one. That's a serious combination, even with Bitcoin under price pressure at launch.
+
+ALEX: Moving over to planning and workflow — there's a piece arguing that private markets have officially gone mainstream, but the new bottleneck isn't access anymore, it's integration.
+
+SARAH: That framing tracks with what advisors are actually saying. Getting into a private fund is solved. Getting it to show up meaningfully inside a financial plan, alongside public assets, with proper reporting — that's still messy for most firms.
+
+ALEX: Now let's dig into the Zocks coverage, because there's a lot of it today. On the funding side — forty-five million Series B, total funding now at sixty-five million, backed by Lightspeed, QED, and Motive Partners. Customer base went from one thousand to five thousand firms in twelve months.
+
+SARAH: That adoption curve is genuinely unusual for wealthtech. Five-x in a year with enterprise deployments on top of that — it suggests the category itself reached a tipping point, not just one company.
+
+ALEX: On the product side, they launched Document Intelligence — advisors upload a brokerage statement, an estate plan, an intake form, and the data gets extracted and pushed directly into eMoney Advisor in under sixty seconds.
+
+SARAH: Manual PDF entry is one of those invisible time sinks that kills onboarding momentum. If Zocks is automating that and syncing it directly to the planning platform, they're removing a real prospect drop-off point.
+
+ALEX: Then there's the broader product update — new integrations with Holistiplan, AdvisorEngine, and Redtail CRM, plus email flows, form citations, branded PDFs, meeting trimming, referral tracking, and restructured subscription tiers.
+
+SARAH: That list reads like a platform, not a feature release. The meeting-notes framing is officially too small for what Zocks is building.
+
+ALEX: Shifting over to the InvestSuite news — they launched StoryTeller in the U.S. market. It's an AI tool that generates personalized portfolio narratives for individual clients to help with engagement and retention.
+
+SARAH: Client communication at scale is a real weak spot for most advisory practices. If the output is actually personalized and not just a mail-merge wrapper, that's worth attention for retention-focused firms.
+
+ALEX: Addepar also dropped their Q1 2026 update, highlighting continued AI development across the platform. They're framing AI as a core layer for helping advisors navigate markets and serve clients.
+
+SARAH: Addepar sits on massive AUM — when they deepen AI capabilities, it shifts what enterprise wealth tech is expected to deliver. That raises the floor for everyone else competing at that tier.
+
+ALEX: On the infrastructure side, the Zocks and RightCapital integration syncs over two hundred fields automatically from client meetings into the planning platform — no manual entry.
+
+SARAH: Two hundred fields is a meaningful number. There's a big difference between syncing a client name and a date versus syncing income, assets, goals, and account details. That's where real workflow automation lives.
+
+ALEX: The Zocks-Holistiplan integration goes further — it surfaces tax insights during meeting prep, enables real-time tax Q&A through an Ask Anything feature, and auto-populates client email replies with Holistiplan data.
+
+SARAH: Tax planning is one of the highest-value things advisors can offer, and it's usually siloed from the meeting workflow. Embedding it at the point of the client conversation is a meaningful shift.
+
+ALEX: Orion published findings from the 2026 Wealthtech and T3 Surveys arguing that connected, integrated systems — not standalone tools — are the primary driver of advisor growth going forward.
+
+SARAH: That's also Orion making the case for consolidating around platform players, which includes themselves. The argument isn't wrong, but it's worth noting who's making it.
+
+ALEX: On the business side — Zocks was also named to CB Insights' 2025 Fintech 100, selected from over fifteen thousand companies based on investor strength, partnerships, hiring, and commercial traction.
+
+SARAH: Getting that recognition in the same week as a major funding round amplifies the recruiting and enterprise sales story considerably. It's a flywheel moment for them.
+
+ALEX: Hightower's direct-to-consumer arm, Hightower Signature Wealth, acquired Lexington Wealth Management out of Massachusetts — a firm they had actually invested in back in 2019. The deal adds three-point-two billion in AUM and a twenty-five person team, pushing HTSW past twenty-nine billion across twenty-five-plus locations.
+
+SARAH: The 2019 investment piece is what makes this interesting. They seeded the relationship years ago and converted it to a full acquisition — that's a lower-friction consolidation playbook that's hard to replicate quickly.
+
+ALEX: Regulatory news now — the SEC's latest enforcement report shows a twenty-two percent drop in actions, and current leadership is explicitly blaming predecessors for misallocating resources to, quote, pursue media headlines and run up numbers.
+
+SARAH: A twenty-two percent drop is significant, and the public framing makes it clear this is a deliberate policy shift, not just a resource issue. That materially changes the compliance risk calculus for RIAs and fintech platforms.
+
+ALEX: Separately, Gibson Dunn partner David Woodcock was appointed as the new Enforcement Division Director, replacing Judge Margaret Ryan who resigned after just six months in the role.
+
+SARAH: Woodcock comes from private practice, and his predecessor barely lasted half a year. His appointment is consistent with the softer enforcement posture the current SEC leadership is signaling.
+
+ALEX: Zocks also announced a partnership with CreativeOne, which gives affiliated advisors overseeing ten billion dollars across life insurance, annuities, wealth, and securities access to the Zocks platform.
+
+SARAH: That's an important distribution move. The insurance-affiliated advisor channel is large and historically underserved by RIA-focused tech. Cracking into it is a meaningful expansion beyond their core market.
+
+ALEX: There's a piece on RIA M&A today making the case that cultural fit and communication alignment are now as important as AUM multiples — and that misalignment on those softer factors is the primary source of post-deal conflict.
+
+SARAH: Valuations matter, but the deals that fall apart or underperform after close usually have a cultural story behind them. Buyers and sellers are apparently catching up to that.
+
+ALEX: Also in industry trends — Verdence's Pete McGratty argues we're in a third phase of wealth management: past wirehouses, past consolidators, now defined by independent RIAs with sophisticated infrastructure.
+
+SARAH: The tension he's identifying — independence versus scale — is exactly what platform providers are trying to resolve. Whoever helps independent RIAs scale without sacrificing their identity wins a big part of the next decade.
+
+ALEX: And we'll close with the P90X piece — the argument being that disruptive tools change behavior without eliminating human expertise, just like home fitness programs didn't kill gyms or personal trainers.
+
+SARAH: It's a useful framing for advisors dealing with client anxiety about AI, though the digest puts it well — the real risk isn't AI replacing advisors, it's advisors who ignore AI losing ground to those who don't. That's a wrap for April 9th — stay connected out there.

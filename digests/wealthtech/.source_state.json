@@ -156,9 +156,17 @@
       "https://www.wealthmanagement.com/publications/trusts",
       "hash:7707afedb53b52b7",
       "https://www.wealthmanagement.com/career-moves/industry-exec-carolyn-armitage-produces-documentary-film",
-      "https://www.wealthmanagement.com/ria-news/wealthspire-s-fiducient-advisors-acquires-axia-advisory"
+      "https://www.wealthmanagement.com/ria-news/wealthspire-s-fiducient-advisors-acquires-axia-advisory",
+      "https://www.wealthmanagement.com/regulation-compliance/sec_names_gibson_dunn_partner_enforcement",
+      "https://www.wealthmanagement.com/etfs/morgan-stanley-debuts-bitcoin-etf-as-price-slump-rattles-holders",
+      "https://www.wealthmanagement.com/regulation-compliance/sec-enforcement-actions-drop-22-amid-leadership-changes",
+      "https://www.wealthmanagement.com/ria-news/people-moves-compound-hires-wealth-head-from-focus-perigon-names-hr-chief",
+      "https://www.wealthmanagement.com/wealth-management-industry-trends/zephyr-s-adjusted-for-risk-independent-vs-consolidators-defining-wealth-management-s-future",
+      "https://www.wealthmanagement.com/rpa-news/401-k-real-talk-episode-187-april-8-2026",
+      "https://www.wealthmanagement.com/advisor-support-platforms/investsuite_launches_storyteller",
+      "https://www.wealthmanagement.com/artificial-intelligence/p90x-redefined-home-fitness-yet-gyms-and-trainers-still-exist"
     ],
-    "last_updated": "2026-04-08"
+    "last_updated": "2026-04-09"
   },
   "blog:addepar": {
     "seen_ids": [
@@ -179,9 +187,10 @@
       "https://www.addepar.com/blog/contextual-audit-log-hackathon-2025",
       "https://www.addepar.com/blog/embracing-jooq-for-database-precision-and-speed-at-scale",
       "https://www.addepar.com/blog/putting-ai-inside-investment-management-workflows",
-      "https://www.addepar.com/blog/alts-data-management-capital-activity-dashboard"
+      "https://www.addepar.com/blog/alts-data-management-capital-activity-dashboard",
+      "https://www.addepar.com/blog/inside-addepar-q1-2026"
     ],
-    "last_updated": "2026-04-03"
+    "last_updated": "2026-04-09"
   },
   "blog:financial_planning": {
     "seen_ids": [
@@ -239,9 +248,13 @@
       "https://www.financial-planning.com/news/half-of-advisors-eschew-asset-minimums-heres-what-it-gets-them",
       "https://www.financial-planning.com/news/u-s-bank-signs-on-as-nfls-bank-and-wealth-management-partner",
       "https://www.financial-planning.com/news/how-family-talks-and-trusts-can-build-estate-tax-magic",
-      "https://www.financial-planning.com/news/calling-all-planning-superstars-nominate-a-2026-rising-star-now"
+      "https://www.financial-planning.com/news/calling-all-planning-superstars-nominate-a-2026-rising-star-now",
+      "https://www.financial-planning.com/news/what-ria-buyers-and-sellers-are-prioritizing-in-a-shifting-market",
+      "https://www.financial-planning.com/news/sec-finds-little-to-celebrate-in-record-18b-penalty-haul",
+      "https://www.financial-planning.com/news/pimco-capital-group-causeway-top-morningstar-awards",
+      "https://www.financial-planning.com/opinion/private-markets-have-gone-mainstream-now-what"
     ],
-    "last_updated": "2026-04-08"
+    "last_updated": "2026-04-09"
   },
   "twitter:RightCapitalHQ": {
     "seen_ids": [
@@ -284,9 +297,10 @@
       "https://x.com/orionwealthtech/status/2040073611709501479",
       "https://x.com/orionwealthtech/status/2041213154315669819",
       "https://x.com/orionwealthtech/status/2041582284864733424",
-      "https://x.com/orionwealthtech/status/2041574760476197361"
+      "https://x.com/orionwealthtech/status/2041574760476197361",
+      "https://x.com/orionwealthtech/status/2041981410764894472"
     ],
-    "last_updated": "2026-04-08"
+    "last_updated": "2026-04-09"
   },
   "blog:wealth_solutions_report": {
     "seen_ids": [
@@ -328,9 +342,12 @@
       "https://www.wealthsolutionsreport.com/wsr-names-cfo-5-top-wealth-management-cfos-3/",
       "https://www.wealthsolutionsreport.com/wsria-roundup-savant-wealth-enhancement-altruist-and-more/",
       "https://www.wealthsolutionsreport.com/deals-recruiting-roundup-carlyle-modern-wealth-lpl-and-more/",
-      "https://www.wealthsolutionsreport.com/betanxt-launches-insightx-ai-platform-and-creates-innovation-lab/"
+      "https://www.wealthsolutionsreport.com/betanxt-launches-insightx-ai-platform-and-creates-innovation-lab/",
+      "https://www.wealthsolutionsreport.com/hightower-signature-wealth-acquires-3-2-billion-massachusetts-firm/",
+      "https://www.wealthsolutionsreport.com/honoring-top-cfos-and-recruiting-solo-and-duo-teams/",
+      "https://www.wealthsolutionsreport.com/prudential-onboards-two-advisors-totaling-over-300-million/"
     ],
-    "last_updated": "2026-04-08"
+    "last_updated": "2026-04-09"
   },
   "twitter:ThinkAdvisor": {
     "seen_ids": [
@@ -370,9 +387,11 @@
       "https://x.com/ThinkAdvisor/status/2041305851391357206",
       "https://x.com/ThinkAdvisor/status/2041305278126367119",
       "https://x.com/ThinkAdvisor/status/2041668241572200584",
-      "https://x.com/ThinkAdvisor/status/2041667656550592949"
+      "https://x.com/ThinkAdvisor/status/2041667656550592949",
+      "https://x.com/ThinkAdvisor/status/2042030628515017003",
+      "https://x.com/ThinkAdvisor/status/2042030053895368847"
     ],
-    "last_updated": "2026-04-08"
+    "last_updated": "2026-04-09"
   },
   "newsletter:sytaylor": {
     "seen_ids": [
@@ -403,5 +422,20 @@
       "https://x.com/here_browser/status/2018395018533199919"
     ],
     "last_updated": "2026-04-04"
+  },
+  "twitter:zocksio": {
+    "seen_ids": [
+      "https://x.com/zocksio/status/2015816331145134364",
+      "https://x.com/zocksio/status/1999118721911005546",
+      "https://x.com/zocksio/status/1995902547735757181",
+      "https://x.com/zocksio/status/1990820273310871636",
+      "https://x.com/zocksio/status/1981452743429468166",
+      "https://x.com/zocksio/status/1980739132918743135",
+      "https://x.com/zocksio/status/1978452236314288183",
+      "https://x.com/zocksio/status/1974144736928694480",
+      "https://x.com/zocksio/status/1973050111799292173",
+      "https://x.com/zocksio/status/1966515829127688605"
+    ],
+    "last_updated": "2026-04-09"
   }
 }
