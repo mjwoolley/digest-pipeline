@@ -20,6 +20,7 @@ digests/*/send_history.jsonl
 digests/*/.source_state.json
 digests/*/podcasts/*-run.json
 digests/*/brand-original*.png
+digests/*/config.*.json
 *.log
 *.wav
 
