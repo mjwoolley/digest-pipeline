@@ -1,0 +1,85 @@
+ALEX: Welcome to The WealthTech Daily Roundup for April 11th, 2026. Zocks showed up in five separate stories today — new integrations, an enterprise case study, a partnership with InvestCloud — and it's starting to look less like a meeting tool and more like connective tissue for the entire advisor workflow.
+
+SARAH: That's a lot of surface area for one platform to cover in a single week. It really puts a spotlight on how meeting intelligence has become the new battleground for AI in wealth management — but let's get into everything, because today's digest is genuinely packed.
+
+ALEX: Starting with advisor platforms — WealthManagement.com ran a piece on the rise of the multi-channel firm, and the core argument is that the old binary choice between affiliation models is effectively dead. Firms are building structures that let advisors operate across channels without being forced to switch firms or models.
+
+SARAH: The strategic read there is that advisors now have more structural leverage than they've had in a long time — firm loyalty is being replaced by optionality, which has real implications for recruiting and retention at the IBD and RIA level.
+
+ALEX: Also in advisor platforms, Orion dropped part four of their WealthTech Outlook series — a practical framework of four questions firms should ask before buying technology. The focus is on reducing friction and supporting growth, essentially a filter for cutting through vendor noise.
+
+SARAH: Tech sprawl is a real problem right now, and having a disciplined evaluation framework matters more as the number of point solutions keeps multiplying. A vendor putting that framework out publicly is also smart positioning.
+
+ALEX: And rounding out that section, Zephyr's Adjusted for Risk podcast featured Shannon Rosic and Ryan Nauman previewing themes heading into the Wealth Management Edge conference. AI adoption, personalization, and the evolving advisor experience are the dominant threads.
+
+SARAH: Conference season is a useful signal for where industry attention is actually concentrated, and AI plus personalization showing up as the top narratives there tracks with everything else we're seeing in the digest today.
+
+SARAH: Shifting over to planning and workflow — Financial Planning ran a piece on the art of the discovery conversation, specifically what kinds of questions actually unlock client breakthroughs versus staying at the surface level.
+
+ALEX: The practical point is that better questions surface fears, priorities, and hidden assumptions — and that changes the entire advisor-client dynamic, not just the financial plan itself.
+
+SARAH: There's also a profile of Vantage Point Financial co-founder Nick Reiland, who describes treating the firm's tech stack as a living, team-wide project rather than a static vendor checklist. This is a planning-first firm where advice depth is the core value prop, not asset gathering.
+
+ALEX: That distinction matters architecturally — deep planning firms have genuinely different integration and workflow requirements than AUM-focused practices, and generic stack recommendations often don't account for that.
+
+SARAH: And there's a case being made for daily money management — bill pay, day-to-day financial admin — as an underutilized tool for deepening next-gen relationships and opening niche market doors. The argument is less about direct revenue and more about cementing long-term relevance.
+
+ALEX: It's operationally messy, which is why most advisors skip it, but the retention and differentiation angle across generations is real if a firm can build the workflow to support it.
+
+ALEX: Now into the AI section, which is substantial today. BetaNXT launched InsightX and a new AI Innovation Lab this week. That announcement landed alongside Citi Wealth and Conquest — which added a Spanish-language interface — both rolling out AI product updates, and Advisor360° announcing new integrations.
+
+SARAH: Four meaningful AI product moves in one week underscores how compressed the launch cycle has gotten. Firms that aren't actively evaluating right now are going to find the gap harder to close.
+
+ALEX: And then there's Zocks. The partnership with InvestCloud is probably the headline — they're calling it Intelligent Meeting, which covers pre-meeting prep, live session support, and post-meeting follow-up, all built on a privacy-first architecture.
+
+SARAH: Bringing two established platforms together for a full meeting lifecycle product is a meaningful step up from single-feature AI tools. The privacy-first framing is also doing real work given where compliance conversations are heading.
+
+ALEX: Separately, Zocks integrated with Orion Portfolio Solutions to automate portfolio research and surface real-time insights before, during, and after client meetings. The idea is Orion's data layer combined with Zocks' automation engine gives advisors meaningful time back.
+
+SARAH: Embedding portfolio context directly into the meeting workflow closes a gap that's been persistent in advisor productivity tooling — you'd have the data in one place and the meeting in another, and there was always manual bridging happening.
+
+ALEX: Third Zocks integration this week — SmartOffice CRM users can now use Zocks AI to auto-generate agendas, summaries, and client emails, sync action items to the CRM directly, and capture compliant notes without recording.
+
+SARAH: CRM data entry is still one of the biggest time drains across advisory practices at every size. Automating that across the full meeting lifecycle is the kind of thing that compounds quickly when you scale it firm-wide.
+
+ALEX: Zocks also ran a joint webinar with PreciseFP showing how the two platforms together can auto-populate forms from meeting conversations, eliminate cross-platform rekeying, and cut onboarding and intake time significantly.
+
+SARAH: Connecting conversational AI output directly to structured data workflows is attacking the onboarding friction problem from both ends simultaneously — that's a smarter approach than trying to fix either side in isolation.
+
+ALEX: And capping the Zocks coverage, RFG Advisory — a six-billion-plus AUM firm — published a case study on using Zocks to reclaim advisor time and scale workflows across the organization.
+
+SARAH: Enterprise-scale adoption stories are what shift a tool from nice-to-have to infrastructure-level consideration. A firm that size putting out a case study is essentially a reference deployment for the mid-market.
+
+SARAH: There's also a WealthStack podcast episode worth flagging — Subatomic CEO Sam Sova's argument that the entire framing around AI adoption in wealth management is wrong. Firms are still buying AI tools when they should be thinking about hiring AI coworkers.
+
+ALEX: The agentic framing has direct implications for how firms budget and integrate — you're not evaluating a feature set, you're evaluating a workflow participant. Most firms haven't made that conceptual shift yet.
+
+ALEX: Moving into infrastructure — OneDigital filed a notice with the Maine Attorney General after client data stored in its Salesforce CRM was allegedly compromised. It's being treated as a third-party data security incident.
+
+SARAH: CRM platforms hold some of the most sensitive client data in a firm's entire stack, and this is a real reminder that vendor security posture has to be part of due diligence — not just features and pricing.
+
+SARAH: On the business side of things — Morningstar is divesting ByAllAccounts, its account aggregation platform, to Pello Companies. Pello plans to use the technology to expand its wealth management data solutions.
+
+ALEX: Account aggregation is genuinely foundational infrastructure for a lot of advisor tech stacks. An ownership change at that layer can create integration uncertainty downstream, so firms that rely on ByAllAccounts should be paying attention to how Pello communicates continuity.
+
+SARAH: WealthReach acquired the IP of Model FA — a coaching and marketing firm for advisors — and is combining it with its AI prospecting tools to launch a consulting practice focused on organic growth strategy. They're also building in SEC and FINRA compliance guidance around AI adoption.
+
+ALEX: Bundling AI tools with hands-on consulting and compliance guardrails is a smart entry point for firms that want to adopt AI but don't have the internal expertise to evaluate it safely.
+
+SARAH: On the regulatory front, David Woodcock — a Gibson Dunn partner — is set to take the SEC's top enforcement role. The agency is narrowing its focus to insider trading, accounting fraud, market manipulation, and fiduciary duty breaches by investment advisors.
+
+ALEX: Fiduciary duty being explicitly on the enforcement radar is the line advisors need to take seriously — that's not a hypothetical priority, that's a stated one under the current administration.
+
+SARAH: And at Ameriprise, advisor group head Pat O'Connell is stepping down this summer. His divisions will fold under Bill Williams, who runs the firm's independent advisor channel.
+
+ALEX: Consolidating that leadership structure ahead of what looks like a competitive recruiting environment is worth watching — these kinds of reorgs often precede a repositioning of the firm's advisor value proposition.
+
+SARAH: Wrapping up with two pieces on the economics of advice — Cerulli put out new data showing that willingness to pay for financial advice is growing across wealth levels, not just at the ultra-high end. The trend holds even amid broader economic uncertainty.
+
+ALEX: For advisors who can clearly articulate their value, this is meaningful cover to stop competing on price. Pricing power being backed by data rather than just intuition changes that conversation with clients.
+
+SARAH: And on the flip side, rising costs across insurance, software, and operations are squeezing advisory firm margins — Financial Planning profiled advisors like Chris Diodato of WELLth Financial Planning who are passing some of those increases on to clients.
+
+ALEX: Advisors are now managing pricing pressure from both directions simultaneously — costs going up, and having to make the case to clients for higher fees at the same time.
+
+SARAH: The Cerulli data at least suggests the market is receptive if advisors can make the value case clearly. That's the thread connecting a lot of today's stories — and on that note, we'll see you Monday.
