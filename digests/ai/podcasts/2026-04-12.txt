@@ -1,0 +1,37 @@
+ALEX: Welcome to The AI Daily Roundup for April 12th, 2026. Andrej Karpathy is calling developers "AI psychotic" — and says the rest of the world is about to catch the same condition.
+
+SARAH: That framing is striking, and honestly kind of clarifying. But let's get into the full show — starting with what's moving on the developer tools side.
+
+ALEX: Microsoft's MarkItDown is trending hard on GitHub this week — 8,202 stars and climbing. It's a Python tool that converts files and office documents to Markdown, and the big new addition is an MCP server, which means it plugs directly into LLM workflows like Claude Desktop.
+
+SARAH: So it's not just a format converter anymore — it's becoming a first-class citizen in agentic pipelines. That MCP integration is what makes this more than a utility script.
+
+ALEX: Exactly. Next up, Block's open-source AI agent Goose has moved to a new home — the Agentic AI Foundation under the Linux Foundation umbrella. It pulled 5,832 stars this week, supports any LLM, and handles full dev cycles: install, exec, edit, and test.
+
+SARAH: Moving under Linux Foundation governance is a real signal for enterprise buyers. Neutral foundation ownership tends to unlock contributor trust and procurement conversations that a company-owned repo just can't.
+
+ALEX: OpenClaw also dropped version 2026.4.11, and this one is squarely focused on stability. Safer provider transport and routing, more reliable subagents and exec approvals, and a round of fixes across Slack, WhatsApp, Telegram, and Matrix integrations, plus browser and mobile cleanup.
+
+SARAH: Reliability in communication platform integrations is exactly the kind of unglamorous work that determines whether an agent is actually usable in production. Good to see a release dedicated to closing those gaps.
+
+ALEX: And rounding out developer tools — Simon Willison built a browser-based WebAssembly playground for the new SQLite Query Results Formatter library. It lets developers test the same formatter that ships with SQLite 3.53.0 live in the browser, and he built it using Claude Code on mobile.
+
+SARAH: In-browser testing with no setup lowers the barrier to experimentation significantly. The "built on mobile with Claude Code" detail is also a nice real-world demo of what these tools can do.
+
+ALEX: Shifting over to applications — there was some noise this week around Claude Code's token usage defaults. Boris Cherny, the creator, pushed back on accusations that the change was sneaky. He clarified it was a deliberate shift to medium token usage by default, made in direct response to user complaints about over-consumption, and it was documented in the changelog with an opt-out dialog at launch.
+
+SARAH: This is one of those cases where the story is really about communication norms more than the technical change itself. Cherny's response actually sets a useful example for how developer tool teams should handle default behavior changes.
+
+SARAH: Now on the industry side — back to that Karpathy piece. His argument is that developers aren't uniquely vulnerable to AI disruption, they're just the first domain where frontier model capability, AI fluency, and deep expertise all happen to converge right now.
+
+ALEX: And as agentic tools mature across law, medicine, finance, and media, that same dynamic radiates outward. Developers are the leading indicator, not the exception — that's the core of his framing.
+
+SARAH: It's the clearest articulation I've seen of why people outside tech should be watching what's happening to developers very carefully right now.
+
+ALEX: Wrapping up with a piece of infrastructure news — SQLite 3.53.0 is out, and it's a meaningful release. The headline feature is ALTER TABLE finally supporting addition and removal of NOT NULL and CHECK constraints, which previously required painful schema migration workarounds. There's also a new json_array_insert function and the new Query Results Formatter for better CLI output.
+
+SARAH: The ALTER TABLE constraint changes alone have been a long-standing friction point — developers have been working around that limitation for years, so this is one of those quiet releases that's going to make a lot of people's lives measurably better.
+
+ALEX: That's everything for today — April 12th, 2026. Karpathy called it, the tooling keeps shipping, and SQLite just quietly fixed something that's been annoying you for years.
+
+SARAH: If developers really are the leading indicator, the rest of the world has a lot of catching up to do — we'll be watching it unfold right here.
