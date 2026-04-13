@@ -97,6 +97,21 @@ def test_speaker_labels_preserved():
     assert result[1][0] == "SARAH"
 
 
+def test_ipa_markup_replacement():
+    config = {
+        "podcast": {
+            "pronunciation": {
+                "terms": {
+                    "LLM": "[LLM](/ɛlɛlɛm/)",
+                    "API": "[API](/eɪpiːaɪ/)",
+                }
+            }
+        }
+    }
+    rewriter = build_rewriter(config)
+    assert rewriter("The LLM uses an API") == "The [LLM](/ɛlɛlɛm/) uses an [API](/eɪpiːaɪ/)"
+
+
 def test_full_mixed_roundtrip():
     config = {
         "podcast": {
