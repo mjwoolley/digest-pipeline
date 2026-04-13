@@ -1,0 +1,43 @@
+ALEX: Welcome to The WealthTech Daily Roundup for April 13th, 2026. North Korean state actors spent six months building real relationships inside a crypto project's contributor community — attending conferences, making friends — then drained two hundred and eighty-five million dollars in twelve minutes. That story is genuinely alarming, and it's not the only DPRK headline we're covering today.
+
+SARAH: Yeah, that one stopped me cold when I read it. The sophistication of that operation puts it in a completely different threat category than your typical exchange hack. But before we get there, let's start with what's happening on the AI side, because there's a real pattern forming this week.
+
+ALEX: Right — so we've got two more personal finance AI agent launches to add to the pile. Revolut just introduced AIR, an action-capable agent that doesn't just give you advice but actually executes on your behalf. That's the key word here — agentic, meaning it takes actions, not just answers questions.
+
+SARAH: And that's the third major personal finance agent to drop in roughly two weeks, which is not a coincidence. The race to own the financial life-of-customer relationship is now playing out at the agent layer, and whoever gets there first builds a very sticky moat.
+
+ALEX: The second launch is actually more interesting architecturally — Plaid has integrated with Perplexity's Computer product, giving Perplexity a full view of users' financial data so it can function as a personal finance agent. Plaid is essentially plugging its data layer directly into an AI reasoning engine.
+
+SARAH: That's a significant distribution move for Plaid. If you control the financial data feed into the agentic stack, you control the relationship — and Plaid just positioned itself as the connective tissue between people's bank accounts and whatever AI is making decisions on their behalf.
+
+ALEX: Shifting over to some deeply unsettling industry news — the Drift Protocol hack. UNC4736, a North Korean state-linked group, spent six months embedding themselves in Drift's contributor community. Attending conferences, building actual relationships. Then on April first they executed thirty-one exploit transactions in twelve minutes.
+
+SARAH: Six months of relationship building for a twelve-minute operation. And the scale here — two hundred and thirty-two million dollars laundered through Circle's CCTP bridge from Solana to Ethereum over six hours, during US business hours, with no intervention. That's not just a crypto problem, that's a financial infrastructure problem.
+
+ALEX: Elliptic and TRM Labs both attributed this to the same group behind the 2024 Radiant Capital hack, and this is the eighteenth such operation tracked in 2026 alone. The frequency is accelerating.
+
+SARAH: Eighteen operations in under four months from a single nation-state actor. Any firm in this space needs to seriously rethink what their threat model looks like when the adversary is running multi-month, multi-continent social engineering campaigns.
+
+ALEX: Closely related — on-chain investigator ZachXBT published what he's calling the Circle USDC Files. It documents fifteen cases since 2022 where Circle was slow or completely unresponsive to illicit funds moving through its infrastructure. Total across those cases is four hundred and twenty million dollars.
+
+SARAH: And the Drift hack is part of that documentation — two hundred and thirty-two million in stolen USDC sitting on Circle's bridge for six hours unchallenged. With the GENIUS Act moving toward making stablecoins a regulated asset class, these compliance gaps are a serious liability, not just for Circle but for the whole legislative project.
+
+ALEX: Which connects directly to the next data point. Chainalysis released figures showing stablecoins now account for eighty-four percent of all illicit crypto volume. That's a complete inversion from the Bitcoin-centric illicit flows of earlier years.
+
+SARAH: Eighty-four percent is a number that legislators cannot ignore. Critics of the GENIUS Act are going to wave that around constantly, and proponents need a credible answer for it — not just an acknowledgment but an actual enforcement framework.
+
+ALEX: On the regulatory side, FinCEN dropped a proposed rulemaking that explicitly encourages financial institutions to use machine learning, generative AI, and blockchain analytics in their AML programs. Notably, institutions won't face additional regulatory risk for deploying these tools, and using them can actually count in a firm's favor during enforcement reviews.
+
+SARAH: That's a meaningful unlock. A lot of compliance teams have been sitting on AI tooling precisely because they weren't sure how regulators would view it. FinCEN just gave them the cover they needed to move — that regulatory ambiguity was a real adoption blocker.
+
+ALEX: Also on the regulatory front — the OCC, Treasury, and the Fed have jointly issued proposed rules under the GENIUS Act and opened a public comment period. First significant new financial services legislation in fifteen years, and the foundational stablecoin rules are actively being written right now.
+
+SARAH: This is one of those narrow windows where engagement actually matters. If you have stablecoin exposure or you're building infrastructure around them, you should be in that comment process — the rules being set now will govern a multi-trillion dollar asset class for a long time.
+
+ALEX: Last story, and it's a nasty one to end on. DPRK-linked actors compromised the Axios npm package — one of the most widely-used JavaScript dependencies in existence — embedding malicious code with access to deployment infrastructure. It was live in the wild for three hours before detection.
+
+SARAH: Three hours for a package that's a dependency for thousands of US companies. This is the same nation-state threat actor showing up in a completely different attack surface — from crypto social engineering to software supply chain poisoning in the same week.
+
+ALEX: Any firm running Node.js-based infrastructure should be auditing their dependency trees immediately — this isn't a theoretical risk if that package touched your build pipeline during that window.
+
+SARAH: That's the show for April 13th — stay skeptical of your dependencies, your stablecoin counterparties, and anyone you met at a conference who seemed unusually interested in your codebase.
