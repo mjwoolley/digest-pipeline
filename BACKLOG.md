@@ -1,108 +1,83 @@
 # Digest Pipeline Backlog
 
-## Source Health Audit Job
+## Open
 
-### Goal
-Add a weekly job that audits the digest pipeline's recent extraction history to find sources that are no longer yielding articles.
+- [ ] **Source Health Audit Job**
+  - Add a weekly job that audits recent extraction history to find sources that are no longer yielding articles.
+  - Reuse logs/work artifacts instead of re-fetching where possible.
+  - Diagnose likely causes, for example:
+    - broken RSS/feed URL
+    - HTML/app-shell/error page treated as valid content
+    - source format changed
+    - source inactive or low-volume
+    - parser/extractor mismatch
+  - Send Mike a concise report with unhealthy sources, likely cause, and suggested action.
+  - Also recommend authoritative new AI sources or replacements for weak/dead ones.
 
-### What it should do
-- Run on a weekly cron schedule.
-- Inspect recent extraction history / work artifacts to identify sources that repeatedly produce zero extracted articles.
-- Diagnose likely causes for each bad source, for example:
-  - broken RSS/feed URL
-  - HTML/app-shell/error page being treated as valid content
-  - source format changed
-  - source is inactive or low-volume
-  - parser/extractor mismatch
-- Send Mike a concise report with:
-  - sources that appear unhealthy
-  - likely reason each is failing
-  - suggested action (fix URL, switch strategy, remove source, keep monitoring, etc.)
+- [x] **Move prod + staging digest repos to dedicated volume**
+  - Mount the new 10G volume at a stable path (planned: `/mnt/digest-data`).
+  - Migrate:
+    - `/home/clawdbot/digest-pipeline`
+    - `/home/clawdbot/digest-pipeline-staging`
+  - Symlink both back to their original paths so cron/jobs/scripts remain transparent.
+  - Verify git, dry-runs, podcast generation, and path resolution before removing old copies.
+  - Expected outcome: free about 4.8G on root disk.
 
-### Additional research task
-After diagnosing unhealthy sources, also search for authoritative AI sources on the internet and recommend:
-- additions to the current source list
-- substitutions for weak or dead sources
+- [ ] **Welcome Email on Subscribe**
+  - Send a confirmation/welcome email when someone subscribes so they know it worked and what to expect.
 
-### Notes
-- Prefer a lightweight, low-token approach for the audit step where possible.
-- Reuse existing logs/work artifacts instead of re-fetching everything.
-- Keep recommendations opinionated and practical, not just a giant dump of possible feeds.
-- This should complement the digest source list maintenance workflow, not just detect failures.
+- [ ] **Double Opt-In**
+  - Require email confirmation before adding to the subscriber list.
+  - Send a unique confirmation link.
+  - Only add to `subscribers.json` after click.
+  - Expire unconfirmed signups after 24 hours.
 
-## Welcome Email on Subscribe
+- [ ] **Web Archive of Past Digests**
+  - Render past digests as browsable HTML pages on the landing page.
+  - Generate from archived `.md` files.
+  - Add a "Recent Issues" section linking to them.
 
-### Goal
-Send a confirmation/welcome email when someone subscribes so they know it worked and see what to expect (next delivery time, what's included, unsubscribe link).
+- [ ] **Delivery Event Tracking (Bounces, Opens)**
+  - Use Resend webhooks to track delivery events.
+  - Auto-remove hard-bounced addresses.
+  - Log delivery metrics for diagnostics.
 
-## Double Opt-In
+- [ ] **Subscriber Count on Landing Page**
+  - Add a `/api/stats` endpoint returning subscriber count.
+  - Fetch and display the count on the landing page.
+  - Do not expose email addresses.
 
-### Goal
-Require email confirmation before adding to the subscriber list. Prevents abuse and improves sender reputation with email providers.
+- [ ] **Email Preheader Text**
+  - Extract the first 1-2 story titles from the digest.
+  - Inject them as hidden preheader text in the email HTML.
 
-### What it should do
-- On subscribe, send a confirmation email with a unique link
-- Only add to `subscribers.json` after the link is clicked
-- Expire unconfirmed signups after 24 hours
+- [ ] **Split landing page template from build output**
+  - Stop `_update_landing_page()` in `digest_pipeline/podcast.py` from writing into the tracked template file.
+  - Rename tracked source to something like `digests/*/index.template.html`.
+  - Generate `digests/*/index.html` from the template.
+  - Gitignore generated `digests/*/index.html`.
+  - Update archive artifact defaults so prod no longer commits generated landing pages.
+  - Keep Caddy serving `/index.html` as before.
+  - Reason: staging currently has to reset `digests/*/index.html` before pulls because podcast runs rewrite it.
 
-## Web Archive of Past Digests
+- [x] **Podcast pronunciation rewrites**
+  - Fix Kokoro mispronunciations like `401(k)`, `FINRA`, `AWS`, `S&P`.
+  - Rewrite podcast turn text after script parsing but before TTS synthesis.
+  - Do not affect saved script, digest markdown, RSS, or archive text.
+  - See [pronunciation.md](pronunciation.md) for the design.
 
-### Goal
-Render past digests as browsable HTML pages on the landing page so visitors can see what they'd be subscribing to.
-
-### What to consider
-- Generate HTML pages from the archived `.md` files
-- Add a "Recent Issues" section to the landing page linking to them
-- Could be generated during the archive stage
-
-## Delivery Event Tracking (Bounces, Opens)
-
-### Goal
-Use Resend webhooks to track delivery events (bounced, opened, clicked) for subscriber list hygiene.
-
-### What it should do
-- Set up a webhook endpoint to receive Resend events
-- Auto-remove hard-bounced addresses
-- Log delivery metrics for diagnostics
-
-## Subscriber Count on Landing Page
-
-### Goal
-Show social proof on the landing page (e.g., "Join 12 subscribers") pulled live from the subscription API.
-
-### What to consider
-- Add a `/api/stats` endpoint returning subscriber count
-- Fetch and display on the landing page via JS
-- Don't expose email addresses, just the count
-
-## Email Preheader Text
-
-### Goal
-Add a preheader (preview text) to digest emails — the snippet Gmail shows next to the subject line in the inbox list.
-
-### What it should do
-- Extract the first 1-2 story titles from the digest
-- Inject as a hidden preheader div at the top of the HTML email body
-
-## Register Podcast with Directories
-
-### Goal
-Submit the AI Daily Roundup podcast RSS feed to major podcast directories so listeners can subscribe through their preferred app.
-
-### Directories to target
-- Apple Podcasts
-- Spotify
-- Google Podcasts
-- Amazon Music / Audible
-- Pocket Casts
-- Overcast
-
-### What to consider
-- Most directories require a valid RSS feed with specific tags (artwork, author, category, explicit flag, etc.) — audit `podcast.xml` for compliance
-- Apple Podcasts is the most strict; getting accepted there usually means the feed works everywhere
-- Some directories (Spotify) have their own submission portal separate from RSS
-- Need podcast artwork (minimum 1400x1400, recommended 3000x3000)
-- May need to add `<itunes:*>` tags to the RSS feed if not already present
+- [ ] **Register Podcast with Directories**
+  - Submit the AI Daily Roundup RSS feed to major podcast directories.
+  - Targets:
+    - Apple Podcasts
+    - Spotify
+    - Google Podcasts
+    - Amazon Music / Audible
+    - Pocket Casts
+    - Overcast
+  - Audit `podcast.xml` for directory compliance.
+  - Ensure artwork meets platform requirements.
+  - Add `<itunes:*>` tags if needed.
 
 ---
 
