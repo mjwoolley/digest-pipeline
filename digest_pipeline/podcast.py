@@ -160,6 +160,11 @@ def main():
                 print(f"  {speaker}: {text[:80]}...")
             return
 
+        # ── Pronunciation rewrites (ephemeral, TTS only) ──────────────
+        from . import pronunciation
+        rewriter = pronunciation.build_rewriter(config)
+        tts_turns = pronunciation.apply_rewrites(turns, rewriter)
+
         # ── Stage 8: AUDIO ──────────────────────────────────────────────
         mp3_path = podcasts_dir / f"{date}.mp3"
         voice_map = get_voice_map(config, "kokoro")
@@ -167,7 +172,7 @@ def main():
         t0 = time.time()
         from . import kokoro_tts
         kokoro_tts.configure()
-        audio_usage = kokoro_tts.synthesize_script(turns, mp3_path,
+        audio_usage = kokoro_tts.synthesize_script(tts_turns, mp3_path,
                                                    voice_map=voice_map)
         audio_duration = time.time() - t0
 
