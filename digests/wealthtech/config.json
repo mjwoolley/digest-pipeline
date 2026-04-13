@@ -61,7 +61,36 @@
         "voice_kokoro": "af_heart"
       }
     ],
-    "tts_backend": "kokoro"
+    "tts_backend": "kokoro",
+    "pronunciation": {
+      "terms": {
+        "401(k)": "four oh one k",
+        "401k": "four oh one k",
+        "FINRA": "FIN-rah",
+        "S&P": "S and P",
+        "ETF": "E T F",
+        "ETFs": "E T Fs",
+        "RIA": "R I A",
+        "RIAs": "R I As",
+        "AUM": "A U M",
+        "CRM": "C R M",
+        "API": "A P I",
+        "APIs": "A P Is",
+        "M&A": "M and A",
+        "ESG": "E S G",
+        "SEC": "S E C",
+        "CFP": "C F P",
+        "B/D": "broker dealer",
+        "TAMPs": "tamps",
+        "TAMP": "tamp"
+      },
+      "regex": [
+        {"pattern": "\\$([0-9]+)B\\b", "replacement": "$1 billion dollars"},
+        {"pattern": "\\$([0-9]+)M\\b", "replacement": "$1 million dollars"},
+        {"pattern": "\\$([0-9]+)T\\b", "replacement": "$1 trillion dollars"},
+        {"pattern": "\\bQ([1-4])\\b", "replacement": "quarter $1"}
+      ]
+    }
   },
   "delivery": {
     "email": {

@@ -66,7 +66,33 @@
         "voice_kokoro": "af_heart"
       }
     ],
-    "tts_backend": "kokoro"
+    "tts_backend": "kokoro",
+    "pronunciation": {
+      "terms": {
+        "AWS": "A W S",
+        "LLM": "L L M",
+        "LLMs": "L L Ms",
+        "GPT": "G P T",
+        "API": "A P I",
+        "APIs": "A P Is",
+        "GPU": "G P U",
+        "GPUs": "G P Us",
+        "TPU": "T P U",
+        "MCP": "M C P",
+        "RAG": "rag",
+        "RLHF": "R L H F",
+        "SOTA": "state of the art",
+        "OSS": "open source",
+        "CLI": "C L I",
+        "SDK": "S D K",
+        "SDKs": "S D Ks"
+      },
+      "regex": [
+        {"pattern": "\\$([0-9]+)B\\b", "replacement": "$1 billion dollars"},
+        {"pattern": "\\$([0-9]+)M\\b", "replacement": "$1 million dollars"},
+        {"pattern": "\\bQ([1-4])\\b", "replacement": "quarter $1"}
+      ]
+    }
   },
   "delivery": {
     "email": {
