@@ -14,6 +14,12 @@ uv.lock
 # Runtime data
 digests/*/logs/
 digests/*/work/
+digests/*/*.md
+!digests/*/README.md
+digests/*/podcasts/
+digests/*/.seen_embeddings.json
+digests/*/index.html
+digests/*/podcast.xml
 digests/*/subscribers.json
 digests/*/subscription_events.jsonl
 digests/*/send_history.jsonl
