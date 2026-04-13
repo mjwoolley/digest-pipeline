@@ -1,0 +1,67 @@
+ALEX: Welcome to The AI Daily Roundup for April 11th, 2026. Oxford researchers just demonstrated an AI that detects fatal heart conditions five years before symptoms appear — with 86% accuracy across 72,000 patients — and it runs on scans people are already getting.
+
+SARAH: That's the kind of story that makes you stop and think about what "early detection" actually means at scale. But we've got a lot of ground to cover today, so let's start with something that caught my eye on the model side — OpenAI's voice mode apparently running on a two-year-old model.
+
+ALEX: Right, Simon Willison flagged this — ChatGPT's voice mode is reporting an April 2024 knowledge cutoff, meaning it's running on a GPT-4o era model while current frontline capabilities have moved well past that. The contrast with something like Codex, which can handle complex code restructuring and vulnerability analysis, is pretty stark.
+
+SARAH: So OpenAI's most accessible interface — the one most casual users interact with — is also the most outdated, and most of those users probably have no idea. What's the theory on why voice gets deprioritized?
+
+ALEX: The article's read is that code-focused domains have clearer reward functions and stronger B2B value, so that's where the investment flows. Voice is harder to evaluate and monetize cleanly, apparently.
+
+SARAH: Shifting over to developer tools, there's a lot happening. Multica is an open-source TypeScript platform for managed AI agents — think teammates rather than one-shot tools — that accept tasks, track progress, and compound skills over time. It hit 3,512 GitHub stars this week.
+
+ALEX: The tagline is "Your next 10 hires won't be human," which is provocative, but the traction is real. The interesting signal here is that developers are clearly hungry for agent orchestration that goes beyond single-turn interactions.
+
+SARAH: That appetite is only going to grow. On a related note, SkipLabs founder Julien Verlaguet is building a coding agent called Skipper, and he's making a pointed argument that most so-called AI guardrails on the market are really just prompt engineering dressed up in safety language.
+
+ALEX: His position is that real safety tooling requires deep, unglamorous engineering work — structural scaffolding rather than generative wrapping. SkipLabs is betting the market eventually demands substance over marketing, especially as agents act autonomously in production systems.
+
+SARAH: The gap between real and fake guardrails becomes a pretty serious liability when an agent has write access to your backend. Also in the tools space, OpenClaw dropped a new release — version 2026.4.10 — adding an Active Memory plugin for persistent context management and a local MLX Talk mode for on-device audio processing.
+
+ALEX: There's also a Codex app-server harness for advanced code execution, SSRF hardening on the security side, and Teams pins and reactions support. Persistent memory and local audio were apparently two of the most-requested features in the open-source agent community, so this is a direct response to that.
+
+SARAH: And rounding out the developer tools section, The New Stack published a practical RAG tutorial — walking through private document search using ChromaDB as the vector store and LangChain to connect an LLM to custom PDF data. It's entry-level, but cleanly done.
+
+ALEX: It's a solid primer on why vector databases work differently from traditional SQL and how memory systems extend LLM context. RAG is still the dominant pattern for enterprise AI adoption, so tutorials that lower the barrier genuinely matter.
+
+SARAH: Moving to infrastructure — Andy Jassy's shareholder letter dropped some numbers that frankly hadn't been public before. AWS AI is now at fifteen billion dollars in annualized revenue, and Amazon's custom chip business — Trainium, Graviton, Nitro — is at twenty billion annually.
+
+ALEX: The fifteen billion figure is 260 times where AWS itself stood at the same stage of its development, which is a striking comparison. And two unnamed customers apparently tried to buy Amazon's entire 2026 Graviton supply — Amazon turned them down to protect other clients.
+
+SARAH: Jassy also defended the two-hundred-billion-dollar capex plan and hinted at selling chip racks directly to third parties. These are the first-ever disclosed figures, and they put the infrastructure story on a completely different scale than the model headline narrative usually suggests.
+
+ALEX: Jumping into research — the Perforce 2026 State of DevOps Report found that 70% of IT leaders say strong DevOps practices are essential to successful AI adoption. But the flip side is that where those foundations are weak, AI doesn't slow down the problems — it accelerates them.
+
+SARAH: The core concern is that as agents shift from assistants to autonomous actors, poor data governance stops being a slow burn and becomes a fast-moving production risk. And the report notes that trust in AI outputs is currently outpacing the tooling available to audit them.
+
+ALEX: Governance frameworks as actual operational infrastructure, not bureaucratic overhead. That framing shift feels important. Also in the research bucket — Andrej Karpathy posted a thought experiment about a hypothetical startup where individuals do multi-day video interviews, and that data gets used to fine-tune an LLM into a simulacrum of the person, accessible via API.
+
+SARAH: He cited HeyGen-style visual avatars combined with deep-knowledge personality models as already achievable today, and positioned this as far more tractable than neuroscience-based brain scanning approaches. He called it "trippy and admittedly kind of dystopian" — but also technically feasible right now.
+
+ALEX: When Karpathy frames something as near-term and tractable, people tend to take it seriously. The ethical and philosophical surface area on digital identity simulation is enormous.
+
+SARAH: On to applications — and the Oxford heart failure story is the one to lead with here. Researchers built an AI that detects subtle texture changes in heart fat from routine CT scans, identifying patients at high risk of heart failure up to five years early. 86% accuracy across 72,000 patients.
+
+ALEX: In the highest-risk group, one in four patients developed heart failure within five years — compared to a twenty-times lower rate in patients the model flagged as safe. Oxford is already in regulatory talks to deploy this across NHS hospitals, with plans to extend it to all chest CTs within months.
+
+SARAH: Turning a scan people are already getting into a five-year early warning system is a genuinely different proposition than a standalone screening tool. That's the part that could actually shift clinical behavior at scale.
+
+ALEX: Perplexity made a significant move this week — their Computer agent can now connect to over 12,000 banks via Plaid, giving users read-only access to checking, credit, loans, and brokerage data. From there, the agent can build budgets, debt payoff plans, and retirement dashboards from plain text prompts.
+
+SARAH: This follows their autonomous IRS form-filling feature, and Perplexity's ARR hit 450 million dollars in March — up 50% month-over-month. They're not just competing with Google search anymore; they're going directly after Mint and TurboTax.
+
+ALEX: Connecting an agentic AI to live financial data is a real trust threshold for users. If that threshold gets cleared broadly, it does redraw the personal finance software landscape pretty significantly.
+
+SARAH: Anthropic also launched Claude for Word in beta — a sidebar assistant that drafts, edits, and revises with tracked changes and full formatting preservation. But the key feature is that it shares context with Claude for Excel and PowerPoint, so you can do cross-document reasoning in a single conversation.
+
+ALEX: That cross-app context is what separates it from a basic writing assistant. Available on Team and Enterprise plans, and it's a direct play for territory Microsoft's own Copilot has been trying to hold.
+
+SARAH: Also on the practical side, The Rundown published a guide for building custom Notion Agents that run on schedules — the example is a Monday morning planner that reads last week's emails, populates a tasks database, and writes a summary to a reports log, all triggered automatically.
+
+ALEX: The same template clones to lead management, campaigns, accounting workflows — and everything stays traceable inside Notion. No-code scheduled agents inside tools people already use daily is a real on-ramp for broader workflow adoption beyond the technical crowd.
+
+SARAH: And wrapping up on the industry side — AI Engineer Europe 2026 just concluded, three days, over 100 in-person talks, workshops, an online track, and live podcast coverage including what sounds like a trip to 10 Downing Street. Select keynotes are going up on YouTube now.
+
+ALEX: By sheer volume it's becoming one of the more significant applied AI practitioner events outside the US. The scale and format suggest the applied AI engineering community is building its own distinct conference culture, separate from the research circuit.
+
+SARAH: A lot of signal in one day — from Oxford's heart scans to Karpathy's digital identity thought experiment to Amazon finally putting numbers on the infrastructure bet. We'll be back Monday with more. Thanks for listening to The AI Daily Roundup.

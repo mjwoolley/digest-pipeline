@@ -1,0 +1,73 @@
+ALEX: Welcome to The WealthTech Daily Roundup for April 10th, 2026. Morgan Stanley just became the first U.S. bank to launch a bitcoin exchange-traded product, and it pulled in $34 million in trading volume on day one alone — that's the kind of number that makes other institutions rethink their crypto hesitancy fast.
+
+SARAH: That's a genuinely significant threshold to cross — when a firm with Morgan Stanley's brand does it first, it gives a lot of advisors the institutional cover they've been waiting for. But let's start with something that's been quietly getting more attention in the planning space.
+
+ALEX: Right — exchange funds are having a moment. The idea is straightforward: wealthy clients stuck in low-basis, concentrated positions can use exchange funds to simultaneously address concentration risk and defer capital gains taxes. Financial Planning is flagging these as an underutilized but powerful tool that sophisticated advisors should have fluent command of.
+
+SARAH: And in a high-scrutiny tax environment, that fluency is a real differentiator in the HNW market — clients are increasingly measuring their advisors by tax outcomes, not just returns.
+
+ALEX: Shifting over to the advisor platform side — Zephyr dropped its 2026 PSN Outlook, a digital ebook making the case for separately managed accounts as a growing vehicle for personalized investing. It pulls in contributions from top asset managers and gives advisors and asset managers a practical roadmap for the SMA opportunity this year and beyond.
+
+SARAH: SMAs keep showing up as a differentiator story — this gives practitioners a timely, credible resource to point to when clients ask why they should care about the structure.
+
+ALEX: Also on the platform update front, RightCapital rolled out two notable enhancements — support for 2025 tax forms inside its Tax Analyzer, and new customization options for Sector and Style Index in the Investment Module.
+
+SARAH: Incremental but meaningful — tax-integrated planning is becoming table stakes, and staying current on form support is the kind of thing advisors notice when filing season hits.
+
+ALEX: Now to AI, and there's a lot here. Vanguard previewed a tool called Expert Insights — it's an AI-driven portfolio analysis product designed to help advisors analyze client portfolios and generate tailored guidance at scale.
+
+SARAH: The headline for me is what this signals strategically — when a ten trillion dollar asset manager starts building advisor-facing AI tools, the competitive pressure on incumbent wealthtech platforms goes up considerably. Vanguard's traditional identity is low-cost funds, so this is a real expansion of ambition.
+
+ALEX: Also in the AI marketing space — FMG has a new CEO, Dave Christensen, who's pushing the firm's marketing tech ecosystem to cover more tool categories and move earlier into the prospecting funnel with AI-assisted capabilities. He's also flagged more M&A as part of the growth plan.
+
+SARAH: Advisor marketing has been one of the slower-moving areas in wealthtech, so an aggressive AI pivot here combined with acquisition firepower could move FMG into a more central position in how advisors actually fill their pipelines.
+
+ALEX: Back to that Morgan Stanley bitcoin story — they're the first U.S. bank to launch an exchange-traded product tied to bitcoin, and the $34 million in day-one trading volume is being called a watershed moment by industry observers.
+
+SARAH: For advisors who've been waiting on the sidelines for mainstream validation on crypto, this is probably the clearest signal yet — a major bank crossing that line changes the conversation with clients significantly.
+
+ALEX: On the business and industry side, there's a lot of deal activity to get through. Corient acquired Vivaldi Capital, adding $5.6 billion in assets as it continues its march toward a $450 billion global RIA target. The deal also deepens Corient's alternatives capabilities, which appears to be a deliberate strategic emphasis.
+
+SARAH: Corient is one of the most relentless consolidators in the space right now — each deal raises the bar for what advisors can expect from a scaled RIA platform in terms of capabilities and alts access.
+
+ALEX: On the wirehouse recruiting front, Merrill Lynch pulled Peter Laidlaw and his $2.2 billion book from JPMorgan as part of a stated push toward more aggressive recruiting. Laidlaw is San Francisco-based, and this hire signals Merrill is willing to compete hard at the very top of the market.
+
+SARAH: The wirehouse recruiting wars are clearly back in full force — advisors with substantial books should expect increasingly rich offers from across the wire landscape in the near term.
+
+ALEX: Farther, the tech-forward RIA, is making a meaningful upmarket move — they've launched a family office division and hired Ben Seidenstein, who managed $1.5 billion at Goldman Sachs Private Wealth, to lead it.
+
+SARAH: Farther's technology-native model entering the family office space is a direct challenge to legacy players who've historically owned that ultra-HNW segment — it'll be worth watching whether the tech-first pitch resonates with that client base.
+
+ALEX: The RIA-acquires-CPA playbook is showing up again — Utah-based Soltis Investment Advisors acquired GDM Private Financial Solutions, a Bellevue, Washington CPA firm, bringing an eleven-person tax team in-house under a new affiliate called Soltis Tax Solutions. GDM's Alan Dance becomes Director of Tax in the combined firm.
+
+SARAH: This model keeps gaining traction because it gives firms a genuinely compelling retention and differentiation story — fully integrated wealth and tax planning under one roof is hard to replicate quickly.
+
+ALEX: Sanctuary Wealth picked up another wirehouse breakaway — Kyle Vasel left Merrill Lynch after fifteen years to launch OPT Wealth Management under Sanctuary's hybrid RIA platform, bringing $260 million in assets focused on HNW clients nearing retirement. He cited flexibility and a full planning toolkit as drivers.
+
+SARAH: Sanctuary's partnered independence model keeps pulling wirehouse veterans, and this is another data point in that ongoing talent migration from captive to independent channels.
+
+ALEX: Emigrant Partners closed its second investment of 2026, taking a minority stake in the $15 billion Mutual Group. Notably, Mutual Group isn't a pure-play RIA — this deal signals a broadening appetite among strategic investors for diverse wealth management business models.
+
+SARAH: That's an interesting evolution — as deal flow diversifies beyond traditional RIA structures, the definition of an attractive acquisition target is clearly widening, which has implications for how firms think about their own positioning.
+
+ALEX: And wrapping up the industry news — U.S. Bank has become the NFL's official wealth management partner, with Heisman Trophy winner Fernando Mendoza fronting a new financial guidance program aimed at professional athletes.
+
+SARAH: Athletes represent a lucrative but notoriously underserved segment with complex, time-sensitive financial needs — a high-profile league partnership is a powerful distribution channel, and this is a space that's heating up fast.
+
+ALEX: Now for a few items that don't fit neatly elsewhere. On the regulatory side, Democratic lawmakers are demanding answers from SEC Chair Paul Atkins following the resignation of enforcement chief Judge Margaret Ryan, who reportedly clashed with agency leadership over cases involving Trump associates before stepping down.
+
+SARAH: Political interference in securities enforcement — real or perceived — is the kind of thing that undermines market confidence and could reshape the regulatory risk landscape for firms depending on how this develops.
+
+ALEX: In the alternatives space, private placement BDCs paid out $1.2 billion in Q1 2026 redemptions, satisfying 74% of investor requests — with some funds prorating withdrawals, meaning a meaningful share of redemptions went unfulfilled.
+
+SARAH: With alts demand surging among retail investors, unmet redemption queues remain a real reputational and regulatory flashpoint for the BDC structure — advisors recommending these products need to have that liquidity conversation upfront.
+
+ALEX: Two more items — a Long Island-based advisor has pleaded guilty in a $160 million investment fraud case, one of the larger advisor fraud cases in recent memory, with details on the scheme still developing.
+
+SARAH: Cases at this scale fuel public skepticism broadly and tend to give regulators ammunition to push for tighter oversight — a reminder of why fiduciary standards carry real weight.
+
+ALEX: And finally, new legislation has been introduced to restore staffing levels at the Social Security Administration following recent cuts that have drawn bipartisan concern. The bill reflects growing congressional pressure to protect benefit administration infrastructure.
+
+SARAH: SSA staffing directly affects retirement income delivery for millions of clients — advisors should keep an eye on whether service disruptions materialize during any transition period, because that's a conversation clients will bring to them first.
+
+ALEX: That's everything for today — have a great weekend and we'll see you Monday on The WealthTech Daily Roundup.
