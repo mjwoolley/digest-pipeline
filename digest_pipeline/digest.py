@@ -31,6 +31,7 @@ from . import llm
 from . import delivery
 from .gather import gather_all
 from .cluster import cluster_articles, embedding_text
+from .relevance import filter_articles
 from .source_state import (load_state, save_state, prune_state,
                            filter_gathered_sources, update_source_state)
 from .run_log import RunLog
