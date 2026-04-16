@@ -32,7 +32,7 @@ from . import delivery
 from .gather import gather_all
 from .cluster import cluster_articles, embedding_text
 from .source_state import (load_state, save_state, prune_state,
-                           filter_gathered_sources, commit_pending)
+                           filter_gathered_sources, update_source_state)
 from .run_log import RunLog
 
 # ── Token Tracking ───────────────────────────────────────────────────────────
@@ -296,6 +296,7 @@ def main():
         gather_dur = time.time() - t0
 
         non_empty = [s for s in sources if s.get("content", "").strip()]
+        fetched_keys = {s["source_key"] for s in non_empty}
         logger.info(f"[PIPELINE] Gathered {len(non_empty)}/{len(sources)} sources "
                      f"in {gather_dur:.1f}s")
         if non_empty:
@@ -320,6 +321,11 @@ def main():
             msg = "All sources empty — skipping digest"
             logger.warning(f"[PIPELINE] {msg}")
             run_log.log_stage("Gather", msg)
+            if fetched_keys:
+                source_state = update_source_state(
+                    source_state, {}, fetched_keys, set(), date)
+                source_state = prune_state(source_state)
+                save_state(data_root, source_state)
             return
 
         # 4. Extract: batched Haiku calls
@@ -372,6 +378,21 @@ def main():
             return
 
         logger.info(f"[PIPELINE] Total articles extracted: {len(all_articles)}")
+
+        # 5b. Relevance filter
+        removed = []
+        if config.get("relevance_filter", {}).get("enabled", False):
+            logger.info("[PIPELINE] Stage: RELEVANCE FILTER")
+            before = len(all_articles)
+            all_articles, removed = filter_articles(all_articles, config)
+            logger.info(f"[RELEVANCE] Kept {len(all_articles)}/{before} articles, removed {len(removed)}")
+            if removed:
+                (work_dir / "filtered.json").write_text(json.dumps(removed, indent=2))
+                for article in removed[:20]:
+                    logger.info(
+                        f"[RELEVANCE] Dropped: {article.get('title', '(untitled)')} "
+                        f"({article.get('_filter_reason', 'no reason')})"
+                    )
 
         # 6. Cluster: embed + cosine similarity
         logger.info("[PIPELINE] Stage: CLUSTER")
@@ -530,6 +551,8 @@ def main():
             else:
                 logger.info("[PIPELINE] Skipping PRIORITIZE (no max_articles configured)")
 
+        included_keys = {sk for art in deduped for sk in art.get("source_keys", [])}
+
         # 9. Format: 1 Sonnet call
         logger.info("[PIPELINE] Stage: FORMAT")
         t0 = time.time()
@@ -602,12 +625,17 @@ def main():
         logger.info(f"[DELIVER] Archived to {digest_path}")
 
         # 10. Commit source state (only after successful processing)
-        if pending_ids:
-            source_state = commit_pending(source_state, pending_ids, date)
+        if pending_ids or fetched_keys or included_keys:
+            source_state = update_source_state(
+                source_state, pending_ids, fetched_keys, included_keys, date)
             source_state = prune_state(source_state)
             save_state(data_root, source_state)
-            logger.info(f"[SOURCE-STATE] Committed {sum(len(v) for v in pending_ids.values())} "
-                        f"item IDs across {len(pending_ids)} sources")
+            new_id_count = sum(len(v) for v in pending_ids.values())
+            logger.info(
+                f"[SOURCE-STATE] Committed {new_id_count} item IDs across "
+                f"{len(pending_ids)} sources; "
+                f"fetched={len(fetched_keys)} included={len(included_keys)}"
+            )
 
         # 11. Report
         total_dur = time.time() - start_time

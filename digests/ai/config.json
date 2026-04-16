@@ -121,6 +121,40 @@
   "llm": {
     "provider": "openrouter"
   },
+  "relevance_filter": {
+    "enabled": true,
+    "topic": "artificial intelligence, machine learning, and AI products",
+    "keywords_include": [
+      "AI",
+      "LLM",
+      "GPT",
+      "Claude",
+      "Anthropic",
+      "OpenAI",
+      "agent",
+      "agents",
+      "model",
+      "inference",
+      "training",
+      "fine-tuning",
+      "embedding",
+      "multimodal",
+      "copilot",
+      "GPU",
+      "MCP",
+      "RAG",
+      "Meta",
+      "Muse"
+    ],
+    "keywords_exclude": [
+      "sports",
+      "weather",
+      "horoscope",
+      "fashion",
+      "travel"
+    ],
+    "borderline_llm": true
+  },
   "archive": {
     "enabled": true,
     "push": true,
