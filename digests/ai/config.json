@@ -2,7 +2,7 @@
   "digest": {
     "name": "The AI Daily Roundup",
     "tagline": "AI DIGEST",
-    "emoji": "\u26a1",
+    "emoji": "⚡",
     "tone": "informed, direct, slightly opinionated",
     "max_articles": 20
   },
@@ -10,43 +10,43 @@
     {
       "id": "model-release",
       "label": "Model Releases",
-      "emoji": "\ud83d\ude80",
+      "emoji": "🚀",
       "description": "Major new models or capability upgrades (GPT/Claude/Gemini releases, benchmark improvements, reasoning models, multimodal upgrades)"
     },
     {
       "id": "dev-tools",
       "label": "Developer Tools",
-      "emoji": "\ud83d\udee0\ufe0f",
+      "emoji": "🛠️",
       "description": "Tools that help people build AI systems (Claude Code, OpenClaw, LangChain, MCP tools, agent frameworks, coding copilots)"
     },
     {
       "id": "infra-platform",
       "label": "Infrastructure & Platforms",
-      "emoji": "\ud83c\udfd7\ufe0f",
+      "emoji": "🏗️",
       "description": "Infrastructure for deploying AI (inference engines, GPU infrastructure, vector databases, model hosting, AI cloud platforms)"
     },
     {
       "id": "research",
       "label": "Research & Techniques",
-      "emoji": "\ud83d\udd2c",
+      "emoji": "🔬",
       "description": "Papers or new technical approaches (agent architectures, reasoning techniques, training methods, evaluation methods)"
     },
     {
       "id": "applications",
       "label": "Applications & Products",
-      "emoji": "\ud83d\udcf1",
+      "emoji": "📱",
       "description": "AI applied to real-world products (new AI apps, consumer tools, enterprise deployments, AI assistants)"
     },
     {
       "id": "industry",
       "label": "Industry & Business",
-      "emoji": "\ud83d\udcbc",
+      "emoji": "💼",
       "description": "Market moves and ecosystem changes (funding rounds, partnerships, regulation, company strategy)"
     },
     {
       "id": "other",
       "label": "Other",
-      "emoji": "\ud83c\udf10",
+      "emoji": "🌐",
       "description": "Anything that doesn't fit the above categories"
     }
   ],
@@ -88,9 +88,18 @@
         "SDKs": "ess-dee-kays"
       },
       "regex": [
-        {"pattern": "\\$([0-9]+)B\\b", "replacement": "$1 billion dollars"},
-        {"pattern": "\\$([0-9]+)M\\b", "replacement": "$1 million dollars"},
-        {"pattern": "\\bQ([1-4])\\b", "replacement": "quarter $1"}
+        {
+          "pattern": "\\$([0-9]+)B\\b",
+          "replacement": "$1 billion dollars"
+        },
+        {
+          "pattern": "\\$([0-9]+)M\\b",
+          "replacement": "$1 million dollars"
+        },
+        {
+          "pattern": "\\bQ([1-4])\\b",
+          "replacement": "quarter $1"
+        }
       ]
     }
   },
@@ -121,40 +130,6 @@
   "llm": {
     "provider": "openrouter"
   },
-  "relevance_filter": {
-    "enabled": true,
-    "topic": "artificial intelligence, machine learning, and AI products",
-    "keywords_include": [
-      "AI",
-      "LLM",
-      "GPT",
-      "Claude",
-      "Anthropic",
-      "OpenAI",
-      "agent",
-      "agents",
-      "model",
-      "inference",
-      "training",
-      "fine-tuning",
-      "embedding",
-      "multimodal",
-      "copilot",
-      "GPU",
-      "MCP",
-      "RAG",
-      "Meta",
-      "Muse"
-    ],
-    "keywords_exclude": [
-      "sports",
-      "weather",
-      "horoscope",
-      "fashion",
-      "travel"
-    ],
-    "borderline_llm": true
-  },
   "archive": {
     "enabled": true,
     "push": true,
@@ -182,7 +157,19 @@
         "karpathy",
         "MistralAI",
         "AnthropicAI",
-        "googleaistudio"
+        "googleaistudio",
+        "googleai",
+        "swyx",
+        "addyosmani",
+        "openai",
+        "anthropic",
+        "googledeepmind",
+        "metaai",
+        "mistralai",
+        "githubcopilot",
+        "cursorai",
+        "openaidevs",
+        "langchainai"
       ],
       "lookback": "36h",
       "max_per_account": 8
@@ -214,12 +201,12 @@
       "simon_willison": {
         "name": "Simon Willison",
         "feed_url": "https://simonwillison.net/atom/everything/",
-        "description": "AI/LLM thinker \u2014 prompt engineering, agent patterns, tooling"
+        "description": "AI/LLM thinker — prompt engineering, agent patterns, tooling"
       },
       "the_ai_engineer": {
         "name": "The AI Engineer",
         "feed_url": "https://theaiengineer.substack.com/feed",
-        "description": "Deep technical explainers on AI engineering \u2014 MCP, agents, coding tools"
+        "description": "Deep technical explainers on AI engineering — MCP, agents, coding tools"
       },
       "latent_space": {
         "name": "Latent Space",
@@ -265,5 +252,39 @@
         "transformer"
       ]
     }
+  },
+  "relevance_filter": {
+    "enabled": true,
+    "topic": "artificial intelligence, machine learning, and AI products",
+    "keywords_include": [
+      "AI",
+      "LLM",
+      "GPT",
+      "Claude",
+      "Anthropic",
+      "OpenAI",
+      "agent",
+      "agents",
+      "model",
+      "inference",
+      "training",
+      "fine-tuning",
+      "embedding",
+      "multimodal",
+      "copilot",
+      "GPU",
+      "MCP",
+      "RAG",
+      "Meta",
+      "Muse"
+    ],
+    "keywords_exclude": [
+      "sports",
+      "weather",
+      "horoscope",
+      "fashion",
+      "travel"
+    ],
+    "borderline_llm": true
   }
 }
