@@ -252,12 +252,26 @@ def send_notification(message: str, config: dict) -> bool:
     """Send notification via configured method. Returns success."""
     notify_cfg = config.get("delivery", {}).get("notify", {})
     method = notify_cfg.get("method", "none")
+    digest_name = config.get("digest", {}).get("name", "Digest")
 
     if method == "telegram":
-        return _send_telegram(message, notify_cfg)
+        logger.info(f"[DELIVER] Sending Telegram notification for {digest_name}")
+        success = _send_telegram(message, notify_cfg)
+        if success:
+            logger.info(f"[DELIVER] Telegram notification sent successfully")
+        else:
+            logger.error(f"[DELIVER] Telegram notification failed")
+        return success
     elif method == "slack":
-        return _send_slack(message, notify_cfg)
+        logger.info(f"[DELIVER] Sending Slack notification for {digest_name}")
+        success = _send_slack(message, notify_cfg)
+        if success:
+            logger.info(f"[DELIVER] Slack notification sent successfully")
+        else:
+            logger.error(f"[DELIVER] Slack notification failed")
+        return success
     elif method == "none":
+        logger.info(f"[DELIVER] Notifications disabled (method=none)")
         return True
     else:
         logger.warning(f"[DELIVER] Unknown notify method: {method}")
@@ -318,13 +332,17 @@ def _send_telegram(message: str, notify_cfg: dict) -> bool:
     chat_id = _resolve_env(tg_cfg, "chat_id_env", "TELEGRAM_CHAT_ID")
 
     if not bot_token or not chat_id:
-        logger.warning("[TELEGRAM] Missing bot_token or chat_id")
+        logger.error("[TELEGRAM] Missing bot_token or chat_id (env vars not set)")
         return False
 
     chunks = _split_message(message)
-    for chunk in chunks:
+    logger.info(f"[TELEGRAM] Sending {len(chunks)} chunk(s), total {len(message)} chars")
+    for i, chunk in enumerate(chunks, 1):
+        logger.info(f"[TELEGRAM] Sending chunk {i}/{len(chunks)} ({len(chunk)} chars)")
         if not _post_telegram_message(chunk, bot_token, chat_id):
+            logger.error(f"[TELEGRAM] Failed on chunk {i}/{len(chunks)}")
             return False
+    logger.info(f"[TELEGRAM] All {len(chunks)} chunk(s) sent successfully")
     return True
 
 
@@ -340,10 +358,24 @@ def _post_telegram_message(text: str, bot_token: str, chat_id: str) -> bool:
     req = urllib.request.Request(url, data=payload,
                                 headers={"Content-Type": "application/json"})
     try:
+        import time
+        t0 = time.time()
         with urllib.request.urlopen(req, timeout=15) as resp:
-            return resp.status == 200
+            dur = time.time() - t0
+            if resp.status == 200:
+                logger.info(f"[TELEGRAM] Message sent in {dur:.2f}s (status={resp.status})")
+                return True
+            else:
+                logger.error(f"[TELEGRAM] Unexpected status {resp.status} (expected 200)")
+                return False
+    except urllib.error.HTTPError as e:
+        logger.error(f"[TELEGRAM] HTTP error {e.code}: {e.reason}")
+        return False
+    except urllib.error.URLError as e:
+        logger.error(f"[TELEGRAM] Network error: {e.reason}")
+        return False
     except Exception as e:
-        logger.error(f"[TELEGRAM] Send failed: {e}")
+        logger.error(f"[TELEGRAM] Unexpected error: {type(e).__name__}: {e}")
         return False
 
 
