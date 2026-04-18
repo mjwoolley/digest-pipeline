@@ -290,7 +290,7 @@ def commit_pending(state: dict, pending_ids: dict[str, list[str]],
                 "last_updated": date,
             }
         else:
-            combined = entry["seen_ids"] + new_ids
+            combined = entry.get("seen_ids", []) + new_ids
             # Keep only the most recent max_ids
             if len(combined) > max_ids:
                 combined = combined[-max_ids:]
@@ -299,6 +299,24 @@ def commit_pending(state: dict, pending_ids: dict[str, list[str]],
                 "last_updated": date,
             }
     return state
+
+
+def update_source_state(state: dict, pending_ids: dict[str, list[str]],
+                        fetched_keys: set[str], included_keys: set[str],
+                        date: str, max_ids: int = 500) -> dict:
+    """Backward-compatible helper expected by digest.py.
+
+    Updates per-source metadata for fetched/included timestamps and commits
+    pending item IDs after a successful run.
+    """
+    state = {**state}
+    for key in fetched_keys:
+        entry = state.setdefault(key, {})
+        entry["last_fetched"] = date
+    for key in included_keys:
+        entry = state.setdefault(key, {})
+        entry["last_included"] = date
+    return commit_pending(state, pending_ids, date, max_ids=max_ids)
 
 
 def _count_items(source: dict) -> int:
