@@ -38,7 +38,7 @@ PRICING = {
     "openai/text-embedding-3-small": {"input": 0.02, "output": 0.0},
 }
 
-TIMEOUT = 120
+TIMEOUT = 300
 MAX_RETRIES = 1
 RETRY_BACKOFF = 5
 
@@ -157,10 +157,31 @@ def embed(texts: list[str]) -> tuple[list[list[float]], dict]:
         "Content-Type": "application/json",
         "Authorization": f"Bearer {_keys['openrouter']}",
     }
-    data = _request_with_retry(OPENROUTER_EMBED_URL, payload, headers)
+    char_lengths = [len(t or "") for t in texts]
+    total_chars = sum(char_lengths)
+    max_chars = max(char_lengths) if char_lengths else 0
+    avg_chars = round(total_chars / len(char_lengths), 1) if char_lengths else 0
+    logger.info(
+        f"[EMBED] Requesting {len(texts)} embeddings via {model} "
+        f"(total_chars={total_chars}, avg_chars={avg_chars}, max_chars={max_chars}, timeout={TIMEOUT}s)"
+    )
+    t0 = time.time()
+    try:
+        data = _request_with_retry(OPENROUTER_EMBED_URL, payload, headers)
+    except Exception as e:
+        dur = time.time() - t0
+        logger.error(
+            f"[EMBED] Failed after {dur:.1f}s for {len(texts)} texts "
+            f"(total_chars={total_chars}, max_chars={max_chars}): {e}"
+        )
+        raise
+    dur = time.time() - t0
     embeddings = [item["embedding"] for item in data["data"]]
     usage = data.get("usage", {})
     usage["cost"] = _calc_cost(model, usage)
+    logger.info(
+        f"[EMBED] Received {len(embeddings)} embeddings in {dur:.1f}s"
+    )
     return embeddings, usage
 
 

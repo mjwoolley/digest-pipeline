@@ -86,6 +86,13 @@
   - Report per-episode download counts and top podcast apps (Apple Podcasts, Overcast, etc.) via User-Agent.
   - Caveats: not IAB-compliant, doesn't handle range-request chunking perfectly, includes some bot noise. Good enough as a trend indicator at current scale. Consider Podtrac/Chartable if precise numbers are ever needed.
 
+- [ ] **Per-stage Telegram progress notifications**
+  - Send a short Telegram message after each major pipeline stage completes.
+  - Include stage name, duration, and key metric (e.g. article count, cluster count, email count).
+  - Provides real-time visibility without tailing logs.
+  - Keep messages short and non-spammy.
+  - Consider a config flag to enable/disable per digest.
+
 - [ ] **Register Podcast with Directories**
   - Submit the AI Daily Roundup RSS feed to major podcast directories.
   - Targets:
