@@ -176,6 +176,20 @@ def embed(texts: list[str]) -> tuple[list[list[float]], dict]:
         )
         raise
     dur = time.time() - t0
+    if not isinstance(data, dict):
+        logger.error(f"[EMBED] Unexpected non-dict response type: {type(data).__name__}")
+        raise RuntimeError(f"Embedding API returned non-object response: {type(data).__name__}")
+    if "data" not in data:
+        preview = json.dumps(data, ensure_ascii=False)[:1000]
+        logger.error(
+            f"[EMBED] Response missing 'data' key after {dur:.1f}s "
+            f"for {len(texts)} texts: {preview}"
+        )
+        raise RuntimeError("Embedding API returned unexpected response without 'data'")
+    if not isinstance(data["data"], list):
+        preview = json.dumps(data, ensure_ascii=False)[:1000]
+        logger.error(f"[EMBED] Response 'data' is not a list: {preview}")
+        raise RuntimeError("Embedding API returned unexpected 'data' payload type")
     embeddings = [item["embedding"] for item in data["data"]]
     usage = data.get("usage", {})
     usage["cost"] = _calc_cost(model, usage)

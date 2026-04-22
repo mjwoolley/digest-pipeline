@@ -93,6 +93,19 @@
   - Keep messages short and non-spammy.
   - Consider a config flag to enable/disable per digest.
 
+- [ ] **Pipeline error observability**
+  - Notify Mike when a digest pipeline run fails.
+  - Hook failure reporting into the main run path so exceptions do not fail silently.
+  - Include digest name, failing stage, timestamp, and error summary in the alert.
+  - Decide whether alerts should go to Telegram only, PagerDuty only, or both.
+  - Consider a matching success or recovery notification so failures are easier to contextualize.
+
+- [ ] **PagerDuty integration for digest failures**
+  - Research whether PagerDuty still has a usable free tier for this setup.
+  - If viable, add a PagerDuty integration key/config path for pipeline alerts.
+  - Trigger a PagerDuty event when a digest run fails.
+  - Document setup steps, limits, and any fallback plan if PagerDuty's free tier is gone or too constrained.
+
 - [ ] **Register Podcast with Directories**
   - Submit the AI Daily Roundup RSS feed to major podcast directories.
   - Targets:

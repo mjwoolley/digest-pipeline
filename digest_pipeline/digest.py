@@ -322,12 +322,23 @@ def main():
             msg = "All sources empty — skipping digest"
             logger.warning(f"[PIPELINE] {msg}")
             run_log.log_stage("Gather", msg)
+            total_dur = time.time() - start_time
+            try:
+                delivery.send_notification(
+                    f"⚪ {tagline} skipped\n"
+                    f"Reason: no new content after incremental filtering\n"
+                    f"Sources with content before filter: {len(fetched_keys)}/{len(sources)}\n"
+                    f"Duration: {total_dur:.0f}s",
+                    config,
+                )
+            except Exception:
+                logger.error("[PIPELINE] Failed to send skip notification")
             if fetched_keys:
                 source_state = update_source_state(
                     source_state, {}, fetched_keys, set(), date)
                 source_state = prune_state(source_state)
                 save_state(data_root, source_state)
-            return
+            sys.exit(10)
 
         # 4. Extract: batched Haiku calls
         logger.info("[PIPELINE] Stage: EXTRACT")
@@ -376,7 +387,18 @@ def main():
             msg = "No articles extracted — skipping digest"
             logger.warning(f"[PIPELINE] {msg}")
             run_log.log_stage("Extract", msg)
-            return
+            total_dur = time.time() - start_time
+            try:
+                delivery.send_notification(
+                    f"⚪ {tagline} skipped\n"
+                    f"Reason: no articles extracted from available source content\n"
+                    f"Sources with new content: {len(non_empty)}\n"
+                    f"Duration: {total_dur:.0f}s",
+                    config,
+                )
+            except Exception:
+                logger.error("[PIPELINE] Failed to send skip notification")
+            sys.exit(11)
 
         logger.info(f"[PIPELINE] Total articles extracted: {len(all_articles)}")
 
