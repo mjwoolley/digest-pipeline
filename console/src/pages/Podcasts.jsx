@@ -60,6 +60,12 @@ export function Podcasts({ slug, refreshInterval }) {
               <div class="stat-label">RSS Items</div>
             </div>
           </div>
+          <div class="card" style="min-width: 120px">
+            <div class="stat">
+              <div class="stat-value">{data.estimated_subscribers ?? '-'}</div>
+              <div class="stat-label">Podcast Subscribers</div>
+            </div>
+          </div>
           <div class="card" style="min-width: 100px">
             <div class="stat">
               <span class={`badge ${rssInSync ? 'badge--success' : 'badge--failure'}`}>
@@ -82,6 +88,8 @@ export function Podcasts({ slug, refreshInterval }) {
               <th>Duration</th>
               <th>Cost</th>
               <th>Minutes</th>
+              <th>Articles</th>
+              <th>Downloads</th>
               <th>Size</th>
             </tr>
           </thead>
@@ -94,6 +102,8 @@ export function Podcasts({ slug, refreshInterval }) {
                 <td>{run.duration_s != null ? `${Math.round(run.duration_s)}s` : '-'}</td>
                 <td>{run.cost != null ? `$${run.cost.toFixed(3)}` : '-'}</td>
                 <td>{run.audio_minutes != null ? `${run.audio_minutes}m` : '-'}</td>
+                <td>{run.article_count != null ? run.article_count : '-'}</td>
+                <td>{run.download_count != null ? run.download_count : '-'}</td>
                 <td>{run.mp3_size != null ? formatSize(run.mp3_size) : '-'}</td>
               </tr>
             ))}

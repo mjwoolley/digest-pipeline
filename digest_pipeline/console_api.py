@@ -17,6 +17,7 @@ from pathlib import Path
 from flask import Flask, jsonify, request
 
 from .config import load_config
+from .podcast_stats import discover_log_paths
 from .subscribers import load_subscribers
 
 logger = logging.getLogger("digest")
@@ -50,6 +51,13 @@ def _read_jsonl_tail(path: Path, n: int = 500) -> list[dict]:
         return results
     except Exception:
         return []
+
+
+def _load_podcast_stats(data_root: Path) -> tuple[dict, dict]:
+    """Load cached podcast stats artifacts."""
+    stats = _read_json(data_root / "podcast_stats.json") or {}
+    downloads = _read_json(data_root / "podcast_downloads.json") or {}
+    return stats, downloads
 
 
 def _scan_runs(data_root: Path, days: int = 14) -> list[dict]:
@@ -298,6 +306,9 @@ def _scan_podcast_runs(data_root: Path, days: int = 14) -> list[dict]:
     if not podcasts_dir.exists():
         return []
 
+    _, podcast_downloads = _load_podcast_stats(data_root)
+    download_lookup = (podcast_downloads.get("episodes") or {}) if isinstance(podcast_downloads, dict) else {}
+
     # Read actual run.json files
     run_files = sorted(
         [f for f in podcasts_dir.glob("*-run.json") if DATE_RE.match(f.name[:10])],
@@ -309,8 +320,11 @@ def _scan_podcast_runs(data_root: Path, days: int = 14) -> list[dict]:
     for rf in run_files:
         data = _read_json(rf)
         if data:
+            date = data.get("date", rf.name[:10])
+            data["download_count"] = ((download_lookup.get(date) or {}).get("downloads") or 0)
+            data["article_count"] = _extract_article_count(data)
             runs.append(data)
-            known_dates.add(data.get("date", rf.name[:10]))
+            known_dates.add(date)
 
     # Synthesize entries for MP3 files with no run.json
     mp3_files = sorted(podcasts_dir.glob("*.mp3"), key=lambda f: f.name, reverse=True)
@@ -328,6 +342,8 @@ def _scan_podcast_runs(data_root: Path, days: int = 14) -> list[dict]:
             "duration_s": None,
             "stages": [],
             "totals": {"audio_duration_s": est_duration, "mp3_size": size},
+            "download_count": ((download_lookup.get(date) or {}).get("downloads") or 0),
+            "article_count": 0,
             "_synthetic": True,
         })
 
@@ -549,6 +565,7 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
             last_run = runs[0] if runs else None
 
             subscribers = load_subscribers(data_root)
+            podcast_stats, _ = _load_podcast_stats(data_root)
 
             result.append({
                 "slug": slug,
@@ -556,6 +573,8 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
                 "emoji": cfg.get("digest", {}).get("emoji", ""),
                 "source_count": _count_sources(cfg),
                 "subscriber_count": len(subscribers),
+                "email_subscriber_count": len(subscribers),
+                "estimated_podcast_subscribers": podcast_stats.get("estimated_subscribers", 0),
                 "last_run": {
                     "date": last_run["date"],
                     "status": last_run["status"],
@@ -751,6 +770,8 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
             return jsonify({"error": "Unknown digest"}), 404
         data_root = info["data_root"]
         cfg = info["config"]
+        podcast_stats, podcast_downloads = _load_podcast_stats(data_root)
+        download_lookup = (podcast_downloads.get("episodes") or {}) if isinstance(podcast_downloads, dict) else {}
 
         enabled = cfg.get("podcast", {}).get("enabled", False)
         podcasts_dir = data_root / "podcasts"
@@ -767,6 +788,7 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
                     "has_mp3": True,
                     "mp3_size": mp3.stat().st_size,
                     "has_script": script_path.exists(),
+                    "download_count": ((download_lookup.get(date) or {}).get("downloads") or 0),
                 })
 
         # RSS info
@@ -777,6 +799,12 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
             "name": cfg.get("podcast", {}).get("name", ""),
             "episodes": episodes,
             "rss_item_count": len(rss_items),
+            "estimated_subscribers": podcast_stats.get("estimated_subscribers", 0),
+            "subscriber_window_days": podcast_stats.get("subscriber_window_days"),
+            "stats_last_computed_at": podcast_stats.get("last_computed_at"),
+            "log_coverage_start": podcast_stats.get("log_coverage_start"),
+            "log_coverage_end": podcast_stats.get("log_coverage_end"),
+            "collecting_data": not discover_log_paths(data_root),
         })
 
     @app.route("/api/digests/<slug>/podcast/runs")

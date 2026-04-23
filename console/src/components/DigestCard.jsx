@@ -1,7 +1,15 @@
 import { StatusBadge } from './StatusBadge';
 
 export function DigestCard({ digest }) {
-  const { slug, name, emoji, source_count, subscriber_count, last_run } = digest;
+  const {
+    slug,
+    name,
+    emoji,
+    source_count,
+    email_subscriber_count,
+    estimated_podcast_subscribers,
+    last_run,
+  } = digest;
 
   return (
     <a class="card-link" href={`#/${slug}/runs`}>
@@ -42,8 +50,12 @@ export function DigestCard({ digest }) {
             <div class="stat-label">Sources</div>
           </div>
           <div class="stat">
-            <div class="stat-value">{subscriber_count}</div>
-            <div class="stat-label">Subscribers</div>
+            <div class="stat-value">{email_subscriber_count ?? '-'}</div>
+            <div class="stat-label">Email Subscribers</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">{estimated_podcast_subscribers ?? '-'}</div>
+            <div class="stat-label">Podcast Subscribers</div>
           </div>
         </div>
       </div>

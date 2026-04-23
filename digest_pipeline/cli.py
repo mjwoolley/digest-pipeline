@@ -16,6 +16,7 @@ def main():
       digest-pipeline --serve [--digests-dir DIR] [--port PORT]
       digest-pipeline /path/to/config.json --serve [--port PORT]
       digest-pipeline --console [--digests-dir DIR] [--port PORT]
+      digest-pipeline --podcast-stats [--digests-dir DIR]
       digest-pipeline init
     """
     args = sys.argv[1:]
@@ -53,6 +54,10 @@ def main():
     # Management console
     if "--console" in args:
         _run_console(args)
+        return
+
+    if "--podcast-stats" in args:
+        _run_podcast_stats(args)
         return
 
     if digest_only and podcast_only:
@@ -186,6 +191,46 @@ def _run_serve(args):
 
     print(f"Starting subscription API on http://127.0.0.1:{port}")
     app.run(host="127.0.0.1", port=port)
+
+
+def _run_podcast_stats(args):
+    """Generate cached podcast stats artifacts for one or all digests."""
+    from pathlib import Path
+    from .config import load_config
+    from .podcast_stats import write_podcast_metrics
+
+    config_path = next((a for a in args if not a.startswith("--")), None)
+    if config_path and Path(config_path).exists() and config_path.endswith(".json"):
+        cfg = load_config(config_path)
+        stats, downloads = write_podcast_metrics(cfg, cfg["_data_root"])
+        print(f"Updated podcast stats for {cfg['digest']['name']}: {stats.get('estimated_subscribers', 0)} subscribers, {len((downloads.get('episodes') or {}))} episodes")
+        return
+
+    digests_dir = None
+    if "--digests-dir" in args:
+        try:
+            idx = args.index("--digests-dir")
+            digests_dir = args[idx + 1]
+        except (ValueError, IndexError):
+            print("Error: --digests-dir requires a path")
+            sys.exit(1)
+    if not digests_dir:
+        candidate = Path(__file__).resolve().parent.parent / "digests"
+        if candidate.exists():
+            digests_dir = str(candidate)
+        else:
+            print("Error: provide --digests-dir or a config path")
+            sys.exit(1)
+
+    configs = sorted(Path(digests_dir).glob("*/config.json"))
+    if not configs:
+        print(f"No digest configs found in {digests_dir}")
+        return
+
+    for cfg_file in configs:
+        cfg = load_config(str(cfg_file))
+        stats, downloads = write_podcast_metrics(cfg, cfg["_data_root"])
+        print(f"Updated {cfg['digest']['name']}: {stats.get('estimated_subscribers', 0)} subscribers, {len((downloads.get('episodes') or {}))} episodes")
 
 
 def _run_console(args):
