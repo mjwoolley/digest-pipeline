@@ -213,7 +213,12 @@ def extract_normalize(sources_batch: list[dict], date: str,
     """
     model = MODELS[_provider]["haiku"]
 
-    # Build source content with SRC reference tokens
+    # Build source content with SRC reference tokens.
+    # The model only sees opaque ``SRC1`` / ``SRC2`` labels and is asked to
+    # echo the matching ref on each article it emits. Code (not the LLM)
+    # then maps each ref back to the real provenance fields. This keeps the
+    # source URL, key, and label out of the model's reach so it can't
+    # hallucinate or rewrite them.
     source_texts = []
     src_ref_map = {}  # SRC1 -> source provenance dict
     src_idx = 0

@@ -1,4 +1,11 @@
-"""Kokoro-82M local TTS backend for podcast audio generation."""
+"""Kokoro-82M local TTS backend for podcast audio generation.
+
+Synthesizes turn-by-turn and streams 16-bit PCM samples directly into a
+WAV file, then shells out to ``ffmpeg`` to encode the final MP3. Streaming
+to disk (rather than concatenating numpy arrays in memory) is what lets
+this run on a 2 GB VPS — a 30-minute episode would otherwise hold ~80 MB
+of float32 samples in RAM.
+"""
 import logging
 import subprocess
 import numpy as np

@@ -138,6 +138,12 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/api/subscribe", methods=["POST", "OPTIONS"])
     def subscribe():
+        """Add an email to the digest's subscriber list.
+
+        Returns the same success message regardless of whether the email is
+        new, already subscribed, or caught by the honeypot — so the endpoint
+        cannot be used to discover who is on the list.
+        """
         if request.method == "OPTIONS":
             return "", 204
 
@@ -172,6 +178,8 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/unsubscribe", methods=["GET", "POST"])
     def unsubscribe_page():
+        """Render the unsubscribe confirmation page (GET) or process Gmail's
+        one-click ``List-Unsubscribe`` POST. Token is required."""
         token = request.args.get("token", "")
         if not token:
             return _render_unsubscribe_page(valid=False), 400
@@ -205,6 +213,7 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/api/unsubscribe", methods=["POST", "OPTIONS"])
     def unsubscribe():
+        """JSON unsubscribe by token. Used by the confirmation-page button."""
         if request.method == "OPTIONS":
             return "", 204
 
@@ -229,6 +238,7 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/health", methods=["GET"])
     def health():
+        """Liveness probe — returns 200 with the active digest slugs."""
         return jsonify({"status": "ok", "digests": list(digests.keys())})
 
     @app.errorhandler(404)

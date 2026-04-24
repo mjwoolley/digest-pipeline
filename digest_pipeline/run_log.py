@@ -1,4 +1,10 @@
-"""Structured JSON run log for digest pipeline runs."""
+"""Structured JSON run log for digest and podcast pipelines.
+
+Each run writes a single ``run.json`` file that the management console reads
+to render run history, stage timelines, and totals. The file is rewritten
+after every stage so a crashed run still has a partial record up to the
+failure point.
+"""
 import json
 import time
 from datetime import datetime, timezone
@@ -27,6 +33,12 @@ class RunLog:
         self._flush()
 
     def log_stage(self, stage: str, detail: str, usage: dict = None):
+        """Append an info entry for ``stage`` and flush to disk.
+
+        ``usage`` is the raw provider response dict (with ``input_tokens`` /
+        ``output_tokens`` / ``cost`` / ``duration``) — both OpenAI- and
+        Anthropic-shaped keys are accepted.
+        """
         entry = {
             "stage": stage,
             "timestamp": _now(),
@@ -44,6 +56,7 @@ class RunLog:
         self._flush()
 
     def log_error(self, stage: str, error: str):
+        """Append an error entry for ``stage``. Does not mark the run failed."""
         self._data["stages"].append({
             "stage": stage,
             "timestamp": _now(),
@@ -53,6 +66,7 @@ class RunLog:
         self._flush()
 
     def complete(self, tracker):
+        """Mark the run successful and aggregate totals from a TokenTracker."""
         self._data["status"] = "success"
         self._data["completed_at"] = _now()
         self._data["duration_s"] = round(time.time() - self._start, 1)
@@ -72,6 +86,7 @@ class RunLog:
         self._flush()
 
     def fail(self, error: str):
+        """Mark the run failed with ``error`` as the top-level reason."""
         self._data["status"] = "failure"
         self._data["completed_at"] = _now()
         self._data["duration_s"] = round(time.time() - self._start, 1)

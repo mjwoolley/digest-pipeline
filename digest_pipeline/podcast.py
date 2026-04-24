@@ -1,4 +1,10 @@
-"""Podcast pipeline: generate a two-host audio podcast from a daily digest."""
+"""Podcast pipeline: generate a two-host audio podcast from a daily digest.
+
+Stages: read the archived digest markdown, ask Sonnet for a conversational
+script, apply pronunciation rewrites for TTS, synthesize audio with Kokoro,
+deliver the MP3, and refresh ``podcast.xml`` + the landing page so podcast
+apps and human visitors see the new episode.
+"""
 import logging
 import re
 import subprocess
@@ -59,6 +65,12 @@ def parse_script(script_text: str, speaker_tags: list[str] = None) -> list[tuple
 
 
 def main():
+    """Run the podcast pipeline for one date (defaults to today UTC).
+
+    Reads the config path and optional ``YYYY-MM-DD`` date from ``sys.argv``.
+    Failures are non-fatal to the digest pipeline that calls into here — they
+    surface as a Telegram alert and a non-zero exit.
+    """
     # Parse args
     dry_run = False
     config_path = None
@@ -161,6 +173,10 @@ def main():
             return
 
         # ── Pronunciation rewrites (ephemeral, TTS only) ──────────────
+        # Rewrites run on a copy of the turns. The original ``turns`` keep
+        # their human-readable spelling and are what gets saved as the script
+        # transcript above; only ``tts_turns`` (with phonetic spellings) is
+        # handed to the synth.
         from . import pronunciation
         rewriter = pronunciation.build_rewriter(config)
         tts_turns = pronunciation.apply_rewrites(turns, rewriter)

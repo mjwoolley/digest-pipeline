@@ -554,6 +554,8 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/api/digests")
     def list_digests():
+        """Overview row for every configured digest: name, source/subscriber
+        counts, and a summary of the last run."""
         result = []
         for slug in sorted(digest_configs):
             info = _get_digest(slug)
@@ -587,6 +589,8 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/api/digests/<slug>/runs")
     def list_runs(slug):
+        """Recent run summaries (status, duration, cost, article count) for
+        the run-history table."""
         info = _get_digest(slug)
         if not info:
             return jsonify({"error": "Unknown digest"}), 404
@@ -604,6 +608,8 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/api/digests/<slug>/runs/<date>")
     def get_run(slug, date):
+        """Full ``run.json`` for one date, or a minimal synthesized record
+        for older runs that predate structured logging."""
         info = _get_digest(slug)
         if not info:
             return jsonify({"error": "Unknown digest"}), 404
@@ -633,6 +639,8 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/api/digests/<slug>/runs/<date>/funnel")
     def get_funnel(slug, date):
+        """Article counts at each pipeline stage (extracted → clustered →
+        deduped → prioritized → formatted) for the funnel chart."""
         info = _get_digest(slug)
         if not info:
             return jsonify({"error": "Unknown digest"}), 404
@@ -670,6 +678,8 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/api/digests/<slug>/runs/<date>/sources")
     def get_run_sources(slug, date):
+        """Per-source raw-file breakdown for one run (which sources had
+        content vs were empty)."""
         info = _get_digest(slug)
         if not info:
             return jsonify({"error": "Unknown digest"}), 404
@@ -697,6 +707,8 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/api/digests/<slug>/sources")
     def list_sources(slug):
+        """All configured sources annotated with health metrics (yield rate,
+        exclusive-article count, days active) from the last 14 days."""
         info = _get_digest(slug)
         if not info:
             return jsonify({"error": "Unknown digest"}), 404
@@ -727,6 +739,8 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/api/digests/<slug>/delivery")
     def get_delivery(slug):
+        """Delivery overview: subscriber count plus per-date send aggregates
+        (sent / failed / retries) for the last 14 days."""
         info = _get_digest(slug)
         if not info:
             return jsonify({"error": "Unknown digest"}), 404
@@ -757,6 +771,7 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/api/digests/<slug>/delivery/sends")
     def get_delivery_sends(slug):
+        """Most recent individual send entries (newest first, capped at 100)."""
         info = _get_digest(slug)
         if not info:
             return jsonify({"error": "Unknown digest"}), 404
@@ -766,6 +781,8 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/api/digests/<slug>/podcast")
     def get_podcast(slug):
+        """Podcast summary: episode list, RSS sync check, and (if
+        ``--podcast-stats`` has been run) estimated subscribers + downloads."""
         info = _get_digest(slug)
         if not info:
             return jsonify({"error": "Unknown digest"}), 404
@@ -810,6 +827,7 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/api/digests/<slug>/podcast/runs")
     def list_podcast_runs(slug):
+        """Recent podcast-pipeline run summaries (one per episode)."""
         info = _get_digest(slug)
         if not info:
             return jsonify({"error": "Unknown digest"}), 404
@@ -830,6 +848,8 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/api/digests/<slug>/podcast/runs/<date>")
     def get_podcast_run(slug, date):
+        """Full podcast ``run.json`` for one date, or a minimal synthesized
+        record built from the MP3/script files when no run.json exists."""
         info = _get_digest(slug)
         if not info:
             return jsonify({"error": "Unknown digest"}), 404
@@ -863,6 +883,7 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/api/digests/<slug>/config")
     def get_config(slug):
+        """Return the digest's config with secrets and internal keys stripped."""
         info = _get_digest(slug)
         if not info:
             return jsonify({"error": "Unknown digest"}), 404
@@ -872,6 +893,7 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/api/digests/<slug>/sources/<source_type>/<key>")
     def get_source_detail(slug, source_type, key):
+        """Single source's config block (for the source-edit form)."""
         info = _get_digest(slug)
         if not info:
             return jsonify({"error": "Unknown digest"}), 404
@@ -882,6 +904,8 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/api/digests/<slug>/sources", methods=["POST"])
     def create_source(slug):
+        """Add a new source to the digest's config. Validates type, key
+        format, and required fields before writing config.json."""
         info = _get_digest(slug)
         if not info:
             return jsonify({"error": "Unknown digest"}), 404
@@ -932,6 +956,8 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/api/digests/<slug>/sources/<source_type>/<key>", methods=["PUT"])
     def update_source(slug, source_type, key):
+        """Update an existing source's fields. Body fields are merged into
+        the existing record so a partial PUT can't drop unspecified keys."""
         info = _get_digest(slug)
         if not info:
             return jsonify({"error": "Unknown digest"}), 404
@@ -970,6 +996,8 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/api/digests/<slug>/sources/<source_type>/<key>", methods=["DELETE"])
     def delete_source(slug, source_type, key):
+        """Remove a source from config and prune its entry from
+        ``.source_state.json`` so a re-added source starts fresh."""
         info = _get_digest(slug)
         if not info:
             return jsonify({"error": "Unknown digest"}), 404
@@ -1022,11 +1050,14 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
 
     @app.route("/health")
     def health():
+        """Liveness probe — returns 200 with the active digest slugs."""
         return jsonify({"status": "ok", "digests": list(digest_configs.keys())})
 
     # Serve frontend
     @app.route("/")
     def index():
+        """Serve the built Preact SPA, or a hint message if the bundle is
+        missing (i.e., ``cd console && npm run build`` was never run)."""
         if app.static_folder and Path(app.static_folder, "index.html").exists():
             return app.send_static_file("index.html")
         return jsonify({"message": "Console frontend not built. Run: cd console && npm run build"})

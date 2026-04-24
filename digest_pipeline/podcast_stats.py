@@ -264,6 +264,11 @@ def _episode_date_from_uri(uri: str) -> str | None:
 
 
 def discover_log_paths(data_root: Path) -> list[Path]:
+    """Find access-log files under ``data_root`` matching known patterns.
+
+    Returns paths in deterministic order, deduplicated by resolved path so
+    overlapping glob patterns don't double-count records.
+    """
     patterns = [
         "logs/podcast_access*.jsonl",
         "logs/podcast_access*.json",
@@ -292,6 +297,13 @@ def discover_log_paths(data_root: Path) -> list[Path]:
 
 def compute_podcast_metrics(config: dict, data_root: Path, *, log_paths: list[Path] | None = None,
                             now: datetime | None = None) -> tuple[dict, dict]:
+    """Aggregate access logs into ``(stats, downloads)`` dicts.
+
+    ``stats`` summarizes recent feed-fetch activity (estimated subscribers,
+    top podcast apps). ``downloads`` is keyed by episode date and counts
+    distinct clients per episode. Bots are filtered by user-agent. Multiple
+    fetches from the same client within ``DOWNLOAD_WINDOW_HOURS`` count once.
+    """
     now = now or _utc_now()
     hosts = _public_hosts(config)
     log_paths = log_paths if log_paths is not None else discover_log_paths(data_root)
@@ -389,6 +401,9 @@ def compute_podcast_metrics(config: dict, data_root: Path, *, log_paths: list[Pa
 
 def write_podcast_metrics(config: dict, data_root: Path, *, log_paths: list[Path] | None = None,
                           now: datetime | None = None) -> tuple[dict, dict]:
+    """Compute metrics and persist them to ``podcast_stats.json`` /
+    ``podcast_downloads.json`` under ``data_root``. Returns the same
+    ``(stats, downloads)`` tuple as ``compute_podcast_metrics``."""
     stats, downloads = compute_podcast_metrics(config, data_root, log_paths=log_paths, now=now)
     (data_root / "podcast_stats.json").write_text(json.dumps(stats, indent=2) + "\n")
     (data_root / "podcast_downloads.json").write_text(json.dumps(downloads, indent=2) + "\n")

@@ -1,4 +1,14 @@
-"""Pluggable delivery for digest pipeline: email + notifications + audio."""
+"""Pluggable delivery: email, status notifications, and podcast audio.
+
+Email backends are dispatched by ``config.delivery.email.method``: ``smtp``,
+``gog`` (the GOG CLI), ``agentmail`` (AgentMail HTTP API), and ``resend``
+(Resend HTTP API). Resend rate-limit errors (HTTP 429) get exponential
+backoff with up to three retries; other failures bubble up.
+
+Status notifications and failure alerts go to Telegram and/or Slack — these
+are best-effort and never raise. Long messages are chunked to fit Telegram's
+4096-character cap.
+"""
 import json
 import logging
 import os

@@ -1,19 +1,24 @@
 #!/usr/bin/env python3
-"""
-Daily Digest — Main Pipeline Orchestrator
+"""Main pipeline orchestrator for the daily digest.
 
-Stages:
-  1. GATHER      — concurrent fetch from sources (no LLM)
-  2. EXTRACT     — batched Haiku calls (normalize to JSON)
-  3. CLUSTER     — embedding API + cosine similarity
-  4. DEDUPE      — 1 Sonnet call (merge clustered articles)
-  5. PRIORITIZE  — 1 Haiku call (score + trim to max_articles)
-  6. FORMAT      — 1 Sonnet call (summarize + format)
-  7. DELIVER     — email + notification + archive
+Runs every stage in order, persists intermediate artifacts to ``work/<date>/``
+for the dashboard, and tracks per-stage token usage and cost via TokenTracker
++ RunLog.
+
+Stages (functions imported from sibling modules):
+    1. GATHER       — concurrent fetch from sources                  (gather.py)
+    2. SKIP-SEEN    — drop items already processed in prior runs     (source_state.py)
+    3. EXTRACT      — batched Haiku calls normalize raw text to JSON (llm.py)
+    4. RELEVANCE    — optional keyword + LLM topic filter            (relevance.py)
+    5. CLUSTER      — embeddings + cosine similarity                 (cluster.py + llm.py)
+    6. DEDUPE       — Sonnet merges each cluster                     (llm.py)
+    7. CROSS-DAY    — drop articles in last N days of digests        (seen_articles.py)
+    8. PRIORITIZE   — Haiku scores when over digest.max_articles     (llm.py)
+    9. FORMAT       — Sonnet writes the final markdown               (llm.py)
+   10. DELIVER      — email + notification + archive                 (delivery.py)
 
 Usage:
-  python3 scripts/digest.py --config /path/to/config.json
-  python3 scripts/digest.py --config /path/to/config.json --dry-run
+    python3 -m digest_pipeline.digest --config /path/to/config.json [--dry-run]
 """
 import json
 import logging
@@ -254,6 +259,13 @@ def _markdown_to_email_html(md: str, config: dict,
 # ── Main Pipeline ────────────────────────────────────────────────────────────
 
 def main():
+    """Run the full digest pipeline for today's date.
+
+    Reads the config path from ``sys.argv`` (positional or ``--config``).
+    On unrecoverable failure, sends an alert via delivery.send_alert and
+    exits non-zero. On "nothing to send today" exits with a skip code
+    (see the exit-code note inside the function body).
+    """
     # Parse args
     dry_run = "--dry-run" in sys.argv
     config_path = None
@@ -338,6 +350,8 @@ def main():
                     source_state, {}, fetched_keys, set(), date)
                 source_state = prune_state(source_state)
                 save_state(data_root, source_state)
+            # Exit 10/11 are skip codes, not failures — run.sh treats them as "no new
+            # content today" and suppresses the failure alert it would normally send.
             sys.exit(10)
 
         # 4. Extract: batched Haiku calls

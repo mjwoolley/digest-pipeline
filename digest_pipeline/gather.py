@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
-"""
-Stage 1: Gather raw content from all sources (concurrent).
+"""Stage 1: gather raw content from every configured source, concurrently.
+
+One fetcher per source type (Twitter via the ``bird`` CLI, IMAP for
+newsletters, ``curl`` + XML parsing for RSS/Atom feeds, custom HTML parsers
+for sites that don't expose a feed, and a GitHub Trending scraper). Fetches
+run in a ``ThreadPoolExecutor`` capped at ``MAX_CONCURRENT``. Each fetcher
+returns a uniform ``{source_key, source_type, source_label, source_url,
+content}`` dict so downstream stages don't have to special-case sources.
+
 Usage:
   - CLI: python3 gather.py --config /path/to/config.json [work_dir]
   - Import: from gather import gather_all
