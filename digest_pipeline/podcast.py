@@ -12,9 +12,10 @@ import sys
 import time
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, time as dt_time
 from email.utils import format_datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from .config import load_config, render_prompt, get_voice_map, get_speaker_tags
 from .run_log import RunLog
@@ -25,6 +26,17 @@ from . import delivery
 
 # Default speaker tags for parse_script when none are provided
 _DEFAULT_SPEAKERS = ["ALEX", "SARAH"]
+_PODCAST_TZ = ZoneInfo("America/New_York")
+
+
+def _podcast_pub_datetime(ep_date: str) -> datetime:
+    """Return a stable local publication time for a digest date.
+
+    We anchor episodes to noon America/New_York so podcast apps don't invent
+    date-rollover weirdness from UTC/server-local conversions.
+    """
+    local_date = datetime.strptime(ep_date, "%Y-%m-%d").date()
+    return datetime.combine(local_date, dt_time(hour=12, minute=0), tzinfo=_PODCAST_TZ)
 
 
 def parse_script(script_text: str, speaker_tags: list[str] = None) -> list[tuple[str, str]]:
@@ -74,7 +86,7 @@ def main():
     # Parse args
     dry_run = False
     config_path = None
-    date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    date = datetime.now(_PODCAST_TZ).strftime("%Y-%m-%d")
 
     i = 1
     while i < len(sys.argv):
@@ -270,8 +282,7 @@ def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
         for mp3 in sorted(podcasts_dir.glob("*.mp3"), reverse=True):
             ep_date = mp3.stem  # e.g. "2026-03-09"
             try:
-                ep_dt = datetime.strptime(ep_date, "%Y-%m-%d").replace(
-                    hour=12, tzinfo=timezone.utc)
+                ep_dt = _podcast_pub_datetime(ep_date)
             except ValueError:
                 continue
             size = mp3.stat().st_size
