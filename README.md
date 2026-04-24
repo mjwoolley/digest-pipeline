@@ -1,14 +1,8 @@
 # Digest Pipeline
 
-Automated news aggregation and podcast generation. Orginally created to produce a daily summary of AI related news, but it can be used to create a digest for any topic you are interested in. You specify the sources you want to be scanned. They can be:
-- twitter accounts
-- RSS/Atom blogs
-- Emailed newsletters you receive
-- Trending github repositories
+Automated news aggregation and podcast generation. Originally built to produce a daily summary of AI news, but it can run a digest on any topic. You point it at the sources you care about — Twitter accounts, RSS/Atom blogs, emailed newsletters, trending GitHub repos — and it returns a deduplicated, summarized daily briefing delivered to your inbox or Telegram. Optionally, two AI hosts will read the digest to you as a podcast.
 
-Fetches content from all the sources, deduplicates with LLM-powered clustering, and delivers a formatted daily digest with links back to the source(s). You can even generate your own personal AI-generated podcast based on generated digest so that you can listen to it instead of reading it!
-
-Final delivery of the digest and the podcast can be to your email inbox or telegram.
+You can run a single digest, or several digests side by side (one per topic), each with its own sources, subscribers, and podcast feed.
 
 ## How it works
 
@@ -18,207 +12,321 @@ flowchart TD
 
     TW & EM & BL & GH --> GA
 
-    GA[1. Gather — concurrent fetch]
-    GA --> EX[2. Extract — Haiku LLM parses into structured articles]
-    EX --> CL[3. Cluster — group similar articles via embeddings]
-    CL --> DD[4. Dedupe — Sonnet LLM merges duplicates]
-    DD --> FM[5. Format — Sonnet LLM summarizes into final digest]
-    FM --> DL[6. Deliver]
+    GA[1 · Gather — concurrent fetch]
+    GA --> SS[2 · Skip seen items per source]
+    SS --> EX[3 · Extract — Haiku parses raw text into structured articles]
+    EX --> RF[4 · Relevance filter — keyword + LLM topic check]
+    RF --> CL[5 · Cluster — group near-duplicates via embeddings]
+    CL --> DD[6 · Dedupe — Sonnet merges each cluster]
+    DD --> CD[7 · Cross-day dedup — drop articles already in recent digests]
+    CD --> PR[8 · Prioritize — Haiku scores when over the daily cap]
+    PR --> FM[9 · Format — Sonnet writes the final markdown]
+    FM --> DL[10 · Deliver]
 
-    DL --> EMAIL[Email Inbox]
+    DL --> EMAIL[Email]
     DL --> TG[Telegram]
-    DL --> AR[Archive]
+    DL --> AR[Archive — git commit + push]
 
-    AR --> SG[7. Script Generation — Sonnet LLM writes podcast script]
-    SG --> AU[8. Audio Synthesis — Kokoro TTS]
-    AU -->|MP3| TG
+    AR --> SG[Script gen — two-host conversational script]
+    SG --> PN[Pronunciation rewrite for TTS]
+    PN --> AU[Audio — Kokoro TTS, MP3 + RSS feed]
+    AU --> TG
 ```
 
-**Six-stage digest pipeline:**
+**The digest pipeline:**
 
-1. **Gather** — Concurrent fetch from Twitter (via `bird` CLI), email newsletters (via IMAP), blog RSS/Atom feeds, and GitHub trending repos
-2. **Extract** — Batched Haiku LLM calls parse raw content into structured articles with title, category, description, URL, and source
-3. **Cluster** — Groups similar articles using `text-embedding-3-small` embeddings and centroid-based cosine similarity (threshold 0.85)
-4. **Dedupe** — Single Sonnet call merges articles within each cluster into canonical items
-5. **Format** — Single Sonnet call summarizes and organizes by category into final markdown
-6. **Deliver** — Email (Gmail/SMTP/AgentMail), notifications (Telegram/Slack), and local archive
+1. **Gather** — concurrent fetch from Twitter (via the `bird` CLI), newsletters (IMAP), blog RSS/Atom feeds, raw HTML pages, and GitHub trending. Output is one raw text file per source.
+2. **Skip-seen filter** — per-source state in `.source_state.json` records which tweet/post/email IDs were already processed. Already-seen items are stripped before extraction so the LLM never re-reads them.
+3. **Extract** — batched Haiku calls (max ~200K chars per batch) parse raw content into `{title, category, description, url, source}` records.
+4. **Relevance filter** *(optional)* — `keywords_include` keep, `keywords_exclude` drop, and a cheap Haiku classifier decides borderline cases. Off-topic articles are written to `work/<date>/filtered.json` for inspection.
+5. **Cluster** — articles are embedded with `text-embedding-3-small` and grouped via streaming cosine similarity (centroid threshold 0.85). Pure Python, no sklearn.
+6. **Dedupe** — one Sonnet call per run merges each cluster into a canonical article.
+7. **Cross-day dedup** — embeddings of today's articles are compared against a rolling 5-day window of `.seen_embeddings.json`. Anything that has already shipped recently is dropped.
+8. **Prioritize** *(only if over `digest.max_articles`)* — Haiku scores each article. The selector guarantees at least one article per category, then fills the rest by score.
+9. **Format** — one Sonnet call writes the final markdown digest, organized by category, in your configured tone.
+10. **Deliver** — sends the digest by email and/or Telegram, then archives the rendered markdown to `<data_root>/<date>.md`. The `archive` step optionally commits and pushes the day's artifacts to git.
 
-**Podcast pipeline** (optional, runs after digest):
+**Podcast pipeline** *(optional, runs after the digest)*:
 
-1. **Script generation** — Sonnet writes a two-host conversational script from the digest
-2. **Audio synthesis** — TTS via Kokoro-82M (local, zero-cost)
-3. **Delivery** — Sends MP3 via Telegram
+1. **Script generation** — Sonnet writes a conversational script for two hosts.
+2. **Pronunciation rewrite** — non-destructive substitutions (terms + regex from config) are applied to the script before TTS so the audio sounds right without polluting the transcript.
+3. **Audio synthesis** — local Kokoro-82M TTS streams audio to disk; `ffmpeg` encodes MP3.
+4. **Publish** — the MP3 is sent to Telegram, `podcast.xml` is regenerated for podcast-app subscriptions, and the digest's `index.html` landing page is updated.
 
 ## Installation
 
 Requires Python 3.11+.
 
 ```bash
-# Quick setup (creates venv, installs deps, checks for system tools)
+# One-shot setup: creates .venv, installs the package, prompts for system deps
 ./setup.sh
 
-# Or manually:
+# Or manually
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e .
+
+# For tests
+pip install -e ".[dev]"
 ```
 
 ### External tools
 
-The pipeline shells out to a few CLI tools depending on your configured sources:
+The pipeline shells out to a few CLI tools. You only need the ones for the source types you use.
 
 | Tool | Used for | Install |
 |------|----------|---------|
 | `bird` | Twitter/X fetching | [github.com/nichochar/bird](https://github.com/nichochar/bird) |
-| `curl` | Blog RSS/Atom feeds | Pre-installed on most systems |
-| `ffmpeg` | WAV-to-MP3 conversion | `apt install ffmpeg` / `brew install ffmpeg` |
+| `curl` | HTTP fetches (RSS, HTML, GitHub) | pre-installed on most systems |
+| `ffmpeg` | WAV → MP3 for the podcast | `apt install ffmpeg` / `brew install ffmpeg` |
+| `git` | Daily archive commits (optional) | usually already installed |
+
+## Quick start
+
+```bash
+# Interactive wizard: creates digests/<your-slug>/ with config.json,
+# a starter landing page, and an empty subscribers list.
+digest-pipeline init
+
+# Then run it
+digest-pipeline digests/<your-slug>/config.json --dry-run    # preview, no delivery
+digest-pipeline digests/<your-slug>/config.json              # full run
+```
+
+The wizard prompts for digest name, tagline, categories, podcast hosts (and TTS voices), and your delivery channels. It writes a self-contained `digests/<slug>/` directory that you can edit by hand later.
 
 ## Usage
 
+The `digest-pipeline` command does several jobs depending on flags. The first non-flag argument is always the path to a digest config.
+
+### Run a digest
+
 ```bash
-# Full pipeline (digest + podcast)
-digest-pipeline /path/to/config.json
+digest-pipeline digests/ai/config.json                 # digest + podcast + archive
+digest-pipeline digests/ai/config.json --dry-run       # log what would happen, send nothing
+digest-pipeline digests/ai/config.json --digest-only   # skip the podcast
+digest-pipeline digests/ai/config.json --podcast-only  # regenerate audio from an archived digest
+```
 
-# Dry run — skips delivery, prints digest to stdout
-digest-pipeline /path/to/config.json --dry-run
+### Manage subscribers
 
-# Digest only (skip podcast)
-digest-pipeline /path/to/config.json --digest-only
+```bash
+digest-pipeline digests/ai/config.json --subscribe alice@example.com
+digest-pipeline digests/ai/config.json --unsubscribe alice@example.com
+digest-pipeline digests/ai/config.json --list-subscribers
+```
 
-# Podcast only (requires a previously archived digest)
-digest-pipeline /path/to/config.json --podcast-only
+### Run the servers
 
-# Run as Python module
-python -m digest_pipeline.digest --config config.json --dry-run
+```bash
+# Public subscription API (POST /api/subscribe, /api/unsubscribe, GET /unsubscribe page)
+digest-pipeline --serve                                # auto-discovers digests/
+digest-pipeline --serve --digests-dir /path/to/digests --port 5100
+digest-pipeline digests/ai/config.json --serve         # single-digest mode
+
+# Read-only management dashboard
+digest-pipeline --console
+digest-pipeline --console --host 0.0.0.0 --port 5200 --digests-dir /path/to/digests
+```
+
+### Maintenance
+
+```bash
+# Backfill .seen_embeddings.json from your archived YYYY-MM-DD.md files,
+# then simulate what the cross-day dedup would have skipped.
+digest-pipeline digests/ai/config.json --backfill
+
+# Recompute podcast subscriber + download counts from access logs.
+digest-pipeline --podcast-stats
+digest-pipeline digests/ai/config.json --podcast-stats
 ```
 
 ## Configuration
 
-All configuration lives in a single JSON file. The config file's parent directory becomes the `data_root` where archives, logs, and secrets are stored.
+Each digest is a single JSON file. The directory containing the config becomes its **data root** — every artifact (archives, podcasts, subscriber list, embeddings cache, work files, logs) lives next to the config. The wizard creates this layout for you.
+
+Top-level structure:
 
 ```json
 {
-  "digest": {
-    "name": "My Daily Digest",
-    "emoji": "📰",
-    "tagline": "DAILY DIGEST",
-    "tone": "concise and informative"
-  },
-  "sources": {
-    "twitter": {
-      "accounts": ["@elonmusk", "@sama"]
-    },
-    "newsletters": {
-      "imap": {
-        "host": "imap.gmail.com",
-        "email": "you@gmail.com"
-      },
-      "sources": {
-        "tldr": { "name": "TLDR", "from": "dan@tldrnewsletter.com", "lookback_days": 1 }
-      }
-    },
-    "blogs": {
-      "hacker_news": { "url": "https://hnrss.org/frontpage", "type": "rss" }
-    },
-    "github": {
-      "enabled": true,
-      "languages": ["python", "typescript"],
-      "since": "daily"
-    }
-  },
-  "categories": [
-    { "id": "ai", "label": "AI & ML", "emoji": "🤖", "description": "AI/ML breakthroughs" },
-    { "id": "dev", "label": "Dev Tools", "emoji": "🛠️", "description": "Developer tools and frameworks" }
-  ],
-  "delivery": {
-    "email": {
-      "method": "smtp",
-      "to": "you@example.com",
-      "from": "digest@example.com"
-    },
-    "telegram": {
-      "chat_id": "-100123456789"
-    }
-  },
-  "podcast": {
-    "enabled": true,
-    "name": "Daily Brief",
-    "tts_backend": "kokoro",
-    "hosts": [
-      { "tag": "ALEX", "role": "Main host", "voice_kokoro": "am_michael" },
-      { "tag": "SARAH", "role": "Co-host", "voice_kokoro": "af_heart" }
-    ]
-  },
-  "llm": {
-    "provider": "openrouter"
-  }
+  "digest":           { "name": "...", "tagline": "...", "tone": "...", "max_articles": 30 },
+  "categories":       [ { "id": "ai", "label": "AI & ML", "emoji": "🤖", "description": "..." } ],
+  "sources":          { "twitter": {...}, "newsletters": {...}, "blogs": {...}, "github_trending": {...} },
+  "relevance_filter": { "enabled": true, "topic": "...", "keywords_include": [...], "keywords_exclude": [...], "borderline_llm": true },
+  "podcast":          { "enabled": true, "name": "...", "hosts": [...], "tts_backend": "kokoro", "pronunciation": {...} },
+  "delivery":         { "email": {...}, "notify": { "telegram": {...} } },
+  "subscriptions":    { "public_base_url": "...", "cors_origins": [...], "port": 5100 },
+  "archive":          { "enabled": true, "push": true, "branch": "master", "artifacts": [...] },
+  "llm":              { "provider": "openrouter" }
 }
+```
+
+A complete real-world example lives at [digests/ai/config.json](digests/ai/config.json). What each section does:
+
+- **`digest`** — display name, emoji, tagline, tone instruction passed to the formatter, and `max_articles` (the cap that triggers the prioritize stage).
+- **`categories`** — IDs and labels used by the extract/format prompts to bucket articles. Add your own; they're injected into the prompt templates at run time.
+- **`sources`** —
+  - `twitter`: list of `accounts`, plus `lookback` and `max_per_account`.
+  - `newsletters`: an `imap` block (host, email; password from env) and a `sources` map of named senders with `from`/`lookback_days` filters.
+  - `blogs`: a map of named feeds with `feed_url` (RSS/Atom), or `url` + custom HTML parsers for non-feed sites.
+  - `github_trending`: filters by `min_stars_week` and `ai_keywords` for the README scan.
+- **`relevance_filter`** — optional pre-cluster filter. Keyword rules first, optional LLM tiebreaker for borderline cases.
+- **`podcast`** — episode metadata, `hosts` array (each with `tag`, `role`, and a `voice_kokoro` voice id), and `pronunciation` rules (terms map + regex list) applied right before TTS.
+- **`delivery`** —
+  - `email`: backend (`smtp`, `gog`, `agentmail`, or `resend`), to/from addresses, env-var keys for credentials.
+  - `notify.telegram`: chat id (or env-var name) for status pings and audio delivery.
+- **`subscriptions`** — public base URL (used in unsubscribe links), allowed CORS origins, and the port the `--serve` API binds to.
+- **`archive`** — whether to commit and push daily artifacts after a successful run, which branch, and the file pattern allowlist (each pattern can include `{date}`).
+- **`llm`** — pick `openrouter` or `anthropic`. Both providers are supported by the same client.
+
+### Staging overlays
+
+Set `DIGEST_ENV=staging` and the loader will deep-merge a sibling `config.staging.json` (or any other `config.<env>.json`) on top of the base. Useful for non-prod deployments that need only a few overrides — public URL, port, telegram chat id, archive disabled, etc. Overlay files are gitignored.
+
+```bash
+DIGEST_ENV=staging digest-pipeline digests/ai/config.json
 ```
 
 ### Secrets
 
-API keys and passwords are loaded from a `secrets.env` file at the repository root (the `digest_pipeline/` package's parent directory). Environment variables that are already set take precedence.
+API keys and passwords are loaded from a `secrets.env` file at the repo root (gitignored). Already-set environment variables take precedence.
 
-```env
-# For newsletter fetching (Gmail: use an App Password)
-IMAP_PASSWORD=xxxx-xxxx-xxxx-xxxx
+| Variable | Needed when |
+|----------|-------------|
+| `OPENROUTER_API_KEY` | `llm.provider = "openrouter"` (also used for embeddings) |
+| `ANTHROPIC_API_KEY` | `llm.provider = "anthropic"` |
+| `IMAP_PASSWORD` | newsletter source is configured (Gmail: use an App Password) |
+| `AUTH_TOKEN`, `CT0` | Twitter source is configured (passed to the `bird` CLI) |
+| `RESEND_API_KEY` | email backend is `resend` |
+| `TELEGRAM_BOT_TOKEN` | Telegram delivery is configured |
+| `TELEGRAM_CHAT_ID` | Telegram delivery is configured |
 
-# For Twitter fetching
-AUTH_TOKEN=...
-CT0=...
+Config can override the env var **name** for any of the above (e.g., `chat_id_env: "TELEGRAM_CHAT_ID_STAGING"`), which is how the staging overlay points at a different chat without leaking the value into the JSON.
+
+## Data layout
+
+Each digest's directory holds both source-of-truth files (committed to git) and runtime working files (gitignored).
+
 ```
+digests/<slug>/
+├── config.json                 # digest configuration
+├── index.html                  # public landing page (subscribe form, podcast feed link)
+├── 2026-04-23.md               # archived daily digest (committed)
+├── podcasts/
+│   ├── 2026-04-23.mp3          # episode audio
+│   ├── 2026-04-23.txt          # script transcript
+│   └── podcast.xml             # RSS feed for podcast apps
+├── subscribers.json            # subscriber list (gitignored)
+├── subscription_events.jsonl   # subscribe/unsubscribe audit log
+├── send_history.jsonl          # per-recipient delivery log
+├── work/<date>/                # intermediate artifacts: extracted.json, clusters.json, deduped.json, run.json, raw-*.txt
+├── logs/                       # daily log files (auto-cleaned after 30 days)
+├── .seen_embeddings.json       # rolling cross-day dedup cache
+└── .source_state.json          # per-source incremental cursor
+```
+
+The `work/`, `logs/`, `subscribers.json`, `*.jsonl`, and dotfile caches are all gitignored. The daily markdown, MP3, transcript, RSS feed, landing page, and seen-embeddings cache are committed by the archive step (configurable per digest).
 
 ## Management Console
 
-A read-only web dashboard for monitoring all your digests in one place. See which sources are healthy, track run history, monitor delivery success rates, and check podcast status — no log-diving required.
+A read-only web dashboard for monitoring all your digests in one place. Reads the same artifacts the pipeline writes — no extra instrumentation.
 
 **Views:**
 
-- **Overview** — All digests at a glance with last run status, article counts, and subscriber numbers
-- **Run History** — Recent runs with status, duration, cost, and article counts. Click into any run for details.
-- **Run Detail** — Article funnel showing how content flows through the pipeline (extracted > clustered > deduped > prioritized > formatted), per-stage timeline with token usage and costs, and per-source file breakdown
-- **Source Health** — Sources grouped by type (Twitter, blogs, newsletters, GitHub) with health indicators flagging stale or inactive sources
-- **Delivery** — Subscriber count, 7-day delivery success rate, send history by date, and individual send log
-- **Podcast** — Episode list with MP3/script availability, file sizes, and RSS feed sync status
+- **Overview** — every digest at a glance: last run status, article count, source count, subscribers
+- **Run history** — recent runs with status, duration, total LLM cost, and article counts
+- **Run detail** — funnel through the pipeline (extracted → clustered → deduped → prioritized → formatted), per-stage timeline with tokens/cost, per-source file breakdown
+- **Source health** — sources grouped by type with health flags (healthy / warning / stale), yield rate, and exclusive-article counts
+- **Source editor** — add, edit, or delete sources from a digest's config from the dashboard (writes back to `config.json` atomically)
+- **Delivery** — subscriber count, 7-day success rate, send history by date, per-recipient log
+- **Podcast** — episodes with MP3/script status, RSS feed sync check, and (if `--podcast-stats` has been run) estimated subscribers and per-episode downloads
 
 ```bash
-# Start the console
 digest-pipeline --console
-
-# With options
-digest-pipeline --console --host 0.0.0.0 --port 5200 --digests-dir /path/to/digests
-
-# Defaults: host=127.0.0.1, port=5200, digests-dir auto-discovered
+# Defaults: host=127.0.0.1, port=5200, digests-dir auto-discovered from ./digests/
 ```
 
-The console reads existing pipeline artifacts (run logs, stage outputs, delivery history) — no additional configuration or instrumentation needed. Built with Preact and Material Web.
+The frontend is a Preact + Material Web SPA in [console/](console/), bundled with Vite. `npm run build` outputs to `console/dist/` which the Flask app serves directly.
+
+## Subscription API
+
+A small Flask app that powers the subscribe form on each digest's landing page and handles one-click unsubscribe links in emails (including the Gmail `List-Unsubscribe` header).
+
+- `POST /api/subscribe` — adds an email to a digest. Honeypot fields, sliding-window rate limit (5/min/IP), and a constant-success response so the endpoint can't be used to enumerate subscribers.
+- `POST /api/unsubscribe` and `GET /unsubscribe?token=…` — token-based unsubscribe with a confirmation page.
+- `GET /health` — list of active digest slugs.
+
+Multiple digests are served from one process. The frontend or reverse proxy picks which digest the request is for via an `X-Digest: <slug>` header or a `?digest=<slug>` query parameter.
+
+```bash
+digest-pipeline --serve                  # auto-discovers digests/
+digest-pipeline --serve --port 5100
+```
 
 ## Project structure
 
 ```
 digest_pipeline/
-  cli.py               # CLI entry point
-  digest.py            # Main orchestrator, batching logic
-  gather.py            # Source-specific fetchers (Twitter, Gmail, RSS, GitHub)
-  llm.py               # OpenRouter/Anthropic API client, embeddings, cost tracking
-  cluster.py           # Embedding-based cosine similarity clustering
-  delivery.py          # Email, Telegram/Slack notifications, archiving
-  podcast.py           # Script generation + TTS synthesis
-  kokoro_tts.py        # Kokoro-82M local TTS (streaming, memory-efficient)
-  subscription_api.py  # Flask subscription API (public-facing)
-  console_api.py       # Flask management console API (internal)
-  config.py            # Config loading, prompt templating
-  log.py               # File + console logging, 30-day auto-cleanup
-  prompts/             # LLM prompt templates with {{variable}} placeholders
-console/               # Preact + Vite frontend for the management console
+  cli.py               # single CLI entry point — dispatches to all commands above
+
+  # Pipeline core
+  digest.py            # orchestrator: stages 1-10, batching, token tracking
+  gather.py            # source-specific fetchers (Twitter, IMAP, RSS/HTML, GitHub trending)
+  llm.py               # OpenRouter/Anthropic client, embeddings, extract/dedupe/prioritize/format calls, cost tracking
+  cluster.py           # streaming cosine-similarity clustering
+  relevance.py         # keyword + LLM topic filter (stage 4)
+  source_state.py      # per-source incremental cursor (stage 2)
+  seen_articles.py     # cross-day dedup via rolling embeddings (stage 7)
+
+  # Podcast
+  podcast.py           # script generation + audio orchestration + RSS/landing-page update
+  pronunciation.py     # non-destructive term/regex rewrites applied before TTS
+  kokoro_tts.py        # Kokoro-82M local TTS (streams to disk, ffmpeg-encoded MP3)
+  podcast_stats.py     # subscriber + download analytics from access logs
+
+  # Delivery & archival
+  delivery.py          # email (SMTP / Resend / AgentMail / GOG), Telegram, Slack, audio send
+  archive.py           # allowlist-based git commit + push of daily artifacts
+  subscribers.py       # subscriber CRUD with atomic writes, JSONL audit logs
+
+  # Servers
+  subscription_api.py  # Flask: public subscribe/unsubscribe, multi-digest routing
+  console_api.py       # Flask: read-only dashboard API + source editor + static SPA host
+
+  # Plumbing
+  config.py            # config loader, DIGEST_ENV staging overlay, prompt templating, voice mapping
+  log.py               # rotating file + console logger (30-day cleanup)
+  run_log.py           # writes structured run.json per pipeline run for the dashboard
+  init.py              # `digest-pipeline init` interactive wizard
+  prompts/             # LLM prompt templates: extract_normalize, relevance_check, dedupe, prioritize, summarize_format, podcast_script
+  templates/           # landing_page.html template used by the wizard
+
+console/               # Preact + Material Web + Vite frontend for the management console
+digests/               # one subdirectory per digest (config + data)
+scripts/               # operational helpers: health-check.sh, notify-failure.sh
+tests/                 # pytest suite — one file per module
+run.sh                 # convenience wrapper for cron / systemd
+setup.sh               # venv + dependency bootstrap
+pyproject.toml         # package metadata + dependencies + console-script entry
 ```
 
 ## Key design decisions
 
-- **No ML frameworks for clustering** — Pure Python cosine similarity with running centroid averages. No sklearn/scipy needed.
-- **Batched LLM calls** — Sources are batched by character count (max 200K chars/batch, ~50K tokens) to stay within context limits while minimizing API calls.
-- **Streaming TTS** — Kokoro backend writes audio incrementally to disk to avoid accumulating all samples in memory (important for low-RAM servers).
-- **Config-driven** — Categories, sources, delivery methods, hosts, and voices are all configurable via JSON. No code changes needed to customize.
+- **No ML frameworks for clustering.** Pure-Python cosine similarity with running centroid averages. No sklearn, no scipy.
+- **Batched LLM calls.** Sources are batched by character count (~200K chars per extract batch) to stay inside context limits while minimizing per-call overhead.
+- **Incremental processing.** `.source_state.json` tracks the IDs already seen per source so the LLM never re-reads items from previous days. The state is updated only after a successful run.
+- **Cross-day dedup.** A rolling 5-day window of article embeddings (`.seen_embeddings.json`) prevents the same story from showing up in tomorrow's digest, even if multiple sources keep covering it.
+- **Streaming TTS.** Kokoro writes audio to disk turn-by-turn rather than buffering the whole episode in memory, which matters on small VPS instances.
+- **Non-destructive pronunciation.** Pronunciation rewrites are applied to the in-memory script right before TTS only — the saved transcript stays clean for archive and email use.
+- **Multi-digest by directory.** Each digest is a fully self-contained `digests/<slug>/` folder. The CLI, subscription API, and dashboard all auto-discover them.
+- **Config-driven everything.** Categories, sources, hosts, voices, delivery backends, archive rules, and even prompt-template variables are all set in JSON. No code changes to spin up a new topic.
+
+## Testing
+
+```bash
+pip install -e ".[dev]"
+pytest
+```
 
 ## License
 
