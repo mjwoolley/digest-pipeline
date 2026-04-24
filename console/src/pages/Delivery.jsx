@@ -71,6 +71,7 @@ export function Delivery({ slug, refreshInterval }) {
                 <th>Total</th>
                 <th>Sent</th>
                 <th>Failed</th>
+                <th>Retries</th>
                 <th>Rate</th>
               </tr>
             </thead>
@@ -83,6 +84,7 @@ export function Delivery({ slug, refreshInterval }) {
                     <td>{s.total}</td>
                     <td>{s.sent}</td>
                     <td style={s.failed > 0 ? 'color: var(--md-sys-color-error)' : ''}>{s.failed}</td>
+                    <td>{s.retries ?? 0}</td>
                     <td>
                       <span class={`badge ${rate === 100 ? 'badge--success' : 'badge--failure'}`}>
                         {rate}%
@@ -111,6 +113,7 @@ export function Delivery({ slug, refreshInterval }) {
                 <th>Time</th>
                 <th>Email</th>
                 <th>Status</th>
+                <th>Retries</th>
                 <th>Method</th>
               </tr>
             </thead>
@@ -124,6 +127,7 @@ export function Delivery({ slug, refreshInterval }) {
                       {s.status}
                     </span>
                   </td>
+                  <td>{s.retries ?? 0}</td>
                   <td>{s.method}</td>
                 </tr>
               ))}

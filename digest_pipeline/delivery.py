@@ -2,8 +2,10 @@
 import json
 import logging
 import os
+import re
 import smtplib
 import subprocess
+import time
 import urllib.parse
 import urllib.request
 import urllib.error
@@ -48,6 +50,38 @@ def send_email(subject: str, html_body: str, config: dict,
         raise ValueError(f"Unknown email method: {method}")
 
 
+def _parse_resend_retry_after(err_text: str) -> float | None:
+    if not err_text:
+        return None
+    m = re.search(r'Retry-After:?\s*(\d+)', err_text, re.IGNORECASE)
+    if m:
+        return float(m.group(1))
+    return None
+
+
+def _send_email_with_retries(subject: str, html: str, config: dict, *, to_addr: str,
+                             unsubscribe_url: str = None, method: str = "smtp") -> int:
+    """Send one email with retry/backoff. Returns retry count used."""
+    max_retries = 3 if method == "resend" else 0
+    retry_count = 0
+    while True:
+        try:
+            send_email(subject, html, config, to_override=to_addr,
+                       unsubscribe_url=unsubscribe_url)
+            return retry_count
+        except Exception as e:
+            is_rate_limit = method == "resend" and ("Resend API error 429" in str(e) or "rate_limit_exceeded" in str(e))
+            if not is_rate_limit or retry_count >= max_retries:
+                raise
+            retry_count += 1
+            retry_after = _parse_resend_retry_after(str(e))
+            delay = retry_after if retry_after is not None else min(2 ** retry_count, 8)
+            logger.warning(
+                f"[DELIVER] Resend rate limited for {to_addr}; retry {retry_count}/{max_retries} in {delay:.1f}s"
+            )
+            time.sleep(delay)
+
+
 def send_email_to_subscribers(subject: str, html_body_fn, config: dict,
                               digest_date: str = None,
                               unsubscribe_url_fn=None):
@@ -78,17 +112,23 @@ def send_email_to_subscribers(subject: str, html_body_fn, config: dict,
         try:
             html = html_body_fn(sub["email"], sub["token"])
             unsub = unsubscribe_url_fn(sub["email"], sub["token"]) if unsubscribe_url_fn else None
-            send_email(subject, html, config, to_override=sub["email"],
-                       unsubscribe_url=unsub)
+            retries = _send_email_with_retries(
+                subject, html, config,
+                to_addr=sub["email"],
+                unsubscribe_url=unsub,
+                method=method,
+            )
             sent += 1
             if digest_date:
                 log_send(data_root, digest_date, sub["email"],
-                         "sent", method=method)
+                         "sent", method=method, retries=retries)
         except Exception as e:
-            logger.error(f"[DELIVER] Failed to send to {sub['email']}: {e}")
+            logger.error(f"[DELIVER] Failed to send to {sub['email']} after retries: {e}")
             if digest_date:
                 log_send(data_root, digest_date, sub["email"],
-                         "failed", error=str(e), method=method)
+                         "failed", error=str(e), method=method, retries=3 if method == "resend" else 0)
+        if method == "resend":
+            time.sleep(0.25)
 
     logger.info(f"[DELIVER] Sent to {sent}/{len(subscribers)} subscribers")
 

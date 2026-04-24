@@ -740,8 +740,9 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
         for s in sends:
             d = s.get("digest_date", "")
             if d not in by_date:
-                by_date[d] = {"date": d, "total": 0, "sent": 0, "failed": 0}
+                by_date[d] = {"date": d, "total": 0, "sent": 0, "failed": 0, "retries": 0}
             by_date[d]["total"] += 1
+            by_date[d]["retries"] += int(s.get("retries") or 0)
             if s.get("status") == "sent":
                 by_date[d]["sent"] += 1
             else:

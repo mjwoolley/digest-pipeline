@@ -91,7 +91,7 @@ def log_subscription_event(data_root: Path, event_type: str, email: str,
 
 
 def log_send(data_root: Path, digest_date: str, email: str, status: str,
-             error: str = None, method: str = None) -> None:
+             error: str = None, method: str = None, retries: int = 0) -> None:
     """Append a send-history entry to the JSONL log."""
     path = Path(data_root) / "send_history.jsonl"
     entry = {
@@ -99,6 +99,7 @@ def log_send(data_root: Path, digest_date: str, email: str, status: str,
         "digest_date": digest_date,
         "email": email,
         "status": status,
+        "retries": retries,
     }
     if error:
         entry["error"] = error
