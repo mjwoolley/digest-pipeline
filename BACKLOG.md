@@ -42,6 +42,13 @@
   - Extract the first 1-2 story titles from the digest.
   - Inject them as hidden preheader text in the email HTML.
 
+- [ ] **Finish stale-source health UI (per-source thresholds, retire `last_updated`)**
+  - Backend plumbing for `last_fetched` / `last_included` already shipped (`update_source_state` in `digest_pipeline/source_state.py:304`, called from `digest.py`), but the user-visible feature did not.
+  - Switch `console/src/pages/SourceHealth.jsx` to read `last_fetched` / `last_included` instead of `last_updated`.
+  - Add per-source `stale_after_days` config so quiet-but-healthy feeds (Google AI Blog ~weekly, One Useful Thing ~3 weeks) aren't flagged stale during normal cadence — replace the hardcoded 3-day threshold.
+  - Stop writing `last_updated` in `commit_pending` (`source_state.py:290,299`) and add a migration shim that drops it on load.
+  - See [stale_fix_plan.md](stale_fix_plan.md) for the design (data schema, write paths, UI changes, config shape).
+
 - [ ] **Configurable per-digest clustering thresholds**
   - Replace the hardcoded `0.85` similarity thresholds in intra-day clustering (`digest.py`) and cross-day dedup (`seen_articles.py`) with values read from a per-digest `clustering` config block.
   - AI appears to benefit from a looser intra-day threshold (`0.80`) while cross-day stays at `0.85`.
