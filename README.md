@@ -248,6 +248,21 @@ digest-pipeline --console
 
 The frontend is a Preact + Material Web SPA in [console/](console/), bundled with Vite. `npm run build` outputs to `console/dist/` which the Flask app serves directly.
 
+### Frontend development
+
+For hot-reload work on the dashboard, run the Flask API and the Vite dev server side by side. Vite proxies `/api/*` to Flask, so the SPA can call the real backend while you iterate on the UI.
+
+```bash
+# Terminal 1 — Flask API
+digest-pipeline --console --port 5200
+
+# Terminal 2 — Vite dev server (hot reload)
+cd console && npm run dev
+
+# Production build (outputs to console/dist/, served by Flask)
+cd console && npm run build
+```
+
 ## Subscription API
 
 A small Flask app that powers the subscribe form on each digest's landing page and handles one-click unsubscribe links in emails (including the Gmail `List-Unsubscribe` header).
@@ -261,6 +276,39 @@ Multiple digests are served from one process. The frontend or reverse proxy pick
 ```bash
 digest-pipeline --serve                  # auto-discovers digests/
 digest-pipeline --serve --port 5100
+```
+
+## Deployment
+
+Notes from the reference deployment on a small Hetzner VPS (`ubuntu-2gb-ash-1`). Everything runs as the `clawdbot` user behind Caddy, with daily runs driven by cron.
+
+**Services:**
+
+- **Subscription API** — systemd unit `digest-subscriptions.service`, listens on `127.0.0.1:5100`, fronted by Caddy with automatic Let's Encrypt TLS.
+- **Management Console** — systemd unit `digest-console.service`, listens on `100.95.155.14:5200` (Tailscale-only, no public exposure, no auth needed).
+- **Daily run** — cron entry that calls `run.sh` once per day; archive step commits the day's artifacts to git and pushes.
+
+**Caddy:** `/etc/caddy/Caddyfile`. Each digest's public hostname (e.g. `aidailyroundup.com`, `staging.aidailyroundup.com`) is a vhost that reverse-proxies `/api/*` to the subscription API and serves the static landing page. Caddy is bound to a specific public IP rather than `0.0.0.0` to avoid colliding with Tailscale on `:443`.
+
+**Entry point:** systemd units must invoke `.venv/bin/digest-pipeline` (the installed console script). `python -m digest_pipeline.cli` will not work — the package has no `__main__.py`.
+
+**DNS:** `ai-digest.duckdns.org` is a free DuckDNS record pointing at the VPS public IP, used for the subscription API's TLS hostname.
+
+```bash
+# Subscription API
+sudo systemctl status digest-subscriptions
+sudo systemctl restart digest-subscriptions
+sudo journalctl -u digest-subscriptions --no-pager -n 30
+
+# Management Console
+sudo systemctl status digest-console
+sudo systemctl restart digest-console
+sudo journalctl -u digest-console --no-pager -n 30
+
+# Caddy
+sudo systemctl status caddy
+sudo systemctl reload caddy
+sudo journalctl -u caddy --no-pager -n 30
 ```
 
 ## Project structure
