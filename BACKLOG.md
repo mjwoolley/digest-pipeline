@@ -42,6 +42,12 @@
   - Extract the first 1-2 story titles from the digest.
   - Inject them as hidden preheader text in the email HTML.
 
+- [ ] **Configurable per-digest clustering thresholds**
+  - Replace the hardcoded `0.85` similarity thresholds in intra-day clustering (`digest.py`) and cross-day dedup (`seen_articles.py`) with values read from a per-digest `clustering` config block.
+  - AI appears to benefit from a looser intra-day threshold (`0.80`) while cross-day stays at `0.85`.
+  - Defaults stay `0.85 / 0.85` so existing digests behave the same when the config block is absent.
+  - Empty `feat/configurable-clustering-thresholds` branch is already pushed; design in [clustering-thresholds.md](clustering-thresholds.md).
+
 - [ ] **Split landing page template from build output**
   - Stop `_update_landing_page()` in `digest_pipeline/podcast.py` from writing into the tracked template file.
   - Rename tracked source to something like `digests/*/index.template.html`.
