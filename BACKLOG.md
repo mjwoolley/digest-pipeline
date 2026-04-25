@@ -14,15 +14,6 @@
   - Send Mike a concise report with unhealthy sources, likely cause, and suggested action.
   - Also recommend authoritative new AI sources or replacements for weak/dead ones.
 
-- [x] **Move prod + staging digest repos to dedicated volume**
-  - Mount the new 10G volume at a stable path (planned: `/mnt/digest-data`).
-  - Migrate:
-    - `/home/clawdbot/digest-pipeline`
-    - `/home/clawdbot/digest-pipeline-staging`
-  - Symlink both back to their original paths so cron/jobs/scripts remain transparent.
-  - Verify git, dry-runs, podcast generation, and path resolution before removing old copies.
-  - Expected outcome: free about 4.8G on root disk.
-
 - [ ] **Welcome Email on Subscribe**
   - Send a confirmation/welcome email when someone subscribes so they know it worked and what to expect.
 
@@ -59,12 +50,6 @@
   - Update archive artifact defaults so prod no longer commits generated landing pages.
   - Keep Caddy serving `/index.html` as before.
   - Reason: staging currently has to reset `digests/*/index.html` before pulls because podcast runs rewrite it.
-
-- [x] **Podcast pronunciation rewrites**
-  - Fix Kokoro mispronunciations like `401(k)`, `FINRA`, `AWS`, `S&P`.
-  - Rewrite podcast turn text after script parsing but before TTS synthesis.
-  - Do not affect saved script, digest markdown, RSS, or archive text.
-  - See [pronunciation.md](pronunciation.md) for the design.
 
 - [ ] **AI relevance filter stage**
   - Add a story-level relevance filter after extract/normalize and before clustering.
@@ -122,6 +107,12 @@
 ---
 
 ## Completed
+
+### Podcast pronunciation rewrites
+- **Done 2026-04-13.** Fixed Kokoro mispronunciations (`401(k)`, `FINRA`, `AWS`, `S&P`, etc.) by rewriting podcast turn text after script parsing but before TTS synthesis. Does not affect the saved script, digest markdown, RSS, or archive text. Implementation in `digest_pipeline/pronunciation.py`; design in [pronunciation.md](pronunciation.md).
+
+### Move prod + staging digest repos to dedicated volume
+- **Done 2026-04-12.** Mounted a 10G Hetzner volume at `/mnt/HC_Volume_105380972`, migrated `/home/clawdbot/digest-pipeline` and `/home/clawdbot/digest-pipeline-staging` onto it, and symlinked both back to their original paths so cron/jobs/scripts remain transparent. Freed about 4.8G on root disk.
 
 ### Console: Rename "Runs" to "Digest", add Podcast run history
 - **Done 2026-03-25.** Restructured sidebar (Sources > Digest > Podcast > Delivery), added podcast run history table and detail page with stage logs.
