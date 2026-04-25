@@ -42,6 +42,13 @@
   - Extract the first 1-2 story titles from the digest.
   - Inject them as hidden preheader text in the email HTML.
 
+- [ ] **Twitter account discovery in the console**
+  - Add a "Discover" tab per digest that runs `bird search <keyword> --json-full`, aggregates unique authors from the tweets, enriches each with follower count + bio, ranks by followers, filters out already-added accounts, and lets you add them with one click.
+  - Backend: new `POST /api/digests/<slug>/discover/twitter` route in `digest_pipeline/console_api.py`; reuses the existing `POST /api/digests/<slug>/sources` route for the add path.
+  - Frontend: new `console/src/pages/Discover.jsx` plus routing in `app.jsx`.
+  - Twitter-only this iteration; pluggable multi-source framework explicitly out of scope.
+  - See [twitter_search.md](twitter_search.md) for the design.
+
 - [ ] **Finish stale-source health UI (per-source thresholds, retire `last_updated`)**
   - Backend plumbing for `last_fetched` / `last_included` already shipped (`update_source_state` in `digest_pipeline/source_state.py:304`, called from `digest.py`), but the user-visible feature did not.
   - Switch `console/src/pages/SourceHealth.jsx` to read `last_fetched` / `last_included` instead of `last_updated`.
