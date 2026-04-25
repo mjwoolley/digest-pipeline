@@ -51,33 +51,6 @@
   - Keep Caddy serving `/index.html` as before.
   - Reason: staging currently has to reset `digests/*/index.html` before pulls because podcast runs rewrite it.
 
-- [ ] **AI relevance filter stage**
-  - Add a story-level relevance filter after extract/normalize and before clustering.
-  - Prevent non-AI stories from slipping into the AI Daily Roundup when AI-adjacent sources publish unrelated material.
-  - Use rules-first filtering with optional LLM handling for borderline cases.
-  - Operate on normalized article objects (`title`, `description`, `category`, source metadata).
-  - Save filtered artifacts and log exclusion reasons for observability.
-  - See `/home/clawdbot/digest-pipeline-staging/relevance.md` for the plan.
-
-- [ ] **CI/CD: Auto-deploy to production on merge**
-  - Add a GitHub Actions workflow that deploys to production after merge to master.
-  - SSH into the server, `git pull`, restart services.
-  - Eliminates the current two-clone workflow where staging push URL must be toggled manually.
-  - Consolidate to a single clone if feasible, using branches for dev and `DIGEST_ENV` for runtime config.
-
-- [ ] **Podcast download stats via Caddy access logs**
-  - Add a `log` directive to `/etc/caddy/Caddyfile` for the podcast domains so MP3 requests are persisted.
-  - Write a weekly stats script that greps the logs for `/podcasts/*.mp3` requests and deduplicates by IP + User-Agent + episode.
-  - Report per-episode download counts and top podcast apps (Apple Podcasts, Overcast, etc.) via User-Agent.
-  - Caveats: not IAB-compliant, doesn't handle range-request chunking perfectly, includes some bot noise. Good enough as a trend indicator at current scale. Consider Podtrac/Chartable if precise numbers are ever needed.
-
-- [ ] **Per-stage Telegram progress notifications**
-  - Send a short Telegram message after each major pipeline stage completes.
-  - Include stage name, duration, and key metric (e.g. article count, cluster count, email count).
-  - Provides real-time visibility without tailing logs.
-  - Keep messages short and non-spammy.
-  - Consider a config flag to enable/disable per digest.
-
 - [ ] **Pipeline error observability**
   - Notify Mike when a digest pipeline run fails.
   - Hook failure reporting into the main run path so exceptions do not fail silently.
@@ -107,6 +80,12 @@
 ---
 
 ## Completed
+
+### Podcast download stats via Caddy access logs
+- **Done 2026-04-23.** Added subscriber and download stats plumbing (`digest_pipeline/podcast_stats.py`) and a `--podcast-stats` CLI flag that recomputes counts from access logs. Caddy logs MP3 requests for the podcast domains; the stats job dedupes by IP + User-Agent + episode and surfaces the totals plus top podcast apps (via User-Agent) in the management console. Not IAB-compliant — good enough as a trend indicator at current scale.
+
+### AI relevance filter stage
+- **Done 2026-04-16.** Added a story-level relevance filter (`digest_pipeline/relevance.py`) that runs after extract/normalize and before clustering. Rules-first filtering using `keywords_include`/`keywords_exclude` from config, with an optional borderline LLM (Haiku) classifier. Filtered articles are written to `work/<date>/filtered.json` for inspection. Configured per-digest via the `relevance_filter` config block.
 
 ### Podcast pronunciation rewrites
 - **Done 2026-04-13.** Fixed Kokoro mispronunciations (`401(k)`, `FINRA`, `AWS`, `S&P`, etc.) by rewriting podcast turn text after script parsing but before TTS synthesis. Does not affect the saved script, digest markdown, RSS, or archive text. Implementation in `digest_pipeline/pronunciation.py`; design in [pronunciation.md](pronunciation.md).
