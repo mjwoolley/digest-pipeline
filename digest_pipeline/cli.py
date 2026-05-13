@@ -10,6 +10,7 @@ def main():
       digest-pipeline /path/to/config.json --digest-only [--dry-run]
       digest-pipeline /path/to/config.json --podcast-only [--dry-run] [date]
       digest-pipeline /path/to/config.json --backfill
+      digest-pipeline --backfill-source-history [--digests-dir DIR] [--digest SLUG]
       digest-pipeline /path/to/config.json --subscribe user@example.com
       digest-pipeline /path/to/config.json --unsubscribe user@example.com
       digest-pipeline /path/to/config.json --list-subscribers
@@ -58,6 +59,10 @@ def main():
 
     if "--podcast-stats" in args:
         _run_podcast_stats(args)
+        return
+
+    if "--backfill-source-history" in args:
+        _run_backfill_source_history(args)
         return
 
     if digest_only and podcast_only:
@@ -281,6 +286,57 @@ def _run_console(args):
 
     print(f"Starting management console on http://{host}:{port}")
     app.run(host=host, port=port)
+
+
+def _run_backfill_source_history(args):
+    """Rebuild source_history.jsonl by walking each digest's work/<date>/ artifacts."""
+    import logging
+    import re
+    from pathlib import Path
+    from .config import load_config
+    from . import source_history
+
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+
+    digests_dir = None
+    if "--digests-dir" in args:
+        try:
+            idx = args.index("--digests-dir")
+            digests_dir = args[idx + 1]
+        except (ValueError, IndexError):
+            print("Error: --digests-dir requires a path")
+            sys.exit(1)
+    if not digests_dir:
+        candidate = Path(__file__).resolve().parent.parent / "digests"
+        if candidate.is_dir():
+            digests_dir = str(candidate)
+        else:
+            print("Error: provide --digests-dir or run from a checkout with digests/")
+            sys.exit(1)
+
+    target_slug = None
+    if "--digest" in args:
+        try:
+            idx = args.index("--digest")
+            target_slug = args[idx + 1]
+        except (ValueError, IndexError):
+            print("Error: --digest requires a slug")
+            sys.exit(1)
+
+    date_re = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+    configs = sorted(Path(digests_dir).glob("*/config.json"))
+    if not configs:
+        print(f"No digest configs found in {digests_dir}")
+        return
+
+    for cfg_path in configs:
+        slug = cfg_path.parent.name
+        if target_slug and slug != target_slug:
+            continue
+        cfg = load_config(str(cfg_path))
+        data_root = cfg["_data_root"]
+        total = source_history.rebuild(data_root, date_re)
+        print(f"  {slug}: wrote {total} rows -> {data_root / source_history.LEDGER_FILENAME}")
 
 
 def _run_backfill(args):
