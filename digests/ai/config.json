@@ -206,32 +206,38 @@
       "the_ai_engineer": {
         "name": "The AI Engineer",
         "feed_url": "https://theaiengineer.substack.com/feed",
-        "description": "Deep technical explainers on AI engineering — MCP, agents, coding tools"
+        "description": "Deep technical explainers on AI engineering — MCP, agents, coding tools",
+        "stale_after_days": 7
       },
       "latent_space": {
         "name": "Latent Space",
         "feed_url": "https://www.latent.space/feed",
-        "description": "Deep AI engineering commentary and ecosystem analysis"
+        "description": "Deep AI engineering commentary and ecosystem analysis",
+        "stale_after_days": 5
       },
       "one_useful_thing": {
         "name": "One Useful Thing",
         "feed_url": "https://www.oneusefulthing.org/feed",
-        "description": "Practical AI research and usage insights"
+        "description": "Practical AI research and usage insights",
+        "stale_after_days": 45
       },
       "openai_blog": {
         "name": "OpenAI Blog",
         "feed_url": "https://openai.com/blog/rss.xml",
-        "description": "Model releases and product launches"
+        "description": "Model releases and product launches",
+        "stale_after_days": 7
       },
       "google_ai_blog": {
         "name": "Google AI Blog",
         "feed_url": "https://blog.google/technology/ai/rss/",
-        "description": "Gemini and DeepMind updates"
+        "description": "Gemini and DeepMind updates",
+        "stale_after_days": 14
       },
       "huggingface_blog": {
         "name": "Hugging Face Blog",
         "feed_url": "https://huggingface.co/blog/feed.xml",
-        "description": "Open-source models and ecosystem tools"
+        "description": "Open-source models and ecosystem tools",
+        "stale_after_days": 7
       },
       "the_new_stack": {
         "name": "The New Stack",
