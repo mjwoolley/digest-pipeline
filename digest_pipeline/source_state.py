@@ -30,15 +30,24 @@ _LINK_RE = re.compile(r"^LINK:\s*(\S+)", re.MULTILINE)
 
 
 def load_state(data_root: Path) -> dict:
-    """Load source state from disk. Returns {source_key: {seen_ids: [...], last_updated: "..."}}."""
+    """Load source state from disk. Returns {source_key: {seen_ids, last_fetched, last_included}}.
+
+    Migrates legacy entries: any entry carrying `last_updated` has it copied
+    to `last_fetched` (if not already set) and the old key is dropped.
+    """
     path = data_root / STATE_FILENAME
     if not path.exists():
         return {}
     try:
-        return json.loads(path.read_text())
+        state = json.loads(path.read_text())
     except (json.JSONDecodeError, OSError) as e:
         logger.warning(f"[SOURCE-STATE] Failed to load state: {e}")
         return {}
+    for entry in state.values():
+        if "last_updated" in entry:
+            entry.setdefault("last_fetched", entry["last_updated"])
+            del entry["last_updated"]
+    return state
 
 
 def save_state(data_root: Path, state: dict) -> None:
@@ -48,12 +57,14 @@ def save_state(data_root: Path, state: dict) -> None:
 
 
 def prune_state(state: dict, max_age_days: int = 7) -> dict:
-    """Remove entries older than max_age_days."""
+    """Remove entries older than max_age_days based on most recent activity."""
     cutoff = (datetime.utcnow() - timedelta(days=max_age_days)).strftime("%Y-%m-%d")
-    return {
-        k: v for k, v in state.items()
-        if v.get("last_updated", "9999-99-99") >= cutoff
-    }
+    def _most_recent(entry: dict) -> str:
+        return max(
+            entry.get("last_fetched") or "",
+            entry.get("last_included") or "",
+        ) or "9999-99-99"
+    return {k: v for k, v in state.items() if _most_recent(v) >= cutoff}
 
 
 # ── Item ID extraction ──────────────────────────────────────────────────────
@@ -267,7 +278,7 @@ def commit_pending(state: dict, pending_ids: dict[str, list[str]],
         Updated state dict.
     """
     for source_key, new_ids in pending_ids.items():
-        entry = state.get(source_key, {"seen_ids": [], "last_updated": ""})
+        entry = state.setdefault(source_key, {"seen_ids": []})
         if source_key.startswith("github_trending:"):
             # Timestamped dict: {url: "YYYY-MM-DD"}
             existing = entry.get("seen_ids", {})
@@ -285,19 +296,13 @@ def commit_pending(state: dict, pending_ids: dict[str, list[str]],
                 # Keep most recently seen
                 sorted_items = sorted(existing.items(), key=lambda x: x[1])
                 existing = dict(sorted_items[-max_ids:])
-            state[source_key] = {
-                "seen_ids": existing,
-                "last_updated": date,
-            }
+            entry["seen_ids"] = existing
         else:
             combined = entry.get("seen_ids", []) + new_ids
             # Keep only the most recent max_ids
             if len(combined) > max_ids:
                 combined = combined[-max_ids:]
-            state[source_key] = {
-                "seen_ids": combined,
-                "last_updated": date,
-            }
+            entry["seen_ids"] = combined
     return state
 
 
