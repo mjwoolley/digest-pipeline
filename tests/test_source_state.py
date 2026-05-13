@@ -331,13 +331,18 @@ def test_load_state_migrates_legacy_last_updated(tmp_path):
     legacy = {
         "blog:a": {"seen_ids": ["x"], "last_updated": "2026-03-21"},
         "blog:b": {"seen_ids": ["y"], "last_updated": "2026-03-22", "last_fetched": "2026-03-23"},
+        # Production case: last_fetched explicitly null from the half-shipped
+        # write path — migration must still hydrate from last_updated.
+        "blog:c": {"seen_ids": ["z"], "last_updated": "2026-03-24", "last_fetched": None},
     }
     (tmp_path / ".source_state.json").write_text(json.dumps(legacy))
     loaded = load_state(tmp_path)
     # a: last_updated copied to last_fetched, old key dropped
     assert loaded["blog:a"] == {"seen_ids": ["x"], "last_fetched": "2026-03-21"}
-    # b: last_fetched already set; do not overwrite, just drop last_updated
+    # b: last_fetched already set with a real value; do not overwrite
     assert loaded["blog:b"] == {"seen_ids": ["y"], "last_fetched": "2026-03-23"}
+    # c: last_fetched present-but-null treated the same as missing
+    assert loaded["blog:c"] == {"seen_ids": ["z"], "last_fetched": "2026-03-24"}
 
 
 # ── State pruning ────────────────────────────────────────────────────────────
