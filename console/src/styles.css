@@ -20,6 +20,9 @@
   --color-shadow: rgba(0, 0, 0, 0.12);
   --color-shadow-sm: rgba(0, 0, 0, 0.08);
 
+  /* Standard gap between clustered buttons / chips on pages and modals */
+  --button-gap: 12px;
+
   color-scheme: light;
   font-family: 'Google Sans', 'Roboto', system-ui, -apple-system, sans-serif;
 }
@@ -243,14 +246,62 @@ body {
   opacity: 0.7;
 }
 
+/* Clustered actions row on page headers (chips, badges, buttons) */
+.page-header__actions {
+  display: flex;
+  gap: var(--button-gap);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Material Web buttons. Two outer-scope fixes here are load-bearing:
+   1. The universal `* { padding: 0 }` reset at the top of this file
+      overrides Material Web's `:host` padding (outer rules beat
+      shadow :host regardless of specificity), so the buttons render
+      with zero horizontal padding and look like tiny ovals. Restore
+      the Material 3 standard 24px padding (16/24 with leading icon).
+   2. flex-shrink: 0 so buttons in non-wrapping flex rows (e.g.
+      .form-actions) don't collapse below their intrinsic width. */
+md-filled-button,
+md-outlined-button,
+md-text-button {
+  display: inline-flex;
+  padding-inline-start: 24px;
+  padding-inline-end: 24px;
+  flex-shrink: 0;
+}
+
+md-filled-button[has-icon]:not([trailing-icon]),
+md-outlined-button[has-icon]:not([trailing-icon]),
+md-text-button[has-icon]:not([trailing-icon]) {
+  padding-inline-start: 16px;
+  padding-inline-end: 24px;
+}
+
+md-filled-button[has-icon][trailing-icon],
+md-outlined-button[has-icon][trailing-icon],
+md-text-button[has-icon][trailing-icon] {
+  padding-inline-start: 24px;
+  padding-inline-end: 16px;
+}
+
+/* Window selector tablist — chips sit tight as a single segmented control */
+.window-chip-group {
+  display: inline-flex;
+  gap: 4px;
+}
+
 /* Window selector chip */
 .window-chip {
   background: transparent;
   border: 1px solid var(--md-sys-color-outline);
-  border-radius: 16px;
-  padding: 4px 12px;
-  font-size: 12px;
+  border-radius: 8px;
+  min-height: 32px;
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 13px;
   font-weight: 500;
+  line-height: 20px;
   color: var(--md-sys-color-on-surface-variant);
   cursor: pointer;
   transition: background 0.1s, color 0.1s, border-color 0.1s;
@@ -260,10 +311,15 @@ body {
   background: var(--color-hover);
 }
 
+.window-chip:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+
 .window-chip--active {
   background: var(--color-primary-container);
   color: var(--md-sys-color-primary);
-  border-color: var(--color-primary-container);
+  border-color: var(--md-sys-color-primary);
 }
 
 /* Last run info on card */
@@ -585,7 +641,7 @@ a.card-link {
 .form-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--button-gap);
   margin-top: 32px;
   padding-top: 24px;
   border-top: 1px solid var(--md-sys-color-outline);
@@ -667,6 +723,8 @@ a.card-link {
     border-radius: 8px;
     padding: 8px;
     cursor: pointer;
+    font: inherit;
+    color: var(--md-sys-color-on-surface);
   }
 
   .content {

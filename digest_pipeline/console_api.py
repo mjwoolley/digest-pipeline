@@ -1014,8 +1014,14 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
         if source_type not in valid_types:
             return jsonify({"error": f"source_type must be one of: {', '.join(valid_types)}"}), 400
 
-        # Validate key format
-        if not key or not re.match(r"^[a-z0-9_]+$", key):
+        # Validate key format. Twitter handles are external identifiers
+        # that allow mixed case + underscores up to 15 chars; other source
+        # keys are internal identifiers, lowercase by convention.
+        if source_type == "twitter":
+            key = key.lstrip("@")
+            if not key or not re.match(r"^[A-Za-z0-9_]{1,15}$", key):
+                return jsonify({"error": "Twitter handle must be 1-15 characters: letters, digits, underscores"}), 400
+        elif not key or not re.match(r"^[a-z0-9_]+$", key):
             return jsonify({"error": "key must be non-empty, lowercase alphanumeric + underscores only"}), 400
 
         if source_type == "github_trending" and key != "trending":

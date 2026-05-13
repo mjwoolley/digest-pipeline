@@ -207,8 +207,8 @@ export function SourceHealth({ slug, refreshInterval }) {
     <div>
       <div class="page-header">
         <h1 class="page-title">Source Health</h1>
-        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap">
-          <div role="tablist" aria-label="Window" style="display: inline-flex; gap: 4px">
+        <div class="page-header__actions">
+          <div role="tablist" aria-label="Window" class="window-chip-group">
             {WINDOW_OPTIONS.map(opt => (
               <button
                 key={opt.value}
