@@ -11,6 +11,7 @@ def main():
       digest-pipeline /path/to/config.json --podcast-only [--dry-run] [date]
       digest-pipeline /path/to/config.json --backfill
       digest-pipeline --backfill-source-history [--digests-dir DIR] [--digest SLUG]
+      digest-pipeline --audit-sources [--digests-dir DIR] [--digest SLUG] [--dry-run]
       digest-pipeline /path/to/config.json --subscribe user@example.com
       digest-pipeline /path/to/config.json --unsubscribe user@example.com
       digest-pipeline /path/to/config.json --list-subscribers
@@ -63,6 +64,10 @@ def main():
 
     if "--backfill-source-history" in args:
         _run_backfill_source_history(args)
+        return
+
+    if "--audit-sources" in args:
+        _run_source_audit(args)
         return
 
     if digest_only and podcast_only:
@@ -337,6 +342,67 @@ def _run_backfill_source_history(args):
         data_root = cfg["_data_root"]
         total = source_history.rebuild(data_root, date_re)
         print(f"  {slug}: wrote {total} rows -> {data_root / source_history.LEDGER_FILENAME}")
+
+
+def _run_source_audit(args):
+    """Classify sources by health/cause and either print or push the report."""
+    import logging
+    from pathlib import Path
+    from .config import load_config
+    from . import delivery, source_audit
+
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+
+    dry_run = "--dry-run" in args
+    digests_dir = None
+    if "--digests-dir" in args:
+        try:
+            idx = args.index("--digests-dir")
+            digests_dir = args[idx + 1]
+        except (ValueError, IndexError):
+            print("Error: --digests-dir requires a path")
+            sys.exit(1)
+    if not digests_dir:
+        candidate = Path(__file__).resolve().parent.parent / "digests"
+        if candidate.is_dir():
+            digests_dir = str(candidate)
+        else:
+            print("Error: provide --digests-dir or run from a checkout with digests/")
+            sys.exit(1)
+
+    target_slug = None
+    if "--digest" in args:
+        try:
+            idx = args.index("--digest")
+            target_slug = args[idx + 1]
+        except (ValueError, IndexError):
+            print("Error: --digest requires a slug")
+            sys.exit(1)
+
+    configs = sorted(Path(digests_dir).glob("*/config.json"))
+    if not configs:
+        print(f"No digest configs found in {digests_dir}")
+        return
+
+    for cfg_path in configs:
+        slug = cfg_path.parent.name
+        if target_slug and slug != target_slug:
+            continue
+        cfg = load_config(str(cfg_path))
+        data_root = cfg["_data_root"]
+        report = source_audit.audit(data_root, cfg)
+        message = source_audit.format_telegram(report)
+        actionable = len(report.actionable)
+        print(f"=== {slug}: {actionable} actionable findings, "
+              f"{report.healthy_count}/{report.total_sources} healthy ===")
+        if dry_run:
+            print(message)
+            print()
+        else:
+            success = delivery.send_notification(message, cfg)
+            if not success:
+                print(f"[{slug}] Telegram delivery failed; falling back to stdout:")
+                print(message)
 
 
 def _run_backfill(args):
