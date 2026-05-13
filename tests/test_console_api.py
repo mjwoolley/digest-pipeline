@@ -1,5 +1,6 @@
 """Tests for digest_pipeline.console_api — Flask test client, no network."""
 import json
+from datetime import date, timedelta
 from pathlib import Path
 from unittest.mock import patch
 
@@ -366,6 +367,82 @@ def test_list_sources_reads_stale_after_days_from_config(tmp_path):
     default = next(s for s in data if s["source_key"] == "blog:default_blog")
     assert weekly["stale_after_days"] == 14
     assert default["stale_after_days"] == 3
+
+
+def test_list_sources_aggregates_from_ledger_when_present(tmp_path):
+    """When source_history.jsonl exists, counts come from it (not work/)."""
+    ai = tmp_path / "ai"
+    ai.mkdir()
+    (ai / "config.json").write_text(json.dumps({
+        "digest": {"name": "Test", "tagline": "T", "emoji": "🧪"},
+        "sources": {"blogs": {"foo": {"name": "Foo", "feed_url": "x"}}},
+    }))
+    _write_json(ai / ".source_state.json", {})
+
+    # Build a ledger with rows across multiple dates.
+    today = (date.today()).isoformat()
+    yesterday = (date.today() - timedelta(days=1)).isoformat()
+    long_ago = (date.today() - timedelta(days=200)).isoformat()
+    rows = [
+        {"date": long_ago, "source_key": "blog:foo", "extracted": 99,
+         "in_digest": 50, "dropped": 0, "exclusive": 0, "avg_score": 5.0},
+        {"date": yesterday, "source_key": "blog:foo", "extracted": 2,
+         "in_digest": 1, "dropped": 0, "exclusive": 1, "avg_score": 7.0},
+        {"date": today, "source_key": "blog:foo", "extracted": 3,
+         "in_digest": 2, "dropped": 1, "exclusive": 1, "avg_score": 6.0},
+    ]
+    (ai / "source_history.jsonl").write_text("\n".join(json.dumps(r) for r in rows) + "\n")
+
+    def mock_load(path):
+        cfg = json.loads(Path(path).read_text())
+        cfg["_data_root"] = Path(path).parent
+        cfg["_pipeline_dir"] = Path(__file__).parent.parent / "digest_pipeline"
+        return cfg
+
+    with patch("digest_pipeline.console_api.load_config", side_effect=mock_load):
+        app = create_app(digests_dir=str(tmp_path))
+    app.testing = True
+    client = app.test_client()
+
+    # Default 14d window — should exclude the long_ago row.
+    data = client.get("/api/digests/ai/sources").get_json()
+    foo = next(s for s in data if s["source_key"] == "blog:foo")
+    assert foo["extracted"] == 5
+    assert foo["in_digest"] == 3
+    assert foo["exclusive"] == 2
+    assert foo["days_active"] == 2
+
+    # 365d window — includes the long_ago row.
+    data = client.get("/api/digests/ai/sources?days=365").get_json()
+    foo = next(s for s in data if s["source_key"] == "blog:foo")
+    assert foo["extracted"] == 104
+    assert foo["in_digest"] == 53
+
+
+def test_list_sources_days_param_clamped(tmp_path):
+    """?days=0 and ?days=99999 are clamped to the valid range without erroring."""
+    ai = tmp_path / "ai"
+    ai.mkdir()
+    (ai / "config.json").write_text(json.dumps({
+        "digest": {"name": "Test", "tagline": "T", "emoji": "🧪"},
+        "sources": {"blogs": {"foo": {"name": "Foo", "feed_url": "x"}}},
+    }))
+    _write_json(ai / ".source_state.json", {})
+
+    def mock_load(path):
+        cfg = json.loads(Path(path).read_text())
+        cfg["_data_root"] = Path(path).parent
+        cfg["_pipeline_dir"] = Path(__file__).parent.parent / "digest_pipeline"
+        return cfg
+
+    with patch("digest_pipeline.console_api.load_config", side_effect=mock_load):
+        app = create_app(digests_dir=str(tmp_path))
+    app.testing = True
+    client = app.test_client()
+
+    assert client.get("/api/digests/ai/sources?days=0").status_code == 200
+    assert client.get("/api/digests/ai/sources?days=99999").status_code == 200
+    assert client.get("/api/digests/ai/sources?days=notanumber").status_code == 200
 
 
 # ── Delivery ────────────────────────────────────────────────────────────────
