@@ -298,6 +298,45 @@ def test_list_sources(client):
     assert rundown["seen_count"] == 0
 
 
+def test_list_sources_migrates_legacy_last_updated(tmp_path):
+    """API surfaces last_fetched even when state file still has legacy last_updated.
+
+    Guards against the API reading the state file raw and skipping the
+    migration shim in load_state.
+    """
+    ai = tmp_path / "ai"
+    ai.mkdir()
+    (ai / "config.json").write_text(json.dumps({
+        "digest": {"name": "Test", "tagline": "T", "emoji": "🧪"},
+        "sources": {"blogs": {"legacy": {"name": "Legacy", "feed_url": "x"}}},
+    }))
+    # Two legacy shapes seen in the wild: bare last_updated, and the prod
+    # mid-rollout shape where last_fetched is explicitly null.
+    _write_json(ai / ".source_state.json", {
+        "blog:legacy": {
+            "seen_ids": ["id1"],
+            "last_updated": "2026-03-21",
+            "last_fetched": None,
+        },
+    })
+
+    def mock_load(path):
+        cfg = json.loads(Path(path).read_text())
+        cfg["_data_root"] = Path(path).parent
+        cfg["_pipeline_dir"] = Path(__file__).parent.parent / "digest_pipeline"
+        return cfg
+
+    with patch("digest_pipeline.console_api.load_config", side_effect=mock_load):
+        app = create_app(digests_dir=str(tmp_path))
+    app.testing = True
+    client = app.test_client()
+
+    data = client.get("/api/digests/ai/sources").get_json()
+    legacy = next(s for s in data if s["source_key"] == "blog:legacy")
+    assert legacy["last_fetched"] == "2026-03-21"
+    assert "last_updated" not in legacy
+
+
 def test_list_sources_reads_stale_after_days_from_config(tmp_path):
     """Per-source stale_after_days is surfaced in the response."""
     ai = tmp_path / "ai"
