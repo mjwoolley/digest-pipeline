@@ -45,7 +45,8 @@ def load_state(data_root: Path) -> dict:
         return {}
     for entry in state.values():
         if "last_updated" in entry:
-            entry.setdefault("last_fetched", entry["last_updated"])
+            if not entry.get("last_fetched"):
+                entry["last_fetched"] = entry["last_updated"]
             del entry["last_updated"]
     return state
 
