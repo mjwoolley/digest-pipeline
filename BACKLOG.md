@@ -2,17 +2,30 @@
 
 ## Open
 
-- [ ] **Source Health Audit Job**
-  - Add a weekly job that audits recent extraction history to find sources that are no longer yielding articles.
-  - Reuse logs/work artifacts instead of re-fetching where possible.
-  - Diagnose likely causes, for example:
-    - broken RSS/feed URL
-    - HTML/app-shell/error page treated as valid content
-    - source format changed
-    - source inactive or low-volume
-    - parser/extractor mismatch
-  - Send Mike a concise report with unhealthy sources, likely cause, and suggested action.
-  - Also recommend authoritative new AI sources or replacements for weak/dead ones.
+### Defects
+
+- [ ] **Split landing page template from build output**
+  - Stop `_update_landing_page()` in `digest_pipeline/podcast.py` from writing into the tracked template file.
+  - Rename tracked source to something like `digests/*/index.template.html`.
+  - Generate `digests/*/index.html` from the template.
+  - Gitignore generated `digests/*/index.html`.
+  - Update archive artifact defaults so prod no longer commits generated landing pages.
+  - Keep Caddy serving `/index.html` as before.
+  - Reason: staging currently has to reset `digests/*/index.html` before pulls because podcast runs rewrite it.
+
+- [ ] **Fix `exclusive` miscount in `_compute_source_metrics`**
+  - `console_api.py:250` reads `deduped.json` to count articles with a single `source_key`. When prioritize ran, `deduped.json` includes post-prioritize dropped articles, so sources whose only contribution got dropped are still counted as "exclusive."
+  - Either skip the exclusive read when prioritize ran (kept list is in `prioritized.json`), or take the intersection of `deduped.json` and `prioritized.json` for the exclusive tally.
+  - The equivalent logic in `source_history.py:compute_daily_rows` already handles this correctly (uses kept when prioritized.json exists), so this is API-side only.
+
+### Enhancements
+
+- [ ] **Source Health Audit Job — automation, diagnosis, push report**
+  - Foundation shipped 2026-05-13 (per-source ledger + windowed Source Health view). Remaining audit-job work:
+    - Weekly scheduled run (cron or systemd timer) that reads `source_history.jsonl` and applies thresholds.
+    - Diagnosis: when a source has gone quiet, classify likely cause — broken RSS/feed URL, HTML/app-shell/error page treated as valid content, source format changed, source inactive or low-volume, parser/extractor mismatch.
+    - Push report to Telegram with unhealthy sources, likely cause, suggested action.
+    - Recommend authoritative new AI sources or replacements for weak/dead ones (likely Sonnet call with the current source list + recent ledger).
 
 - [ ] **Welcome Email on Subscribe**
   - Send a confirmation/welcome email when someone subscribes so they know it worked and what to expect.
@@ -49,27 +62,11 @@
   - Twitter-only this iteration; pluggable multi-source framework explicitly out of scope.
   - See [twitter_search.md](twitter_search.md) for the design.
 
-- [ ] **Finish stale-source health UI (per-source thresholds, retire `last_updated`)**
-  - Backend plumbing for `last_fetched` / `last_included` already shipped (`update_source_state` in `digest_pipeline/source_state.py:304`, called from `digest.py`), but the user-visible feature did not.
-  - Switch `console/src/pages/SourceHealth.jsx` to read `last_fetched` / `last_included` instead of `last_updated`.
-  - Add per-source `stale_after_days` config so quiet-but-healthy feeds (Google AI Blog ~weekly, One Useful Thing ~3 weeks) aren't flagged stale during normal cadence — replace the hardcoded 3-day threshold.
-  - Stop writing `last_updated` in `commit_pending` (`source_state.py:290,299`) and add a migration shim that drops it on load.
-  - See [stale_fix_plan.md](stale_fix_plan.md) for the design (data schema, write paths, UI changes, config shape).
-
 - [ ] **Configurable per-digest clustering thresholds**
   - Replace the hardcoded `0.85` similarity thresholds in intra-day clustering (`digest.py`) and cross-day dedup (`seen_articles.py`) with values read from a per-digest `clustering` config block.
   - AI appears to benefit from a looser intra-day threshold (`0.80`) while cross-day stays at `0.85`.
   - Defaults stay `0.85 / 0.85` so existing digests behave the same when the config block is absent.
   - Empty `feat/configurable-clustering-thresholds` branch is already pushed; design in [clustering-thresholds.md](clustering-thresholds.md).
-
-- [ ] **Split landing page template from build output**
-  - Stop `_update_landing_page()` in `digest_pipeline/podcast.py` from writing into the tracked template file.
-  - Rename tracked source to something like `digests/*/index.template.html`.
-  - Generate `digests/*/index.html` from the template.
-  - Gitignore generated `digests/*/index.html`.
-  - Update archive artifact defaults so prod no longer commits generated landing pages.
-  - Keep Caddy serving `/index.html` as before.
-  - Reason: staging currently has to reset `digests/*/index.html` before pulls because podcast runs rewrite it.
 
 - [ ] **Pipeline error observability**
   - Notify Mike when a digest pipeline run fails.
@@ -100,6 +97,15 @@
 ---
 
 ## Completed
+
+### Console Material 3 button styling + Twitter handle validation
+- **Done 2026-05-13.** Two console defects from the audit work. (1) Add Source rejected real Twitter handles: the backend regex was `^[a-z0-9_]+$` and nothing stripped a leading `@`. Backend now branches on source_type — Twitter accepts `^[A-Za-z0-9_]{1,15}$` and strips `@`; other source types keep the lowercase convention. (2) `md-filled-button`/`md-outlined-button`/`md-text-button` rendered with no horizontal padding because the universal `* { padding: 0 }` reset overrode Material Web's `:host` rule (outer-document rules beat shadow `:host` regardless of specificity). Restored standard Material 3 padding in outer scope. Window-chip selector redesigned with proportional dimensions and `font: inherit`.
+
+### Source Health audit foundation
+- **Done 2026-05-13.** Persistent per-source history ledger `digests/<slug>/source_history.jsonl` (one row per active source per day: extracted, in_digest, dropped, exclusive, avg_score). `digest.py` appends after each successful run. `--backfill-source-history` CLI seeds prod from existing `work/<date>/` artifacts (initial run: 477 rows × 58 days for AI, 219 × 52 for wealthtech). `/api/digests/<slug>/sources` accepts `?days=N` (clamp [1, 365]) and prefers the ledger when present. UI: 14d / 30d / 90d / 1y chip selector on Source Health. Also fixed an `in_digest` undercount in `_compute_source_metrics` for runs where prioritize was skipped. Unblocks the broader Audit Job (automation, diagnosis, push report) tracked separately.
+
+### Stale-source health UI redesign
+- **Done 2026-05-13.** Backend `commit_pending` was silently wiping `last_fetched` / `last_included` on every run by replacing the source entry dict; only `last_updated` survived. Fix: merge into the entry instead of replacing, drop `last_updated` writes, add a `load_state` migration shim that hydrates `last_fetched` from legacy `last_updated`. Console API now surfaces both timestamps plus a per-source `stale_after_days` config (14 for google_ai_blog, 45 for one_useful_thing, 7 for openai_blog / huggingface_blog / the_ai_engineer, 5 for latent_space; default 3). Source Health page replaces the single "Last Updated" column with separate "Last Fetched" / "Last Included" columns and a cadence-aware health badge. Design in [stale_fix_plan.md](stale_fix_plan.md).
 
 ### Podcast download stats via Caddy access logs
 - **Done 2026-04-23.** Added subscriber and download stats plumbing (`digest_pipeline/podcast_stats.py`) and a `--podcast-stats` CLI flag that recomputes counts from access logs. Caddy logs MP3 requests for the podcast domains; the stats job dedupes by IP + User-Agent + episode and surfaces the totals plus top podcast apps (via User-Agent) in the management console. Not IAB-compliant — good enough as a trend indicator at current scale.
