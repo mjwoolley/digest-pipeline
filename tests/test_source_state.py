@@ -11,6 +11,7 @@ from digest_pipeline.source_state import (
     extract_and_filter,
     filter_gathered_sources,
     commit_pending,
+    update_source_state,
     _extract_twitter_items,
     _extract_block_items,
     _extract_newsletter_id,
@@ -310,7 +311,7 @@ def test_filter_newsletter_message_id_not_affected_by_content_change():
 # ── State persistence ────────────────────────────────────────────────────────
 
 def test_save_and_load_state(tmp_path):
-    state = {"twitter:user": {"seen_ids": ["id1", "id2"], "last_updated": "2026-03-21"}}
+    state = {"twitter:user": {"seen_ids": ["id1", "id2"], "last_fetched": "2026-03-21"}}
     save_state(tmp_path, state)
     loaded = load_state(tmp_path)
     assert loaded == state
@@ -325,22 +326,53 @@ def test_load_state_corrupt_file(tmp_path):
     assert load_state(tmp_path) == {}
 
 
+def test_load_state_migrates_legacy_last_updated(tmp_path):
+    """Legacy entries with last_updated should be migrated to last_fetched."""
+    legacy = {
+        "blog:a": {"seen_ids": ["x"], "last_updated": "2026-03-21"},
+        "blog:b": {"seen_ids": ["y"], "last_updated": "2026-03-22", "last_fetched": "2026-03-23"},
+    }
+    (tmp_path / ".source_state.json").write_text(json.dumps(legacy))
+    loaded = load_state(tmp_path)
+    # a: last_updated copied to last_fetched, old key dropped
+    assert loaded["blog:a"] == {"seen_ids": ["x"], "last_fetched": "2026-03-21"}
+    # b: last_fetched already set; do not overwrite, just drop last_updated
+    assert loaded["blog:b"] == {"seen_ids": ["y"], "last_fetched": "2026-03-23"}
+
+
 # ── State pruning ────────────────────────────────────────────────────────────
 
 def test_prune_state_keeps_recent():
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    old = (datetime.utcnow() - timedelta(days=14)).strftime("%Y-%m-%d")
     state = {
-        "blog:a": {"seen_ids": ["x"], "last_updated": "2026-03-21"},
-        "blog:b": {"seen_ids": ["y"], "last_updated": "2026-03-10"},
+        "blog:a": {"seen_ids": ["x"], "last_fetched": today},
+        "blog:b": {"seen_ids": ["y"], "last_fetched": old},
     }
     pruned = prune_state(state, max_age_days=7)
     assert "blog:a" in pruned
     assert "blog:b" not in pruned
 
 
+def test_prune_state_uses_most_recent_of_fetched_or_included():
+    """Either last_fetched or last_included being recent keeps the entry."""
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    old = (datetime.utcnow() - timedelta(days=14)).strftime("%Y-%m-%d")
+    state = {
+        "blog:fetched_only": {"seen_ids": [], "last_fetched": today},
+        "blog:included_only": {"seen_ids": [], "last_included": today},
+        "blog:both_old": {"seen_ids": [], "last_fetched": old, "last_included": old},
+    }
+    pruned = prune_state(state, max_age_days=7)
+    assert "blog:fetched_only" in pruned
+    assert "blog:included_only" in pruned
+    assert "blog:both_old" not in pruned
+
+
 def test_prune_state_no_date():
     state = {"blog:a": {"seen_ids": ["x"]}}
     pruned = prune_state(state, max_age_days=7)
-    # Missing last_updated defaults to far future, so entry is kept
+    # No timestamps at all defaults to far future, so entry is kept.
     assert "blog:a" in pruned
 
 
@@ -351,20 +383,36 @@ def test_commit_pending_new_source():
     pending = {"blog:test": ["url1", "url2"]}
     result = commit_pending(state, pending, "2026-03-21")
     assert result["blog:test"]["seen_ids"] == ["url1", "url2"]
-    assert result["blog:test"]["last_updated"] == "2026-03-21"
+    assert "last_updated" not in result["blog:test"]
 
 
 def test_commit_pending_merge_existing():
-    state = {"blog:test": {"seen_ids": ["url0"], "last_updated": "2026-03-20"}}
+    state = {"blog:test": {"seen_ids": ["url0"], "last_fetched": "2026-03-20"}}
     pending = {"blog:test": ["url1", "url2"]}
     result = commit_pending(state, pending, "2026-03-21")
     assert result["blog:test"]["seen_ids"] == ["url0", "url1", "url2"]
-    assert result["blog:test"]["last_updated"] == "2026-03-21"
+    # commit_pending must not touch last_fetched / last_included; those are
+    # owned by update_source_state.
+    assert result["blog:test"]["last_fetched"] == "2026-03-20"
+    assert "last_updated" not in result["blog:test"]
+
+
+def test_commit_pending_preserves_other_timestamps():
+    """commit_pending merges into existing entry; last_fetched/last_included survive."""
+    state = {"blog:test": {
+        "seen_ids": ["url0"],
+        "last_fetched": "2026-03-19",
+        "last_included": "2026-03-18",
+    }}
+    pending = {"blog:test": ["url1"]}
+    result = commit_pending(state, pending, "2026-03-21")
+    assert result["blog:test"]["last_fetched"] == "2026-03-19"
+    assert result["blog:test"]["last_included"] == "2026-03-18"
 
 
 def test_commit_pending_max_ids():
     state = {"blog:test": {"seen_ids": [f"url{i}" for i in range(500)],
-                           "last_updated": "2026-03-20"}}
+                           "last_fetched": "2026-03-20"}}
     pending = {"blog:test": ["new1", "new2"]}
     result = commit_pending(state, pending, "2026-03-21", max_ids=500)
     assert len(result["blog:test"]["seen_ids"]) == 500
@@ -374,43 +422,73 @@ def test_commit_pending_max_ids():
     assert "url0" not in result["blog:test"]["seen_ids"]
 
 
+# ── update_source_state ──────────────────────────────────────────────────────
+
+def test_update_source_state_writes_timestamps():
+    state = update_source_state(
+        {}, {"blog:a": ["url1"]}, {"blog:a", "blog:b"}, {"blog:a"}, "2026-03-21")
+    assert state["blog:a"]["last_fetched"] == "2026-03-21"
+    assert state["blog:a"]["last_included"] == "2026-03-21"
+    assert state["blog:a"]["seen_ids"] == ["url1"]
+    # Fetched but no pending IDs and not included: still has last_fetched.
+    assert state["blog:b"]["last_fetched"] == "2026-03-21"
+    assert "last_included" not in state["blog:b"]
+
+
+def test_update_source_state_preserves_old_included_when_not_included_today():
+    """A source fetched today but not included should keep its prior last_included."""
+    state = {"blog:a": {
+        "seen_ids": ["url0"],
+        "last_fetched": "2026-03-19",
+        "last_included": "2026-03-18",
+    }}
+    result = update_source_state(
+        state, {"blog:a": ["url1"]}, {"blog:a"}, set(), "2026-03-21")
+    assert result["blog:a"]["last_fetched"] == "2026-03-21"
+    assert result["blog:a"]["last_included"] == "2026-03-18"
+
+
 # ── GitHub Trending cooldown ─────────────────────────────────────────────────
 
 def test_commit_pending_github_trending_uses_timestamps():
     """GitHub trending seen_ids should be a dict with dates, not a list."""
+    today = datetime.utcnow().strftime("%Y-%m-%d")
     state = {}
     pending = {"github_trending:trending": [
         "https://github.com/owner/repo",
         "https://github.com/other/project",
     ]}
-    result = commit_pending(state, pending, "2026-03-21")
+    result = commit_pending(state, pending, today)
     seen = result["github_trending:trending"]["seen_ids"]
     assert isinstance(seen, dict)
-    assert seen["https://github.com/owner/repo"] == "2026-03-21"
-    assert seen["https://github.com/other/project"] == "2026-03-21"
+    assert seen["https://github.com/owner/repo"] == today
+    assert seen["https://github.com/other/project"] == today
 
 
 def test_commit_pending_github_trending_preserves_existing_dates():
     """Re-seeing a repo should NOT update its first-seen date."""
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    earlier = (datetime.utcnow() - timedelta(days=5)).strftime("%Y-%m-%d")
     state = {"github_trending:trending": {
-        "seen_ids": {"https://github.com/owner/repo": "2026-03-10"},
-        "last_updated": "2026-03-10",
+        "seen_ids": {"https://github.com/owner/repo": earlier},
+        "last_fetched": earlier,
     }}
     pending = {"github_trending:trending": ["https://github.com/owner/repo"]}
-    result = commit_pending(state, pending, "2026-03-21")
+    result = commit_pending(state, pending, today)
     seen = result["github_trending:trending"]["seen_ids"]
     # Original date preserved, not overwritten
-    assert seen["https://github.com/owner/repo"] == "2026-03-10"
+    assert seen["https://github.com/owner/repo"] == earlier
 
 
 def test_commit_pending_github_trending_migrates_legacy_list():
     """Old list-format seen_ids should be migrated to dict format."""
+    today = datetime.utcnow().strftime("%Y-%m-%d")
     state = {"github_trending:trending": {
         "seen_ids": ["https://github.com/old/repo"],
-        "last_updated": "2026-03-20",
+        "last_fetched": today,
     }}
     pending = {"github_trending:trending": ["https://github.com/new/repo"]}
-    result = commit_pending(state, pending, "2026-03-21")
+    result = commit_pending(state, pending, today)
     seen = result["github_trending:trending"]["seen_ids"]
     assert isinstance(seen, dict)
     assert "https://github.com/old/repo" in seen
@@ -463,7 +541,7 @@ def test_github_trending_cooldown_integration():
     # Repo seen recently — should be filtered
     state = {"github_trending:trending": {
         "seen_ids": {"https://github.com/owner/repo": today},
-        "last_updated": today,
+        "last_fetched": today,
     }}
     filtered, pending = filter_gathered_sources([source], state)
     assert len(pending.get("github_trending:trending", [])) == 1
@@ -472,7 +550,7 @@ def test_github_trending_cooldown_integration():
     # Repo cooldown expired — should reappear
     state = {"github_trending:trending": {
         "seen_ids": {"https://github.com/owner/repo": old_date},
-        "last_updated": old_date,
+        "last_fetched": old_date,
     }}
     filtered, pending = filter_gathered_sources([source], state)
     assert len(pending.get("github_trending:trending", [])) == 2
@@ -482,15 +560,16 @@ def test_github_trending_cooldown_integration():
 
 def test_github_trending_state_roundtrip(tmp_path):
     """Roundtrip: commit trending state, reload, verify dict format persisted."""
+    today = datetime.utcnow().strftime("%Y-%m-%d")
     state = {}
     pending = {"github_trending:trending": ["https://github.com/owner/repo"]}
-    state = commit_pending(state, pending, "2026-03-21")
+    state = commit_pending(state, pending, today)
     save_state(tmp_path, state)
 
     loaded = load_state(tmp_path)
     seen = loaded["github_trending:trending"]["seen_ids"]
     assert isinstance(seen, dict)
-    assert seen["https://github.com/owner/repo"] == "2026-03-21"
+    assert seen["https://github.com/owner/repo"] == today
 
 
 # ── filter_gathered_sources (integration) ────────────────────────────────────
@@ -504,7 +583,7 @@ def test_filter_gathered_sources_mixed():
     state = {
         "twitter:testuser": {
             "seen_ids": ["https://x.com/user/status/111"],
-            "last_updated": "2026-03-20",
+            "last_fetched": "2026-03-20",
         },
     }
     filtered, pending = filter_gathered_sources(sources, state)

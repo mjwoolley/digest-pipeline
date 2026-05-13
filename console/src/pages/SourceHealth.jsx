@@ -15,10 +15,9 @@ function daysSince(dateStr) {
 }
 
 function healthStatus(src) {
-  if (!src.last_updated) return 'stale';
-  const days = daysSince(src.last_updated);
-  if (days > 3) return 'stale';
-  if (days > 1 && src.seen_count === 0) return 'warning';
+  const threshold = src.stale_after_days || 3;
+  if (!src.last_fetched || daysSince(src.last_fetched) > threshold) return 'stale';
+  if (!src.last_included || daysSince(src.last_included) > threshold) return 'warning';
   return 'healthy';
 }
 
@@ -52,9 +51,21 @@ const COLUMNS = [
   { key: 'in_digest', label: 'In Digest', align: 'right', numeric: true },
   { key: 'yield_rate', label: 'Yield', align: 'right', numeric: true },
   { key: 'avg_score', label: 'Avg Score', align: 'right', numeric: true },
-  { key: 'last_updated', label: 'Last Updated', align: 'left' },
+  { key: 'last_fetched', label: 'Last Fetched', align: 'left' },
+  { key: 'last_included', label: 'Last Included', align: 'left' },
   { key: 'health', label: 'Health', align: 'left' },
 ];
+
+function DateCell({ date }) {
+  if (!date) return <span style="color: var(--md-sys-color-error)">Never</span>;
+  const days = daysSince(date);
+  return (
+    <span>
+      {date}
+      {days > 0 && <span style="color: var(--md-sys-color-on-surface-variant); margin-left: 4px">({days}d ago)</span>}
+    </span>
+  );
+}
 
 function sortVal(src, key) {
   if (key === 'health') {
@@ -78,7 +89,6 @@ function compareSources(a, b, sortKey, sortDir) {
 
 function SourceRow({ src, slug }) {
   const status = healthStatus(src);
-  const days = daysSince(src.last_updated);
   return (
     <tr
       key={src.source_key}
@@ -105,16 +115,8 @@ function SourceRow({ src, slug }) {
       <td style="text-align: right">
         <span class={scoreClass(src.avg_score)}>{fmtScore(src.avg_score)}</span>
       </td>
-      <td>
-        {src.last_updated ? (
-          <span>
-            {src.last_updated}
-            {days > 0 && <span style="color: var(--md-sys-color-on-surface-variant); margin-left: 4px">({days}d ago)</span>}
-          </span>
-        ) : (
-          <span style="color: var(--md-sys-color-error)">Never</span>
-        )}
-      </td>
+      <td><DateCell date={src.last_fetched} /></td>
+      <td><DateCell date={src.last_included} /></td>
       <td>
         {status === 'healthy' && <span class="badge badge--success">Healthy</span>}
         {status === 'warning' && <span class="badge badge--running">Warning</span>}

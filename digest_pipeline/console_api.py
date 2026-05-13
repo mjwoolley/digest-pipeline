@@ -115,17 +115,29 @@ def _count_sources(config: dict) -> int:
     return count
 
 
+DEFAULT_STALE_AFTER_DAYS = 3
+
+
+def _stale_threshold(block: dict) -> int:
+    """Return stale_after_days from a source config block, falling back to default."""
+    val = block.get("stale_after_days")
+    return int(val) if isinstance(val, (int, float)) and val > 0 else DEFAULT_STALE_AFTER_DAYS
+
+
 def _list_sources(config: dict) -> list[dict]:
     """Build flat list of all configured sources with metadata."""
     sources_cfg = config.get("sources", {})
+    twitter_cfg = sources_cfg.get("twitter", {})
+    twitter_default = _stale_threshold(twitter_cfg)
     result = []
 
-    for acct in sources_cfg.get("twitter", {}).get("accounts", []):
+    for acct in twitter_cfg.get("accounts", []):
         result.append({
             "source_key": f"twitter:{acct}",
             "source_type": "twitter",
             "name": f"@{acct}",
             "url": f"https://x.com/{acct}",
+            "stale_after_days": twitter_default,
         })
 
     for key, blog in sources_cfg.get("blogs", {}).items():
@@ -134,6 +146,7 @@ def _list_sources(config: dict) -> list[dict]:
             "source_type": "blog",
             "name": blog.get("name", key),
             "url": blog.get("feed_url") or blog.get("url", ""),
+            "stale_after_days": _stale_threshold(blog),
         })
 
     for key, blog in sources_cfg.get("research", {}).items():
@@ -142,14 +155,18 @@ def _list_sources(config: dict) -> list[dict]:
             "source_type": "research",
             "name": blog.get("name", key),
             "url": blog.get("feed_url") or blog.get("url", ""),
+            "stale_after_days": _stale_threshold(blog),
         })
 
-    for key, nl in sources_cfg.get("newsletters", {}).get("sources", {}).items():
+    nl_cfg = sources_cfg.get("newsletters", {})
+    nl_default = _stale_threshold(nl_cfg)
+    for key, nl in nl_cfg.get("sources", {}).items():
         result.append({
             "source_key": f"newsletter:{key}",
             "source_type": "newsletter",
             "name": nl.get("name", key),
             "url": "",
+            "stale_after_days": _stale_threshold(nl) if "stale_after_days" in nl else nl_default,
         })
 
     gt = sources_cfg.get("github_trending")
@@ -159,6 +176,7 @@ def _list_sources(config: dict) -> list[dict]:
             "source_type": "github_trending",
             "name": gt.get("name", "GitHub Trending"),
             "url": gt.get("url", ""),
+            "stale_after_days": _stale_threshold(gt),
         })
 
     return result
@@ -726,7 +744,8 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
             m = source_metrics.get(key, {})
             result.append({
                 **src,
-                "last_updated": state.get("last_updated"),
+                "last_fetched": state.get("last_fetched"),
+                "last_included": state.get("last_included"),
                 "seen_count": seen_count,
                 "extracted": m.get("extracted", 0),
                 "in_digest": m.get("in_digest", 0),

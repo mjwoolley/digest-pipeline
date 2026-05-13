@@ -108,8 +108,16 @@ def digest_dir(tmp_path):
 
     # Source state
     _write_json(ai / ".source_state.json", {
-        "twitter:simonw": {"seen_ids": ["url1", "url2"], "last_updated": "2026-03-24"},
-        "blog:anthropic_blog": {"seen_ids": ["url3"], "last_updated": "2026-03-23"},
+        "twitter:simonw": {
+            "seen_ids": ["url1", "url2"],
+            "last_fetched": "2026-03-24",
+            "last_included": "2026-03-24",
+        },
+        "blog:anthropic_blog": {
+            "seen_ids": ["url3"],
+            "last_fetched": "2026-03-23",
+            "last_included": "2026-03-22",
+        },
     })
 
     # Subscribers
@@ -271,17 +279,54 @@ def test_list_sources(client):
     assert len(data) == 5  # 2 twitter + 1 blog + 1 newsletter + 1 github
 
     simonw = next(s for s in data if s["source_key"] == "twitter:simonw")
-    assert simonw["last_updated"] == "2026-03-24"
+    assert simonw["last_fetched"] == "2026-03-24"
+    assert simonw["last_included"] == "2026-03-24"
     assert simonw["seen_count"] == 2
+    assert simonw["stale_after_days"] == 3
+    assert "last_updated" not in simonw
 
     anthropic = next(s for s in data if s["source_key"] == "blog:anthropic_blog")
-    assert anthropic["last_updated"] == "2026-03-23"
+    assert anthropic["last_fetched"] == "2026-03-23"
+    assert anthropic["last_included"] == "2026-03-22"
     assert anthropic["seen_count"] == 1
+    assert anthropic["stale_after_days"] == 3
 
     # Newsletter should have no state
     rundown = next(s for s in data if s["source_key"] == "newsletter:rundown_ai")
-    assert rundown["last_updated"] is None
+    assert rundown["last_fetched"] is None
+    assert rundown["last_included"] is None
     assert rundown["seen_count"] == 0
+
+
+def test_list_sources_reads_stale_after_days_from_config(tmp_path):
+    """Per-source stale_after_days is surfaced in the response."""
+    ai = tmp_path / "ai"
+    ai.mkdir()
+    (ai / "config.json").write_text(json.dumps({
+        "digest": {"name": "Test", "tagline": "T", "emoji": "🧪"},
+        "sources": {"blogs": {
+            "weekly_blog": {"name": "Weekly", "feed_url": "x", "stale_after_days": 14},
+            "default_blog": {"name": "Default", "feed_url": "y"},
+        }},
+    }))
+    _write_json(ai / ".source_state.json", {})
+
+    def mock_load(path):
+        cfg = json.loads(Path(path).read_text())
+        cfg["_data_root"] = Path(path).parent
+        cfg["_pipeline_dir"] = Path(__file__).parent.parent / "digest_pipeline"
+        return cfg
+
+    with patch("digest_pipeline.console_api.load_config", side_effect=mock_load):
+        app = create_app(digests_dir=str(tmp_path))
+    app.testing = True
+    client = app.test_client()
+
+    data = client.get("/api/digests/ai/sources").get_json()
+    weekly = next(s for s in data if s["source_key"] == "blog:weekly_blog")
+    default = next(s for s in data if s["source_key"] == "blog:default_blog")
+    assert weekly["stale_after_days"] == 14
+    assert default["stale_after_days"] == 3
 
 
 # ── Delivery ────────────────────────────────────────────────────────────────
