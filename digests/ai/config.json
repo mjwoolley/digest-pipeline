@@ -162,14 +162,12 @@
         "swyx",
         "addyosmani",
         "openai",
-        "anthropic",
         "googledeepmind",
-        "metaai",
+        "AIatMeta",
         "mistralai",
-        "githubcopilot",
-        "cursorai",
+        "cursor_ai",
         "openaidevs",
-        "langchainai"
+        "langchain"
       ],
       "lookback": "36h",
       "max_per_account": 8
