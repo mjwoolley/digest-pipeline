@@ -97,7 +97,11 @@ export function SourceEdit({ slug, sourceType, sourceKey, refreshInterval }) {
     const t = activeType;
 
     if (t === 'twitter') {
-      if (!fields.account?.trim()) errs.account = 'Required';
+      const handle = (fields.account || '').trim().replace(/^@/, '');
+      if (!handle) errs.account = 'Required';
+      else if (!/^[A-Za-z0-9_]{1,15}$/.test(handle)) {
+        errs.account = '1-15 characters: letters, digits, underscores';
+      }
     }
 
     if (t === 'blog' || t === 'research') {
@@ -183,7 +187,7 @@ export function SourceEdit({ slug, sourceType, sourceKey, refreshInterval }) {
       if (isCreate) {
         const t = activeType;
         let key;
-        if (t === 'twitter') key = fields.account.trim();
+        if (t === 'twitter') key = fields.account.trim().replace(/^@/, '');
         else if (t === 'github_trending') key = 'trending';
         else key = manualKey.trim();
 
@@ -249,7 +253,7 @@ export function SourceEdit({ slug, sourceType, sourceKey, refreshInterval }) {
       return isCreate
         ? renderTextField('account', 'Twitter Handle', {
             required: true,
-            helper: 'Without the @ symbol',
+            helper: 'With or without @; mixed case OK (e.g. AnthropicAI)',
           })
         : null;
     }

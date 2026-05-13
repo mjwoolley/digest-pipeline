@@ -445,6 +445,81 @@ def test_list_sources_days_param_clamped(tmp_path):
     assert client.get("/api/digests/ai/sources?days=notanumber").status_code == 200
 
 
+# ── Add Source: Twitter handle validation ───────────────────────────────────
+
+def test_add_twitter_source_strips_leading_at(client):
+    """A leading @ on a Twitter handle is stripped before persistence."""
+    resp = client.post("/api/digests/ai/sources", json={
+        "source_type": "twitter",
+        "key": "@NewAccount",
+        "fields": {},
+    })
+    assert resp.status_code == 201, resp.get_json()
+    # Follow-up: confirm canonical handle saved without @.
+    data = client.get("/api/digests/ai/sources").get_json()
+    keys = [s["source_key"] for s in data]
+    assert "twitter:NewAccount" in keys
+
+
+def test_add_twitter_source_accepts_mixed_case(client):
+    """Mixed-case Twitter handles (AnthropicAI, cursor_ai) are accepted."""
+    resp = client.post("/api/digests/ai/sources", json={
+        "source_type": "twitter",
+        "key": "AnthropicAI",
+        "fields": {},
+    })
+    assert resp.status_code == 201, resp.get_json()
+
+
+def test_add_twitter_source_accepts_underscore_handle(client):
+    resp = client.post("/api/digests/ai/sources", json={
+        "source_type": "twitter",
+        "key": "cursor_ai",
+        "fields": {},
+    })
+    assert resp.status_code == 201, resp.get_json()
+
+
+def test_add_twitter_source_rejects_invalid_characters(client):
+    resp = client.post("/api/digests/ai/sources", json={
+        "source_type": "twitter",
+        "key": "bad handle!",
+        "fields": {},
+    })
+    assert resp.status_code == 400
+    assert "Twitter handle" in resp.get_json()["error"]
+
+
+def test_add_twitter_source_enforces_length_cap(client):
+    resp = client.post("/api/digests/ai/sources", json={
+        "source_type": "twitter",
+        "key": "a" * 16,
+        "fields": {},
+    })
+    assert resp.status_code == 400
+
+
+def test_add_twitter_source_rejects_only_at(client):
+    """A handle that is just '@' (or empty after stripping) is rejected."""
+    resp = client.post("/api/digests/ai/sources", json={
+        "source_type": "twitter",
+        "key": "@",
+        "fields": {},
+    })
+    assert resp.status_code == 400
+
+
+def test_add_blog_source_preserves_lowercase_rule(client):
+    """Non-twitter keys keep the lowercase-only convention."""
+    resp = client.post("/api/digests/ai/sources", json={
+        "source_type": "blog",
+        "key": "MyBlog",
+        "fields": {"name": "Test", "feed_url": "https://example.com/feed"},
+    })
+    assert resp.status_code == 400
+    assert "lowercase" in resp.get_json()["error"]
+
+
 # ── Delivery ────────────────────────────────────────────────────────────────
 
 def test_get_delivery(client):
