@@ -18,6 +18,7 @@ from flask import Flask, jsonify, request
 
 from .config import load_config
 from .podcast_stats import discover_log_paths
+from .source_state import load_state
 from .subscribers import load_subscribers
 
 logger = logging.getLogger("digest")
@@ -732,7 +733,7 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
             return jsonify({"error": "Unknown digest"}), 404
 
         cfg_sources = _list_sources(info["config"])
-        source_state = _read_json(info["data_root"] / ".source_state.json") or {}
+        source_state = load_state(info["data_root"])
         source_metrics = _compute_source_metrics(info["data_root"])
 
         result = []
