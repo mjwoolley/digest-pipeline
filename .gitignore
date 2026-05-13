@@ -26,6 +26,7 @@ digests/*/subscribers.json
 digests/*/subscription_events.jsonl
 digests/*/send_history.jsonl
 digests/*/.source_state.json
+digests/*/source_history.jsonl
 digests/*/podcasts/*-run.json
 digests/*/brand-original*.png
 digests/*/config.*.json

@@ -183,15 +183,75 @@ def _list_sources(config: dict) -> list[dict]:
     return result
 
 
-def _compute_source_metrics(data_root: Path, days: int = 14) -> dict:
-    """Compute per-source metrics from pipeline artifacts over recent runs.
+def _aggregate_from_ledger(ledger_path: Path, cutoff: str) -> dict:
+    """Sum per-source counts from source_history.jsonl over rows >= cutoff."""
+    metrics: dict[str, dict] = {}
+    try:
+        with ledger_path.open() as f:
+            for line in f:
+                if not line.strip():
+                    continue
+                try:
+                    row = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if row.get("date", "") < cutoff:
+                    continue
+                sk = row.get("source_key")
+                if not sk:
+                    continue
+                m = metrics.setdefault(sk, {
+                    "extracted": 0, "in_digest": 0, "exclusive": 0,
+                    "score_sum": 0.0, "score_n": 0, "dates": set(),
+                })
+                m["extracted"] += row.get("extracted", 0)
+                m["in_digest"] += row.get("in_digest", 0)
+                m["exclusive"] += row.get("exclusive", 0)
+                avg = row.get("avg_score")
+                # Reconstruct an aggregate average by weighting each day's
+                # avg_score by that day's contribution count (extracted +
+                # dropped). Close enough for the dashboard; exact mean would
+                # require persisting raw scores.
+                if avg is not None:
+                    weight = row.get("extracted", 0)
+                    m["score_sum"] += avg * weight
+                    m["score_n"] += weight
+                m["dates"].add(row["date"])
+    except OSError as e:
+        logger.warning(f"Failed to read {ledger_path}: {e}")
+        return {}
 
-    Scans work/{date}/ directories and aggregates extracted, in-digest,
-    exclusive, and priority score metrics per source_key.
+    result = {}
+    for sk, m in metrics.items():
+        extracted = m["extracted"]
+        in_digest = m["in_digest"]
+        result[sk] = {
+            "extracted": extracted,
+            "in_digest": in_digest,
+            "yield_rate": round(in_digest / extracted, 3) if extracted > 0 else None,
+            "exclusive": m["exclusive"],
+            "avg_score": round(m["score_sum"] / m["score_n"], 1) if m["score_n"] else None,
+            "days_active": len(m["dates"]),
+        }
+    return result
+
+
+def _compute_source_metrics(data_root: Path, days: int = 14) -> dict:
+    """Compute per-source metrics over the last ``days`` days.
+
+    Reads from ``source_history.jsonl`` when present (constant-time per source,
+    independent of work/ retention). Falls back to scanning ``work/<date>/``
+    artifacts when the ledger doesn't exist yet (fresh checkout or
+    pre-backfill).
     """
     from datetime import date, timedelta
 
     cutoff = (date.today() - timedelta(days=days)).isoformat()
+
+    ledger_path = data_root / "source_history.jsonl"
+    if ledger_path.exists():
+        return _aggregate_from_ledger(ledger_path, cutoff)
+
     work_dir = data_root / "work"
     if not work_dir.exists():
         return {}
@@ -225,8 +285,13 @@ def _compute_source_metrics(data_root: Path, days: int = 14) -> dict:
                     metrics[sk]["extracted"] += 1
                     metrics[sk]["dates"].add(day_dir.name)
 
-        # Prioritized (kept): in-digest count + scores
-        kept = _read_json(day_dir / "prioritized.json")
+        # In-digest count + scores. Prefer prioritized.json (post-prioritize
+        # kept list); fall back to deduped.json on runs where prioritize was
+        # skipped because article count was already under max_articles.
+        kept_path = day_dir / "prioritized.json"
+        if not kept_path.exists():
+            kept_path = day_dir / "deduped.json"
+        kept = _read_json(kept_path)
         if kept:
             for art in kept:
                 score = art.get("_priority_score")
@@ -727,14 +792,24 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
     @app.route("/api/digests/<slug>/sources")
     def list_sources(slug):
         """All configured sources annotated with health metrics (yield rate,
-        exclusive-article count, days active) from the last 14 days."""
+        exclusive-article count, days active) over a configurable window.
+
+        Query params:
+          days — window size in days (default 14, clamped to [1, 365]).
+        """
         info = _get_digest(slug)
         if not info:
             return jsonify({"error": "Unknown digest"}), 404
 
+        try:
+            days = int(request.args.get("days", 14))
+        except ValueError:
+            days = 14
+        days = max(1, min(365, days))
+
         cfg_sources = _list_sources(info["config"])
         source_state = load_state(info["data_root"])
-        source_metrics = _compute_source_metrics(info["data_root"])
+        source_metrics = _compute_source_metrics(info["data_root"], days=days)
 
         result = []
         for src in cfg_sources:

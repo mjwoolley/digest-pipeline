@@ -39,6 +39,7 @@ from .cluster import cluster_articles, embedding_text
 from .relevance import filter_articles
 from .source_state import (load_state, save_state, prune_state,
                            filter_gathered_sources, update_source_state)
+from . import source_history
 from .run_log import RunLog
 
 # ── Token Tracking ───────────────────────────────────────────────────────────
@@ -673,6 +674,12 @@ def main():
                 f"{len(pending_ids)} sources; "
                 f"fetched={len(fetched_keys)} included={len(included_keys)}"
             )
+
+        # 10b. Append per-source counts to the history ledger
+        try:
+            source_history.append_daily(data_root, work_dir, date)
+        except Exception as e:
+            logger.warning(f"[SOURCE-HISTORY] append_daily failed: {e}")
 
         # 11. Report
         total_dur = time.time() - start_time

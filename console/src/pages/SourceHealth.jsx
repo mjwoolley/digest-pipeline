@@ -139,8 +139,16 @@ function SortHeader({ col, sortKey, sortDir, onSort }) {
   );
 }
 
+const WINDOW_OPTIONS = [
+  { value: 14, label: '14d' },
+  { value: 30, label: '30d' },
+  { value: 90, label: '90d' },
+  { value: 365, label: '1y' },
+];
+
 export function SourceHealth({ slug, refreshInterval }) {
-  const { data, loading, error } = useApi(`/api/digests/${slug}/sources`, refreshInterval);
+  const [days, setDays] = useState(14);
+  const { data, loading, error } = useApi(`/api/digests/${slug}/sources?days=${days}`, refreshInterval);
   const [sortKey, setSortKey] = useState(null);
   const [sortDir, setSortDir] = useState('desc');
 
@@ -199,7 +207,20 @@ export function SourceHealth({ slug, refreshInterval }) {
     <div>
       <div class="page-header">
         <h1 class="page-title">Source Health</h1>
-        <div style="display: flex; gap: 12px; align-items: center">
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap">
+          <div role="tablist" aria-label="Window" style="display: inline-flex; gap: 4px">
+            {WINDOW_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setDays(opt.value)}
+                aria-pressed={days === opt.value}
+                class={`window-chip${days === opt.value ? ' window-chip--active' : ''}`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
           {staleCount > 0 && (
             <span class="badge badge--failure">{staleCount} stale</span>
           )}
