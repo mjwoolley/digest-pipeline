@@ -25,7 +25,7 @@
     - Weekly scheduled run (cron or systemd timer) that reads `source_history.jsonl` and applies thresholds.
     - Diagnosis: when a source has gone quiet, classify likely cause — broken RSS/feed URL, HTML/app-shell/error page treated as valid content, source format changed, source inactive or low-volume, parser/extractor mismatch.
     - Push report to Telegram with unhealthy sources, likely cause, suggested action.
-    - Recommend authoritative new AI sources or replacements for weak/dead ones (likely Sonnet call with the current source list + recent ledger).
+    - Recommend authoritative new AI sources or replacements for weak/dead ones — **Twitter-only shipped via `twitter_discovery` module (2026-05-14): audit appends suggested new accounts to its Telegram report.** Blog/RSS/newsletter recommendation still open.
 
 - [ ] **Welcome Email on Subscribe**
   - Send a confirmation/welcome email when someone subscribes so they know it worked and what to expect.
@@ -55,12 +55,10 @@
   - Extract the first 1-2 story titles from the digest.
   - Inject them as hidden preheader text in the email HTML.
 
-- [ ] **Twitter account discovery in the console**
-  - Add a "Discover" tab per digest that runs `bird search <keyword> --json-full`, aggregates unique authors from the tweets, enriches each with follower count + bio, ranks by followers, filters out already-added accounts, and lets you add them with one click.
-  - Backend: new `POST /api/digests/<slug>/discover/twitter` route in `digest_pipeline/console_api.py`; reuses the existing `POST /api/digests/<slug>/sources` route for the add path.
-  - Frontend: new `console/src/pages/Discover.jsx` plus routing in `app.jsx`.
-  - Twitter-only this iteration; pluggable multi-source framework explicitly out of scope.
-  - See [twitter_search.md](twitter_search.md) for the design.
+- [ ] **Twitter account discovery in the console (UI wrapper)**
+  - CLI version shipped 2026-05-14 as `digest_pipeline/twitter_discovery.py` (`digest-pipeline --discover-twitter`), with composite scoring (followers × post frequency × engagement) and audit-report integration.
+  - Remaining: a "Discover" tab per digest that exposes the same module via the console — `POST /api/digests/<slug>/discover/twitter` route in `digest_pipeline/console_api.py`, new `console/src/pages/Discover.jsx`, reuses existing `POST /api/digests/<slug>/sources` for the add path.
+  - See [twitter_search.md](twitter_search.md) for the original design.
 
 - [ ] **Configurable per-digest clustering thresholds**
   - Replace the hardcoded `0.85` similarity thresholds in intra-day clustering (`digest.py`) and cross-day dedup (`seen_articles.py`) with values read from a per-digest `clustering` config block.
