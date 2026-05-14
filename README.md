@@ -152,6 +152,15 @@ digest-pipeline --audit-sources --digest ai --dry-run
 # accounts already in sources.twitter.accounts.
 digest-pipeline --discover-twitter --digest ai
 digest-pipeline --discover-twitter --digest ai --dry-run
+
+# Same as above, but emit the report as JSON on stdout (logs → stderr).
+# Used internally by the /discover-twitter slash command.
+digest-pipeline --discover-twitter --digest ai --json
+
+# Append one or more handles to digests/<slug>/config.json atomically.
+# Case-insensitive against the existing accounts list, strips a leading @.
+digest-pipeline --add-twitter-account swyx LangChainAI --digest ai
+digest-pipeline --add-twitter-account swyx --digest ai --dry-run
 ```
 
 Configuration for discovery lives under `sources.twitter.discovery` in
@@ -160,6 +169,13 @@ skip discovery for that digest. Tunable fields: `keywords`,
 `tweets_per_keyword`, `min_followers`, `min_posts_per_week`, `top_n`,
 `score_weights`. Requires the same `AUTH_TOKEN` / `CT0` cookies the
 Twitter fetcher already uses.
+
+**Interactive pick-and-add via Claude Code:** `/discover-twitter <slug>`
+runs the discovery, prints a numbered list with bio, LLM rationale, and
+sample tweets, then lets you pick by number (`1,3,5` / `all` / `none`)
+and applies the additions in one atomic write. The slash command lives
+at `.claude/commands/discover-twitter.md` and wraps the same two CLI
+flags above.
 
 ## Configuration
 

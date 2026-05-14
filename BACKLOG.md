@@ -55,10 +55,7 @@
   - Extract the first 1-2 story titles from the digest.
   - Inject them as hidden preheader text in the email HTML.
 
-- [ ] **Twitter account discovery in the console (UI wrapper)**
-  - CLI version shipped 2026-05-14 as `digest_pipeline/twitter_discovery.py` (`digest-pipeline --discover-twitter`), with composite scoring (followers × post frequency × engagement) and audit-report integration.
-  - Remaining: a "Discover" tab per digest that exposes the same module via the console — `POST /api/digests/<slug>/discover/twitter` route in `digest_pipeline/console_api.py`, new `console/src/pages/Discover.jsx`, reuses existing `POST /api/digests/<slug>/sources` for the add path.
-  - See [twitter_search.md](twitter_search.md) for the original design.
+- [ ] **Twitter account discovery in the console (UI wrapper)** — *Superseded 2026-05-14 by the `/discover-twitter` slash command.* The interactive pick-and-add loop now runs in Claude Code via `.claude/commands/discover-twitter.md`, wrapping `--discover-twitter --json` and `--add-twitter-account`. A dedicated console "Discover" tab is parked unless we want a non-Claude UX. Original design: [twitter_search.md](twitter_search.md); slash-command plan: [interactive_discovery.md](interactive_discovery.md).
 
 - [ ] **Configurable per-digest clustering thresholds**
   - Replace the hardcoded `0.85` similarity thresholds in intra-day clustering (`digest.py`) and cross-day dedup (`seen_articles.py`) with values read from a per-digest `clustering` config block.
