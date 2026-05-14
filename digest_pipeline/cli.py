@@ -12,6 +12,7 @@ def main():
       digest-pipeline /path/to/config.json --backfill
       digest-pipeline --backfill-source-history [--digests-dir DIR] [--digest SLUG]
       digest-pipeline --audit-sources [--digests-dir DIR] [--digest SLUG] [--dry-run]
+      digest-pipeline --discover-twitter [--digests-dir DIR] [--digest SLUG] [--dry-run]
       digest-pipeline /path/to/config.json --subscribe user@example.com
       digest-pipeline /path/to/config.json --unsubscribe user@example.com
       digest-pipeline /path/to/config.json --list-subscribers
@@ -68,6 +69,10 @@ def main():
 
     if "--audit-sources" in args:
         _run_source_audit(args)
+        return
+
+    if "--discover-twitter" in args:
+        _run_discover_twitter(args)
         return
 
     if digest_only and podcast_only:
@@ -349,7 +354,7 @@ def _run_source_audit(args):
     import logging
     from pathlib import Path
     from .config import load_config
-    from . import delivery, source_audit
+    from . import delivery, source_audit, twitter_discovery
 
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
@@ -395,6 +400,87 @@ def _run_source_audit(args):
         actionable = len(report.actionable)
         print(f"=== {slug}: {actionable} actionable findings, "
               f"{report.healthy_count}/{report.total_sources} healthy ===")
+
+        disc_report = twitter_discovery.discover(cfg)
+        disc_message = twitter_discovery.format_telegram(disc_report)
+        if disc_message:
+            message = _combine_with_cap(message, disc_message)
+            print(f"    + {len(disc_report.candidates)} suggested new Twitter accounts")
+
+        if dry_run:
+            print(message)
+            print()
+        else:
+            success = delivery.send_notification(message, cfg)
+            if not success:
+                print(f"[{slug}] Telegram delivery failed; falling back to stdout:")
+                print(message)
+
+
+def _combine_with_cap(primary: str, secondary: str, cap: int = 3800) -> str:
+    """Join two messages, truncating the secondary first if needed."""
+    sep = "\n\n"
+    budget_for_secondary = cap - len(primary) - len(sep)
+    if budget_for_secondary <= 100:
+        return primary
+    if len(secondary) > budget_for_secondary:
+        secondary = secondary[: budget_for_secondary - 20] + "\n…(truncated)"
+    return primary + sep + secondary
+
+
+def _run_discover_twitter(args):
+    """Run the Twitter discovery module standalone."""
+    import logging
+    from pathlib import Path
+    from .config import load_config
+    from . import delivery, twitter_discovery
+
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+
+    dry_run = "--dry-run" in args
+    digests_dir = None
+    if "--digests-dir" in args:
+        try:
+            idx = args.index("--digests-dir")
+            digests_dir = args[idx + 1]
+        except (ValueError, IndexError):
+            print("Error: --digests-dir requires a path")
+            sys.exit(1)
+    if not digests_dir:
+        candidate = Path(__file__).resolve().parent.parent / "digests"
+        if candidate.is_dir():
+            digests_dir = str(candidate)
+        else:
+            print("Error: provide --digests-dir or run from a checkout with digests/")
+            sys.exit(1)
+
+    target_slug = None
+    if "--digest" in args:
+        try:
+            idx = args.index("--digest")
+            target_slug = args[idx + 1]
+        except (ValueError, IndexError):
+            print("Error: --digest requires a slug")
+            sys.exit(1)
+
+    configs = sorted(Path(digests_dir).glob("*/config.json"))
+    if not configs:
+        print(f"No digest configs found in {digests_dir}")
+        return
+
+    for cfg_path in configs:
+        slug = cfg_path.parent.name
+        if target_slug and slug != target_slug:
+            continue
+        cfg = load_config(str(cfg_path))
+        report = twitter_discovery.discover(cfg)
+        message = twitter_discovery.format_telegram(report)
+        print(f"=== {slug}: {len(report.candidates)} candidates "
+              f"(searched {len(report.keywords_searched)} keywords, "
+              f"skipped {report.skipped_existing} existing) ===")
+        if not message:
+            print(f"[{slug}] discovery disabled or no keywords configured")
+            continue
         if dry_run:
             print(message)
             print()
