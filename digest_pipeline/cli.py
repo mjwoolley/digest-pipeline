@@ -11,7 +11,7 @@ def main():
       digest-pipeline /path/to/config.json --podcast-only [--dry-run] [date]
       digest-pipeline /path/to/config.json --backfill
       digest-pipeline --backfill-source-history [--digests-dir DIR] [--digest SLUG]
-      digest-pipeline --audit-sources [--digests-dir DIR] [--digest SLUG] [--dry-run]
+      digest-pipeline --audit-sources [--digests-dir DIR] [--digest SLUG] [--dry-run | --json]
       digest-pipeline --discover-twitter [--digests-dir DIR] [--digest SLUG] [--dry-run]
       digest-pipeline /path/to/config.json --subscribe user@example.com
       digest-pipeline /path/to/config.json --unsubscribe user@example.com
@@ -351,6 +351,7 @@ def _run_backfill_source_history(args):
 
 def _run_source_audit(args):
     """Classify sources by health/cause and either print or push the report."""
+    import json
     import logging
     from pathlib import Path
     from .config import load_config
@@ -359,6 +360,10 @@ def _run_source_audit(args):
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
     dry_run = "--dry-run" in args
+    json_mode = "--json" in args
+    if dry_run and json_mode:
+        print("Error: --dry-run and --json are mutually exclusive")
+        sys.exit(1)
     digests_dir = None
     if "--digests-dir" in args:
         try:
@@ -389,6 +394,7 @@ def _run_source_audit(args):
         print(f"No digest configs found in {digests_dir}")
         return
 
+    json_payload: dict = {}
     for cfg_path in configs:
         slug = cfg_path.parent.name
         if target_slug and slug != target_slug:
@@ -396,6 +402,11 @@ def _run_source_audit(args):
         cfg = load_config(str(cfg_path))
         data_root = cfg["_data_root"]
         report = source_audit.audit(data_root, cfg)
+
+        if json_mode:
+            json_payload[slug] = json.loads(source_audit.to_json(report))
+            continue
+
         message = source_audit.format_telegram(report)
         actionable = len(report.actionable)
         print(f"=== {slug}: {actionable} actionable findings, "
@@ -415,6 +426,9 @@ def _run_source_audit(args):
             if not success:
                 print(f"[{slug}] Telegram delivery failed; falling back to stdout:")
                 print(message)
+
+    if json_mode:
+        print(json.dumps(json_payload, indent=2))
 
 
 def _combine_with_cap(primary: str, secondary: str, cap: int = 3800) -> str:

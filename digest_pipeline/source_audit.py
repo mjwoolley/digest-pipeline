@@ -14,7 +14,7 @@ from __future__ import annotations
 import json
 import logging
 import re
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import date as date_cls, datetime, timedelta
 from pathlib import Path
 from typing import Iterable, Optional
@@ -110,6 +110,20 @@ class AuditReport:
     @property
     def actionable(self) -> list[SourceFinding]:
         return [f for f in self.findings if f.cause != CAUSE_HEALTHY]
+
+
+def to_json(report: AuditReport) -> str:
+    """Serialize an AuditReport to JSON for programmatic consumers."""
+    payload = {
+        "digest_name": report.digest_name,
+        "digest_slug": report.digest_slug,
+        "date": report.date,
+        "total_sources": report.total_sources,
+        "healthy_count": report.healthy_count,
+        "actionable_count": len(report.actionable),
+        "findings": [asdict(f) | {"bucket": f.bucket} for f in report.findings],
+    }
+    return json.dumps(payload, indent=2)
 
 
 # ── Public entry point ─────────────────────────────────────────────────────
