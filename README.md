@@ -139,7 +139,27 @@ digest-pipeline digests/ai/config.json --backfill
 # Recompute podcast subscriber + download counts from access logs.
 digest-pipeline --podcast-stats
 digest-pipeline digests/ai/config.json --podcast-stats
+
+# Audit configured sources and push a Telegram report of stale/unhealthy ones.
+# When the digest has a sources.twitter.discovery block, the report also
+# appends suggested new popular AI Twitter accounts to add.
+digest-pipeline --audit-sources --digest ai
+digest-pipeline --audit-sources --digest ai --dry-run
+
+# Run Twitter account discovery on its own (no audit). Searches the
+# configured keywords via the bird CLI, ranks candidates by a composite
+# of follower count, posting frequency, and engagement, and filters out
+# accounts already in sources.twitter.accounts.
+digest-pipeline --discover-twitter --digest ai
+digest-pipeline --discover-twitter --digest ai --dry-run
 ```
+
+Configuration for discovery lives under `sources.twitter.discovery` in
+each digest's `config.json` — set `enabled: false` (or omit the block) to
+skip discovery for that digest. Tunable fields: `keywords`,
+`tweets_per_keyword`, `min_followers`, `min_posts_per_week`, `top_n`,
+`score_weights`. Requires the same `AUTH_TOKEN` / `CT0` cookies the
+Twitter fetcher already uses.
 
 ## Configuration
 

@@ -167,7 +167,28 @@
         "langchain"
       ],
       "lookback": "36h",
-      "max_per_account": 8
+      "max_per_account": 8,
+      "discovery": {
+        "enabled": true,
+        "keywords": [
+          "LLM",
+          "AI agents",
+          "transformer architecture",
+          "fine-tuning",
+          "retrieval augmented generation",
+          "diffusion model",
+          "open source AI"
+        ],
+        "tweets_per_keyword": 50,
+        "min_followers": 5000,
+        "min_posts_per_week": 1.0,
+        "top_n": 10,
+        "score_weights": {
+          "followers": 1.0,
+          "post_frequency": 0.5,
+          "engagement": 0.3
+        }
+      }
     },
     "newsletters": {
       "imap": {
