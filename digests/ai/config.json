@@ -178,11 +178,6 @@
         "email": "mwoolley2@gmail.com"
       },
       "sources": {
-        "bens_bites": {
-          "name": "Ben's Bites",
-          "from": "bensbites@substack.com",
-          "lookback_days": 1
-        },
         "rundown_ai": {
           "name": "The Rundown AI",
           "from": "news@daily.therundown.ai",
@@ -200,6 +195,12 @@
         "name": "Simon Willison",
         "feed_url": "https://simonwillison.net/atom/everything/",
         "description": "AI/LLM thinker — prompt engineering, agent patterns, tooling"
+      },
+      "bens_bites": {
+        "name": "Ben's Bites",
+        "feed_url": "https://www.bensbites.com/feed",
+        "description": "Daily AI news roundup — model releases, dev tools, ecosystem",
+        "stale_after_days": 5
       },
       "the_ai_engineer": {
         "name": "The AI Engineer",
