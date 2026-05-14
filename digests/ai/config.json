@@ -171,13 +171,14 @@
       "discovery": {
         "enabled": true,
         "keywords": [
-          "LLM",
-          "AI agents",
-          "transformer architecture",
-          "fine-tuning",
-          "retrieval augmented generation",
-          "diffusion model",
-          "open source AI"
+          "Claude Code",
+          "MCP server",
+          "AI coding agent",
+          "agent framework",
+          "LangChain",
+          "LLM evaluation",
+          "AI infrastructure",
+          "retrieval augmented generation"
         ],
         "tweets_per_keyword": 50,
         "min_followers": 5000,
@@ -187,6 +188,11 @@
           "followers": 1.0,
           "post_frequency": 0.5,
           "engagement": 0.3
+        },
+        "llm_filter": {
+          "enabled": true,
+          "evaluate_top_n": 30,
+          "min_relevance": 6
         }
       }
     },
