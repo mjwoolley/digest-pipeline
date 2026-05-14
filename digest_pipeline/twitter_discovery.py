@@ -2,16 +2,20 @@
 
 Searches X/Twitter for AI-related keywords via the ``bird`` CLI, aggregates
 the authors of matching tweets, ranks them by a composite score combining
-follower count, posting frequency, and engagement, and suggests the top N
-accounts that are not already in the digest's configured handle list.
+follower count, posting frequency, and engagement, and (optionally) asks
+an LLM to score each candidate's bio + tweet samples against the user's
+stated preferences so noise like "make money with AI" influencers gets
+pushed below the cut.
 
 Runs independently via ``digest-pipeline --discover-twitter``, and is also
 called from the weekly source audit so suggestions appear in the same
 Telegram report.
 
-Pure-Python with one external dependency: the ``bird`` CLI (same one
-``gather.py`` uses for the Twitter fetcher). Requires ``AUTH_TOKEN`` and
-``CT0`` env vars (Twitter session cookies).
+Pure-Python; the external dependencies are the ``bird`` CLI (same one
+``gather.py`` uses for the Twitter fetcher) and, when ``llm_filter`` is
+enabled, the project's ``llm.py`` helper. Requires ``AUTH_TOKEN`` and
+``CT0`` env vars for Twitter cookies, plus ``OPENROUTER_API_KEY`` or
+``ANTHROPIC_API_KEY`` when LLM filtering is on.
 """
 from __future__ import annotations
 
@@ -23,6 +27,8 @@ import subprocess
 from dataclasses import dataclass, field
 from datetime import date as date_cls, datetime, timezone
 from typing import Optional
+
+from . import llm
 
 logger = logging.getLogger("digest")
 
@@ -45,6 +51,36 @@ BIRD_TIMEOUT_S = 60
 # author actually only posts in bursts.
 MIN_SPAN_DAYS = 1.0
 
+# Max tweet samples kept per author. Bounds the LLM prompt size.
+MAX_TWEET_SAMPLES = 6
+
+# LLM evaluation defaults (overridable per-digest in config.json).
+DEFAULT_LLM_EVALUATE_TOP_N = 30
+DEFAULT_LLM_MIN_RELEVANCE = 6
+
+DEFAULT_LLM_PREFERENCES = """\
+You are evaluating X (Twitter) accounts for a technical builder/developer who
+uses LLMs and generative AI to BUILD software (not to research it).
+
+PREFER (score 7-10): accounts focused on
+- AI-enabled coding tools (Claude Code, Cursor, Aider, Copilot, etc.)
+- LLM frameworks and SDKs (LangChain, LlamaIndex, MCP, agent frameworks)
+- AI infrastructure announcements (eval libraries, vector DBs, retrieval, deployment)
+- Applied AI engineering, framework releases, shipping with LLMs
+- Deep technical posts about building with generative AI
+
+PENALIZE (score 0-3): accounts focused on
+- "Make money with AI" / monetization / passive income hype
+- Non-technical productivity / AI for entrepreneurs / business influencers
+- Vibe coding / no-code AI influencer content
+- Pure ML research, model training, fine-tuning research papers
+- Data-science research (not applied engineering)
+- Off-topic accounts (sports, politics, general news, finance, lifestyle)
+
+NEUTRAL (4-6): general AI commentary, mixed content, unclear focus, or
+accounts that occasionally cover relevant topics but aren't primarily about
+them."""
+
 
 # ── Data classes ───────────────────────────────────────────────────────────
 
@@ -59,6 +95,8 @@ class Candidate:
     score: float
     matched_keywords: list[str]
     sample_tweets: int     # how many tweets we aggregated for this author
+    llm_score: Optional[int] = None    # 0-10, None if filter disabled or eval failed
+    llm_rationale: str = ""
 
 
 @dataclass
@@ -82,6 +120,7 @@ class _Author:
     bio: str = ""
     followers: int = 0
     tweet_times: list[datetime] = field(default_factory=list)
+    tweet_texts: list[str] = field(default_factory=list)
     engagement_total: int = 0
     matched_keywords: set[str] = field(default_factory=set)
 
@@ -141,11 +180,22 @@ def discover(config: dict) -> DiscoveryReport:
         for tweet in tweets:
             _ingest_tweet(tweet, kw, authors)
 
-    candidates = _rank(authors, existing, min_followers, min_posts_per_week, weights, top_n)
-    report.candidates = candidates
+    ranked = _rank(authors, existing, min_followers, min_posts_per_week, weights)
     report.skipped_existing = sum(
         1 for handle in authors if handle.lower() in existing
     )
+
+    llm_cfg = disc_cfg.get("llm_filter") or {}
+    if llm_cfg.get("enabled"):
+        provider = (config.get("llm") or {}).get("provider", "openrouter")
+        preferences = llm_cfg.get("preferences") or DEFAULT_LLM_PREFERENCES
+        eval_top_n = int(llm_cfg.get("evaluate_top_n", DEFAULT_LLM_EVALUATE_TOP_N))
+        min_relevance = int(llm_cfg.get("min_relevance", DEFAULT_LLM_MIN_RELEVANCE))
+        ranked = _llm_filter(
+            ranked, authors, preferences, provider, eval_top_n, min_relevance, report
+        )
+
+    report.candidates = ranked[:top_n]
     return report
 
 
@@ -225,6 +275,10 @@ def _ingest_tweet(tweet: dict, keyword: str, authors: dict[str, _Author]) -> Non
     author.engagement_total += engagement
     author.matched_keywords.add(keyword)
 
+    text = (tweet.get("text") or "").strip()
+    if text and len(author.tweet_texts) < MAX_TWEET_SAMPLES:
+        author.tweet_texts.append(text)
+
 
 def _parse_twitter_time(s: Optional[str]) -> Optional[datetime]:
     """Parse Twitter's 'Thu May 14 12:52:25 +0000 2026' timestamp format."""
@@ -244,8 +298,8 @@ def _rank(
     min_followers: int,
     min_posts_per_week: float,
     weights: dict,
-    top_n: int,
 ) -> list[Candidate]:
+    """Rule-filter and composite-rank authors. Caller truncates."""
     candidates: list[Candidate] = []
     for key, author in authors.items():
         if key in existing:
@@ -276,7 +330,97 @@ def _rank(
             sample_tweets=n_tweets,
         ))
     candidates.sort(key=lambda c: c.score, reverse=True)
-    return candidates[:top_n]
+    return candidates
+
+
+# ── LLM-based relevance filter ─────────────────────────────────────────────
+
+def _llm_filter(
+    candidates: list[Candidate],
+    authors: dict[str, _Author],
+    preferences: str,
+    provider: str,
+    evaluate_top_n: int,
+    min_relevance: int,
+    report: DiscoveryReport,
+) -> list[Candidate]:
+    """Ask the LLM to score each top candidate's relevance to preferences.
+
+    Mutates ``Candidate.llm_score`` / ``llm_rationale`` on each scored item.
+    Drops candidates below ``min_relevance`` and re-sorts by LLM score
+    (composite score breaks ties).
+    """
+    if not candidates:
+        return candidates
+
+    llm.configure(provider)
+    pool = candidates[:evaluate_top_n]
+    failures = 0
+    for c in pool:
+        author = authors.get(c.handle.lower())
+        samples = author.tweet_texts if author else []
+        try:
+            score, rationale = _llm_evaluate(c, samples, preferences, provider)
+            c.llm_score = score
+            c.llm_rationale = rationale
+        except Exception as e:
+            failures += 1
+            logger.warning(f"[DISCOVER] LLM eval failed for @{c.handle}: {e}")
+            c.llm_score = None
+            c.llm_rationale = f"eval error: {e}"
+
+    if failures:
+        report.errors.append(f"{failures} LLM evaluation(s) failed")
+
+    kept = [c for c in pool if c.llm_score is not None and c.llm_score >= min_relevance]
+    kept.sort(key=lambda c: (c.llm_score or 0, c.score), reverse=True)
+    return kept
+
+
+def _llm_evaluate(
+    candidate: Candidate,
+    tweet_samples: list[str],
+    preferences: str,
+    provider: str,
+) -> tuple[int, str]:
+    """Single LLM call. Returns (score 0-10, one-line rationale)."""
+    samples_block = "\n".join(f"- {t[:280]}" for t in tweet_samples) or "(no samples)"
+    prompt = (
+        f"{preferences}\n\n"
+        "Evaluate this account against the preferences above.\n\n"
+        f"Handle: @{candidate.handle}\n"
+        f"Name: {candidate.name}\n"
+        f"Bio: {candidate.bio or '(empty)'}\n"
+        f"Followers: {candidate.followers}\n"
+        f"Matched keywords: {', '.join(candidate.matched_keywords)}\n\n"
+        f"Recent tweets:\n{samples_block}\n\n"
+        "Return JSON only (no markdown, no extra text):\n"
+        '{"score": <integer 0-10>, "rationale": "<one short sentence>"}'
+    )
+    model = llm.MODELS[provider]["haiku"]
+    messages = [{"role": "user", "content": prompt}]
+    text, _usage = llm.chat(messages, model, max_tokens=200)
+    data = _extract_json_object(text)
+    score = int(data.get("score", 0))
+    score = max(0, min(10, score))
+    rationale = str(data.get("rationale", "")).strip()
+    return score, rationale
+
+
+def _extract_json_object(text: str) -> dict:
+    """Parse a JSON object from a possibly-fenced LLM response."""
+    text = (text or "").strip()
+    if not text:
+        raise ValueError("empty response")
+    if text.startswith("```"):
+        lines = text.splitlines()
+        if len(lines) >= 3:
+            text = "\n".join(lines[1:-1]).strip()
+    start = text.find("{")
+    end = text.rfind("}")
+    if start == -1 or end == -1 or end < start:
+        raise ValueError(f"no JSON object found in: {text[:200]}")
+    return json.loads(text[start:end + 1])
 
 
 def _posts_per_week(times: list[datetime]) -> float:
@@ -324,11 +468,19 @@ def format_telegram(report: DiscoveryReport) -> str:
         bio = c.bio.replace("\n", " ").strip()
         if len(bio) > 120:
             bio = bio[:117] + "…"
-        lines.append(
+        header = (
             f"• `@{c.handle}` — {followers_str} followers, "
             f"{c.posts_per_week:.1f}/wk on {', '.join(c.matched_keywords)}"
         )
-        if bio:
+        if c.llm_score is not None:
+            header += f" [LLM: {c.llm_score}/10]"
+        lines.append(header)
+        if c.llm_rationale:
+            rationale = c.llm_rationale.replace("\n", " ").strip()
+            if len(rationale) > 160:
+                rationale = rationale[:157] + "…"
+            lines.append(f"    _{rationale}_")
+        elif bio:
             lines.append(f"    _{bio}_")
 
     if report.errors:

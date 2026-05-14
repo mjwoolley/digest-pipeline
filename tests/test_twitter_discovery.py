@@ -111,6 +111,17 @@ def test_ingest_tweet_merges_duplicates():
     assert a.matched_keywords == {"AI", "LLM"}
     assert a.engagement_total == 15
     assert len(a.tweet_times) == 2
+    assert len(a.tweet_texts) == 2  # captures tweet text for LLM eval
+
+
+def test_ingest_tweet_caps_samples():
+    authors: dict[str, _Author] = {}
+    for i in range(twitter_discovery.MAX_TWEET_SAMPLES + 5):
+        t = _tweet("ada", followers=5000,
+                    created_at=f"Thu May {1 + (i % 28):02d} 12:00:00 +0000 2026")
+        t["text"] = f"tweet {i}"
+        _ingest_tweet(t, "AI", authors)
+    assert len(authors["ada"].tweet_texts) == twitter_discovery.MAX_TWEET_SAMPLES
 
 
 def test_ingest_tweet_skips_missing_handle():
@@ -134,7 +145,7 @@ def test_rank_filters_existing_handles():
     }
     existing = {"ada"}
     out = _rank(authors, existing, min_followers=1000, min_posts_per_week=0.1,
-                weights=twitter_discovery.DEFAULT_WEIGHTS, top_n=10)
+                weights=twitter_discovery.DEFAULT_WEIGHTS)
     handles = [c.handle for c in out]
     assert handles == ["babbage"]
 
@@ -159,14 +170,14 @@ def test_rank_filters_min_followers_and_min_posts():
         ]),
     }
     out = _rank(authors, set(), min_followers=1000, min_posts_per_week=1.0,
-                weights=twitter_discovery.DEFAULT_WEIGHTS, top_n=10)
+                weights=twitter_discovery.DEFAULT_WEIGHTS)
     handles = [c.handle for c in out]
     assert "low_followers" not in handles
     assert "infrequent2" not in handles
     assert "good" in handles
 
 
-def test_rank_sorts_by_score_and_respects_top_n():
+def test_rank_sorts_by_score():
     base_times = [
         datetime(2026, 5, 1, tzinfo=timezone.utc),
         datetime(2026, 5, 8, tzinfo=timezone.utc),
@@ -177,11 +188,11 @@ def test_rank_sorts_by_score_and_respects_top_n():
         for i in range(5)
     }
     out = _rank(authors, set(), min_followers=100, min_posts_per_week=0.1,
-                weights=twitter_discovery.DEFAULT_WEIGHTS, top_n=2)
-    assert len(out) == 2
+                weights=twitter_discovery.DEFAULT_WEIGHTS)
     # Highest-follower account should win on the log10 follower term.
     assert out[0].handle == "a4"
     assert out[1].handle == "a3"
+    assert len(out) == 5  # _rank no longer truncates; caller does
 
 
 # ── discover() end-to-end ──────────────────────────────────────────────────
@@ -298,3 +309,128 @@ def test_format_telegram_lists_candidates():
     assert "3.5/wk" in msg
     assert "builds things" in msg
     assert "Skipped 2" in msg
+
+
+def test_format_telegram_shows_llm_rationale_when_present():
+    report = DiscoveryReport(
+        digest_name="AI", digest_slug="ai", date="2026-05-14", enabled=True,
+        candidates=[
+            Candidate(handle="ada", name="Ada", bio="should not show",
+                       followers=12345, posts_per_week=3.5, avg_engagement=42.0,
+                       score=10.0, matched_keywords=["LLM"], sample_tweets=5,
+                       llm_score=9, llm_rationale="builds with Claude Code"),
+        ],
+    )
+    msg = format_telegram(report)
+    assert "[LLM: 9/10]" in msg
+    assert "builds with Claude Code" in msg
+    assert "should not show" not in msg  # bio yields to rationale
+
+
+# ── LLM filter integration ────────────────────────────────────────────────
+
+def test_llm_filter_disabled_passes_through(monkeypatch):
+    """When llm_filter.enabled is false, candidates aren't LLM-scored."""
+    monkeypatch.setenv("AUTH_TOKEN", "fake")
+    monkeypatch.setenv("CT0", "fake")
+    cfg = _cfg(keywords=("AI",), min_followers=1000, min_posts_per_week=0.1)
+    cfg["sources"]["twitter"]["discovery"]["llm_filter"] = {"enabled": False}
+
+    fake_tweets = [_tweet("ada", followers=50_000,
+                            created_at="Thu May 14 12:00:00 +0000 2026")]
+    monkeypatch.setattr(twitter_discovery, "_search_keyword",
+                          lambda *a, **k: fake_tweets)
+    report = discover(cfg)
+    assert len(report.candidates) == 1
+    assert report.candidates[0].llm_score is None
+
+
+def test_llm_filter_drops_below_min_relevance(monkeypatch):
+    monkeypatch.setenv("AUTH_TOKEN", "fake")
+    monkeypatch.setenv("CT0", "fake")
+    cfg = _cfg(keywords=("AI",), min_followers=1000, min_posts_per_week=0.1)
+    cfg["sources"]["twitter"]["discovery"]["llm_filter"] = {
+        "enabled": True, "min_relevance": 6, "evaluate_top_n": 10,
+    }
+    fake_tweets = [
+        _tweet("builder", followers=20_000,
+                created_at="Thu May 14 12:00:00 +0000 2026"),
+        _tweet("influencer", followers=80_000,
+                created_at="Thu May 14 12:00:00 +0000 2026"),
+    ]
+    monkeypatch.setattr(twitter_discovery, "_search_keyword",
+                          lambda *a, **k: fake_tweets)
+
+    # Mock the LLM: high score for "builder", low score for "influencer".
+    scores = {"builder": (8, "ships with Claude Code"),
+              "influencer": (2, "make money with AI")}
+
+    def fake_eval(candidate, samples, preferences, provider):
+        return scores[candidate.handle]
+
+    monkeypatch.setattr(twitter_discovery, "_llm_evaluate", fake_eval)
+    # Stub configure so we don't need API keys.
+    monkeypatch.setattr(twitter_discovery.llm, "configure", lambda p: None)
+
+    report = discover(cfg)
+    handles = [c.handle for c in report.candidates]
+    assert "builder" in handles
+    assert "influencer" not in handles
+
+
+def test_llm_filter_reranks_by_llm_score(monkeypatch):
+    """Composite would rank A > B (more followers); LLM flips it."""
+    monkeypatch.setenv("AUTH_TOKEN", "fake")
+    monkeypatch.setenv("CT0", "fake")
+    cfg = _cfg(keywords=("AI",), min_followers=1000, min_posts_per_week=0.1)
+    cfg["sources"]["twitter"]["discovery"]["llm_filter"] = {
+        "enabled": True, "min_relevance": 0, "evaluate_top_n": 10,
+    }
+    fake_tweets = [
+        _tweet("biggest", followers=500_000,
+                created_at="Thu May 14 12:00:00 +0000 2026"),
+        _tweet("better_fit", followers=10_000,
+                created_at="Thu May 14 12:00:00 +0000 2026"),
+    ]
+    monkeypatch.setattr(twitter_discovery, "_search_keyword",
+                          lambda *a, **k: fake_tweets)
+    monkeypatch.setattr(twitter_discovery, "_llm_evaluate",
+                          lambda c, s, p, pr: (9 if c.handle == "better_fit" else 4,
+                                                "n/a"))
+    monkeypatch.setattr(twitter_discovery.llm, "configure", lambda p: None)
+    report = discover(cfg)
+    assert [c.handle for c in report.candidates] == ["better_fit", "biggest"]
+
+
+def test_llm_filter_handles_eval_exception(monkeypatch):
+    monkeypatch.setenv("AUTH_TOKEN", "fake")
+    monkeypatch.setenv("CT0", "fake")
+    cfg = _cfg(keywords=("AI",), min_followers=1000, min_posts_per_week=0.1)
+    cfg["sources"]["twitter"]["discovery"]["llm_filter"] = {
+        "enabled": True, "min_relevance": 0, "evaluate_top_n": 10,
+    }
+    fake_tweets = [_tweet("crashy", followers=10_000,
+                            created_at="Thu May 14 12:00:00 +0000 2026")]
+    monkeypatch.setattr(twitter_discovery, "_search_keyword",
+                          lambda *a, **k: fake_tweets)
+
+    def boom(*a, **k):
+        raise RuntimeError("upstream 500")
+    monkeypatch.setattr(twitter_discovery, "_llm_evaluate", boom)
+    monkeypatch.setattr(twitter_discovery.llm, "configure", lambda p: None)
+    report = discover(cfg)
+    # Crashed eval → dropped from final list, error recorded.
+    assert report.candidates == []
+    assert any("LLM evaluation" in e for e in report.errors)
+
+
+def test_extract_json_object_handles_fenced_response():
+    from digest_pipeline.twitter_discovery import _extract_json_object
+    text = '```json\n{"score": 7, "rationale": "good"}\n```'
+    assert _extract_json_object(text) == {"score": 7, "rationale": "good"}
+
+
+def test_extract_json_object_finds_json_inside_prose():
+    from digest_pipeline.twitter_discovery import _extract_json_object
+    text = 'Sure, here is my answer: {"score": 3, "rationale": "x"} thanks!'
+    assert _extract_json_object(text) == {"score": 3, "rationale": "x"}
