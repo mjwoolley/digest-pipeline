@@ -434,3 +434,90 @@ def test_extract_json_object_finds_json_inside_prose():
     from digest_pipeline.twitter_discovery import _extract_json_object
     text = 'Sure, here is my answer: {"score": 3, "rationale": "x"} thanks!'
     assert _extract_json_object(text) == {"score": 3, "rationale": "x"}
+
+
+# ── Candidate.tweet_samples / DiscoveryReport.to_dict ─────────────────────
+
+def test_rank_populates_tweet_samples_from_author(monkeypatch):
+    """_rank should copy up to CANDIDATE_TWEET_SAMPLES texts onto each Candidate."""
+    base_times = [datetime(2026, 5, 1, tzinfo=timezone.utc),
+                  datetime(2026, 5, 8, tzinfo=timezone.utc)]
+    author = _Author("ada", followers=10_000, tweet_times=base_times,
+                     matched_keywords={"AI"})
+    # Force more texts than the cap to verify truncation.
+    author.tweet_texts = [f"sample {i}" for i in range(10)]
+    out = _rank({"ada": author}, set(), min_followers=100, min_posts_per_week=0.1,
+                weights=twitter_discovery.DEFAULT_WEIGHTS)
+    assert len(out) == 1
+    assert len(out[0].tweet_samples) == twitter_discovery.CANDIDATE_TWEET_SAMPLES
+    # First N texts kept in order.
+    assert out[0].tweet_samples == [
+        f"sample {i}" for i in range(twitter_discovery.CANDIDATE_TWEET_SAMPLES)
+    ]
+
+
+def test_discover_candidate_tweet_samples_populated(monkeypatch):
+    """End-to-end: a Candidate from discover() carries the author's tweet texts."""
+    monkeypatch.setenv("AUTH_TOKEN", "fake")
+    monkeypatch.setenv("CT0", "fake")
+    cfg = _cfg(keywords=("AI",), min_followers=1000, min_posts_per_week=0.1)
+    cfg["sources"]["twitter"]["discovery"]["llm_filter"] = {"enabled": False}
+
+    t1 = _tweet("ada", followers=20_000,
+                created_at="Thu May 14 12:00:00 +0000 2026")
+    t1["text"] = "first tweet about LLMs"
+    t2 = _tweet("ada", followers=20_000,
+                created_at="Thu May 21 12:00:00 +0000 2026")
+    t2["text"] = "second tweet about agents"
+    monkeypatch.setattr(twitter_discovery, "_search_keyword",
+                        lambda *a, **k: [t1, t2])
+    report = discover(cfg)
+    assert len(report.candidates) == 1
+    c = report.candidates[0]
+    assert c.tweet_samples == ["first tweet about LLMs",
+                               "second tweet about agents"]
+
+
+def test_discovery_report_to_dict_round_trips_through_json():
+    """to_dict() must be json.dumps-able and contain the candidate fields."""
+    report = DiscoveryReport(
+        digest_name="AI Digest", digest_slug="ai", date="2026-05-14", enabled=True,
+        keywords_searched=["AI"], skipped_existing=2, errors=["one failed"],
+        candidates=[
+            Candidate(
+                handle="ada", name="Ada", bio="builds things",
+                followers=12345, posts_per_week=3.5, avg_engagement=42.0,
+                score=10.0, matched_keywords=["AI"], sample_tweets=5,
+                llm_score=8, llm_rationale="ships things",
+                tweet_samples=["tweet a", "tweet b"],
+            ),
+        ],
+    )
+    d = report.to_dict()
+    payload = json.dumps(d)
+    parsed = json.loads(payload)
+    assert parsed["digest_slug"] == "ai"
+    assert parsed["skipped_existing"] == 2
+    assert parsed["errors"] == ["one failed"]
+    assert len(parsed["candidates"]) == 1
+    c = parsed["candidates"][0]
+    assert c["handle"] == "ada"
+    assert c["tweet_samples"] == ["tweet a", "tweet b"]
+    assert c["llm_score"] == 8
+    assert c["matched_keywords"] == ["AI"]
+
+
+def test_discovery_report_to_dict_omits_internal_author_state():
+    """The JSON payload should not leak the internal _Author dict from discover()."""
+    report = DiscoveryReport(
+        digest_name="x", digest_slug="x", date="2026-05-14", enabled=True,
+        candidates=[
+            Candidate(handle="ada", name="Ada", bio="", followers=1,
+                      posts_per_week=1.0, avg_engagement=0.0, score=0.0,
+                      matched_keywords=[], sample_tweets=0),
+        ],
+    )
+    d = report.to_dict()
+    json.dumps(d)  # must not raise
+    assert "_Author" not in str(d)
+    assert "authors" not in d

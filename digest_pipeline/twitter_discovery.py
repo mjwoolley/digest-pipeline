@@ -54,6 +54,11 @@ MIN_SPAN_DAYS = 1.0
 # Max tweet samples kept per author. Bounds the LLM prompt size.
 MAX_TWEET_SAMPLES = 6
 
+# Max tweet samples copied onto a Candidate (and into the JSON report).
+# Smaller than MAX_TWEET_SAMPLES because the JSON output is read by humans
+# in a slash command, not by the LLM.
+CANDIDATE_TWEET_SAMPLES = 5
+
 # LLM evaluation defaults (overridable per-digest in config.json).
 DEFAULT_LLM_EVALUATE_TOP_N = 30
 DEFAULT_LLM_MIN_RELEVANCE = 6
@@ -97,6 +102,7 @@ class Candidate:
     sample_tweets: int     # how many tweets we aggregated for this author
     llm_score: Optional[int] = None    # 0-10, None if filter disabled or eval failed
     llm_rationale: str = ""
+    tweet_samples: list[str] = field(default_factory=list)  # up to CANDIDATE_TWEET_SAMPLES
 
 
 @dataclass
@@ -109,6 +115,35 @@ class DiscoveryReport:
     skipped_existing: int = 0
     enabled: bool = True
     errors: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        """JSON-serializable representation for the slash command pipe."""
+        return {
+            "digest_name": self.digest_name,
+            "digest_slug": self.digest_slug,
+            "date": self.date,
+            "enabled": self.enabled,
+            "keywords_searched": list(self.keywords_searched),
+            "skipped_existing": self.skipped_existing,
+            "errors": list(self.errors),
+            "candidates": [
+                {
+                    "handle": c.handle,
+                    "name": c.name,
+                    "bio": c.bio,
+                    "followers": c.followers,
+                    "posts_per_week": c.posts_per_week,
+                    "avg_engagement": c.avg_engagement,
+                    "score": c.score,
+                    "matched_keywords": list(c.matched_keywords),
+                    "sample_tweets": c.sample_tweets,
+                    "llm_score": c.llm_score,
+                    "llm_rationale": c.llm_rationale,
+                    "tweet_samples": list(c.tweet_samples),
+                }
+                for c in self.candidates
+            ],
+        }
 
 
 # ── Internal author accumulator ─────────────────────────────────────────────
@@ -328,6 +363,7 @@ def _rank(
             score=score,
             matched_keywords=sorted(author.matched_keywords),
             sample_tweets=n_tweets,
+            tweet_samples=list(author.tweet_texts[:CANDIDATE_TWEET_SAMPLES]),
         ))
     candidates.sort(key=lambda c: c.score, reverse=True)
     return candidates
