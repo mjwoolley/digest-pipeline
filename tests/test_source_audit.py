@@ -313,3 +313,42 @@ def test_format_telegram_truncates_at_cap(data_root, monkeypatch):
     assert len(msg) <= source_audit.TELEGRAM_LENGTH_CAP
     if len(msg) >= source_audit.TELEGRAM_LENGTH_CAP - 50:
         assert "truncated" in msg
+
+
+# ── JSON output ─────────────────────────────────────────────────────────────
+
+def test_to_json_schema(data_root):
+    """to_json produces a parseable payload with the schema the diagnose-audit
+    skill depends on: top-level metadata + per-finding fields including the
+    computed `bucket` property."""
+    today = "2026-05-13"
+    # One healthy source + one stale (never-yielded past grace) → 1 actionable.
+    _write_state(data_root, {
+        "twitter:healthy_one": {"last_fetched": today, "last_included": today, "seen_ids": []},
+        "twitter:dead_handle": {"last_fetched": _shift(today, 30), "last_included": None, "seen_ids": []},
+    })
+    _write_ledger(data_root, [
+        {"date": today, "source_key": "twitter:healthy_one", "extracted": 2, "in_digest": 2,
+         "dropped": 0, "exclusive": 1, "avg_score": 7.5},
+    ])
+    cfg = _config_with_twitter("healthy_one", "dead_handle")
+    report = source_audit.audit(data_root, cfg, today=today)
+
+    payload = json.loads(source_audit.to_json(report))
+
+    assert payload["digest_name"] == "Test Digest"
+    assert payload["date"] == today
+    assert payload["total_sources"] == 2
+    assert payload["healthy_count"] == 1
+    assert payload["actionable_count"] == 1
+    assert len(payload["findings"]) == 2
+
+    expected_keys = {"source_key", "source_type", "name", "badge", "cause",
+                     "evidence", "suggested_action", "sort_key", "bucket"}
+    for f in payload["findings"]:
+        assert set(f.keys()) == expected_keys
+
+    by_key = {f["source_key"]: f for f in payload["findings"]}
+    assert by_key["twitter:dead_handle"]["cause"] == CAUSE_NEVER_YIELDED
+    assert by_key["twitter:dead_handle"]["bucket"] == "Action recommended"
+    assert by_key["twitter:healthy_one"]["cause"] == CAUSE_HEALTHY
