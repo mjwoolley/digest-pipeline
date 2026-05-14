@@ -12,7 +12,8 @@ def main():
       digest-pipeline /path/to/config.json --backfill
       digest-pipeline --backfill-source-history [--digests-dir DIR] [--digest SLUG]
       digest-pipeline --audit-sources [--digests-dir DIR] [--digest SLUG] [--dry-run]
-      digest-pipeline --discover-twitter [--digests-dir DIR] [--digest SLUG] [--dry-run]
+      digest-pipeline --discover-twitter [--digests-dir DIR] [--digest SLUG] [--dry-run] [--json]
+      digest-pipeline --add-twitter-account HANDLE [HANDLE ...] --digest SLUG [--digests-dir DIR] [--dry-run]
       digest-pipeline /path/to/config.json --subscribe user@example.com
       digest-pipeline /path/to/config.json --unsubscribe user@example.com
       digest-pipeline /path/to/config.json --list-subscribers
@@ -73,6 +74,10 @@ def main():
 
     if "--discover-twitter" in args:
         _run_discover_twitter(args)
+        return
+
+    if "--add-twitter-account" in args:
+        _run_add_twitter_account(args)
         return
 
     if digest_only and podcast_only:
@@ -429,13 +434,25 @@ def _combine_with_cap(primary: str, secondary: str, cap: int = 3800) -> str:
 
 
 def _run_discover_twitter(args):
-    """Run the Twitter discovery module standalone."""
+    """Run the Twitter discovery module standalone.
+
+    --json mode: write the DiscoveryReport as JSON to stdout, suppress
+    Telegram delivery, route all log output to stderr. The /discover-twitter
+    slash command depends on stdout being valid JSON only.
+    """
+    import json
     import logging
     from pathlib import Path
     from .config import load_config
     from . import delivery, twitter_discovery
 
-    logging.basicConfig(level=logging.INFO, format="%(message)s")
+    json_mode = "--json" in args
+    log_stream = sys.stderr if json_mode else sys.stdout
+    logging.basicConfig(level=logging.INFO, format="%(message)s", stream=log_stream)
+
+    def status(msg: str) -> None:
+        # Status lines go to stderr in JSON mode so stdout stays clean.
+        print(msg, file=log_stream)
 
     dry_run = "--dry-run" in args
     digests_dir = None
@@ -444,14 +461,15 @@ def _run_discover_twitter(args):
             idx = args.index("--digests-dir")
             digests_dir = args[idx + 1]
         except (ValueError, IndexError):
-            print("Error: --digests-dir requires a path")
+            print("Error: --digests-dir requires a path", file=sys.stderr)
             sys.exit(1)
     if not digests_dir:
         candidate = Path(__file__).resolve().parent.parent / "digests"
         if candidate.is_dir():
             digests_dir = str(candidate)
         else:
-            print("Error: provide --digests-dir or run from a checkout with digests/")
+            print("Error: provide --digests-dir or run from a checkout with digests/",
+                  file=sys.stderr)
             sys.exit(1)
 
     target_slug = None
@@ -460,12 +478,16 @@ def _run_discover_twitter(args):
             idx = args.index("--digest")
             target_slug = args[idx + 1]
         except (ValueError, IndexError):
-            print("Error: --digest requires a slug")
+            print("Error: --digest requires a slug", file=sys.stderr)
             sys.exit(1)
+
+    if json_mode and not target_slug:
+        print("Error: --json requires --digest <slug>", file=sys.stderr)
+        sys.exit(1)
 
     configs = sorted(Path(digests_dir).glob("*/config.json"))
     if not configs:
-        print(f"No digest configs found in {digests_dir}")
+        print(f"No digest configs found in {digests_dir}", file=log_stream)
         return
 
     for cfg_path in configs:
@@ -474,12 +496,17 @@ def _run_discover_twitter(args):
             continue
         cfg = load_config(str(cfg_path))
         report = twitter_discovery.discover(cfg)
+
+        if json_mode:
+            print(json.dumps(report.to_dict(), indent=2))
+            return
+
         message = twitter_discovery.format_telegram(report)
-        print(f"=== {slug}: {len(report.candidates)} candidates "
-              f"(searched {len(report.keywords_searched)} keywords, "
-              f"skipped {report.skipped_existing} existing) ===")
+        status(f"=== {slug}: {len(report.candidates)} candidates "
+               f"(searched {len(report.keywords_searched)} keywords, "
+               f"skipped {report.skipped_existing} existing) ===")
         if not message:
-            print(f"[{slug}] discovery disabled or no keywords configured")
+            status(f"[{slug}] discovery disabled or no keywords configured")
             continue
         if dry_run:
             print(message)
@@ -487,8 +514,87 @@ def _run_discover_twitter(args):
         else:
             success = delivery.send_notification(message, cfg)
             if not success:
-                print(f"[{slug}] Telegram delivery failed; falling back to stdout:")
+                status(f"[{slug}] Telegram delivery failed; falling back to stdout:")
                 print(message)
+
+
+def _run_add_twitter_account(args):
+    """Append one or more Twitter handles to a digest's config.json."""
+    from pathlib import Path
+    from .config_writer import add_twitter_accounts
+
+    dry_run = "--dry-run" in args
+
+    digests_dir = None
+    if "--digests-dir" in args:
+        try:
+            idx = args.index("--digests-dir")
+            digests_dir = args[idx + 1]
+        except (ValueError, IndexError):
+            print("Error: --digests-dir requires a path", file=sys.stderr)
+            sys.exit(1)
+    if not digests_dir:
+        candidate = Path(__file__).resolve().parent.parent / "digests"
+        if candidate.is_dir():
+            digests_dir = str(candidate)
+        else:
+            print("Error: provide --digests-dir or run from a checkout with digests/",
+                  file=sys.stderr)
+            sys.exit(1)
+
+    if "--digest" not in args:
+        print("Error: --digest <slug> is required", file=sys.stderr)
+        sys.exit(1)
+    try:
+        idx = args.index("--digest")
+        slug = args[idx + 1]
+    except (ValueError, IndexError):
+        print("Error: --digest requires a slug", file=sys.stderr)
+        sys.exit(1)
+
+    # Gather handles: every arg that isn't a known flag or a flag value.
+    known_flag_values = {"--digests-dir", "--digest"}
+    skip_next = False
+    handles: list[str] = []
+    for i, a in enumerate(args):
+        if skip_next:
+            skip_next = False
+            continue
+        if a == "--add-twitter-account":
+            continue
+        if a in known_flag_values:
+            skip_next = True
+            continue
+        if a in ("--dry-run",):
+            continue
+        if a.startswith("--"):
+            continue
+        handles.append(a)
+
+    if not handles:
+        print("Error: provide one or more handles after --add-twitter-account",
+              file=sys.stderr)
+        sys.exit(1)
+
+    config_path = Path(digests_dir) / slug / "config.json"
+    if not config_path.exists():
+        print(f"Error: no config at {config_path}", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        result = add_twitter_accounts(config_path, handles, dry_run=dry_run)
+    except (ValueError, FileNotFoundError) as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    label = "Would add" if dry_run else "Added"
+    if result.added:
+        print(f"{label}: {', '.join('@' + h for h in result.added)}")
+    else:
+        print(f"{label}: (none)")
+    if result.already_present:
+        print(f"Already present: {', '.join('@' + h for h in result.already_present)}")
+    print(f"Config: {result.config_path}")
 
 
 def _run_backfill(args):
