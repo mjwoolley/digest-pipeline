@@ -152,7 +152,6 @@
         "bcherny",
         "adocomplete",
         "dejavucoder",
-        "zenoware",
         "simonw",
         "karpathy",
         "MistralAI",
@@ -160,11 +159,9 @@
         "googleaistudio",
         "googleai",
         "swyx",
-        "addyosmani",
         "openai",
         "googledeepmind",
         "AIatMeta",
-        "mistralai",
         "cursor_ai",
         "openaidevs",
         "langchain"
@@ -181,11 +178,6 @@
         "rundown_ai": {
           "name": "The Rundown AI",
           "from": "news@daily.therundown.ai",
-          "lookback_days": 1
-        },
-        "builder_methods": {
-          "name": "Builder Methods",
-          "from": "brian@buildermethods.com",
           "lookback_days": 1
         }
       }
