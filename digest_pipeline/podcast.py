@@ -5,6 +5,7 @@ script, apply pronunciation rewrites for TTS, synthesize audio with Kokoro,
 deliver the MP3, and refresh ``podcast.xml`` + the landing page so podcast
 apps and human visitors see the new episode.
 """
+import json
 import logging
 import re
 import subprocess
@@ -254,6 +255,34 @@ def main():
         sys.exit(1)
 
 
+def _episode_description(podcasts_dir: Path, ep_date: str, max_chars: int = 300) -> str:
+    script = podcasts_dir / f"{ep_date}.txt"
+    if script.is_file():
+        text = " ".join(script.read_text(errors="replace").split())
+        if text:
+            return text[:max_chars].rstrip() + ("…" if len(text) > max_chars else "")
+    return f"Daily AI roundup for {ep_date}"
+
+
+def _episode_duration_s(work_root: Path, ep_date: str, size: int) -> int:
+    run_json = work_root / ep_date / "run.json"
+    if run_json.is_file():
+        try:
+            seconds = (json.loads(run_json.read_text()).get("totals") or {}).get("audio_duration_s")
+            if seconds:
+                return int(round(float(seconds)))
+        except (json.JSONDecodeError, OSError, TypeError, ValueError):
+            pass
+    return int(round(size / 16000))  # 128 kbps estimate, matches console_api.py
+
+
+def _format_duration(seconds: int) -> str:
+    seconds = max(int(seconds), 0)
+    h, rem = divmod(seconds, 3600)
+    m, s = divmod(rem, 60)
+    return f"{h:d}:{m:02d}:{s:02d}"
+
+
 def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
                      config: dict, logger: logging.Logger) -> None:
     """Generate/update podcast RSS feed XML from all episodes in podcasts_dir."""
@@ -279,6 +308,7 @@ def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
 
         # Collect all episodes
         episodes = []
+        work_root = data_root / "work"
         for mp3 in sorted(podcasts_dir.glob("*.mp3"), reverse=True):
             ep_date = mp3.stem  # e.g. "2026-03-09"
             try:
@@ -291,6 +321,8 @@ def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
                 "dt": ep_dt,
                 "filename": mp3.name,
                 "size": size,
+                "description": _episode_description(podcasts_dir, ep_date),
+                "duration_s": _episode_duration_s(work_root, ep_date, size),
             })
 
         if not episodes:
@@ -299,7 +331,9 @@ def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
 
         # Build XML
         ITUNES_NS = "http://www.itunes.com/dtds/podcast-1.0.dtd"
+        ATOM_NS = "http://www.w3.org/2005/Atom"
         ET.register_namespace("itunes", ITUNES_NS)
+        ET.register_namespace("atom", ATOM_NS)
         rss = ET.Element("rss", version="2.0")
         channel = ET.SubElement(rss, "channel")
         ET.SubElement(channel, "title").text = title
@@ -307,8 +341,18 @@ def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
         ET.SubElement(channel, "language").text = language
         landing_url = f"{pages_base}/"
         ET.SubElement(channel, "link").text = landing_url
+        ET.SubElement(channel, f"{{{ATOM_NS}}}link",
+                      rel="self", type="application/rss+xml", href=feed_url)
         ET.SubElement(channel, "{http://www.itunes.com/dtds/podcast-1.0.dtd}author").text = title
         ET.SubElement(channel, "{http://www.itunes.com/dtds/podcast-1.0.dtd}explicit").text = "false"
+        ET.SubElement(channel, "{http://www.itunes.com/dtds/podcast-1.0.dtd}type").text = "episodic"
+        owner_cfg = podcast_cfg.get("owner", {}) or {}
+        owner_email = owner_cfg.get("email", "")
+        if owner_email:
+            owner_el = ET.SubElement(channel, "{http://www.itunes.com/dtds/podcast-1.0.dtd}owner")
+            ET.SubElement(owner_el, "{http://www.itunes.com/dtds/podcast-1.0.dtd}name").text = (
+                owner_cfg.get("name") or title)
+            ET.SubElement(owner_el, "{http://www.itunes.com/dtds/podcast-1.0.dtd}email").text = owner_email
         image_url = podcast_cfg.get("image_url", "")
         if image_url:
             ET.SubElement(channel, "{http://www.itunes.com/dtds/podcast-1.0.dtd}image",
@@ -323,10 +367,13 @@ def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
             ET.SubElement(item, "pubDate").text = format_datetime(ep["dt"])
             ET.SubElement(item, "guid", isPermaLink="true").text = (
                 f"{base_url}/{ep['filename']}")
+            ET.SubElement(item, "description").text = ep["description"]
             ET.SubElement(item, "enclosure",
                           url=f"{base_url}/{ep['filename']}",
                           length=str(ep["size"]),
                           type="audio/mpeg")
+            ET.SubElement(item, "{http://www.itunes.com/dtds/podcast-1.0.dtd}duration").text = (
+                _format_duration(ep["duration_s"]))
 
         tree = ET.ElementTree(rss)
         ET.indent(tree, space="  ")

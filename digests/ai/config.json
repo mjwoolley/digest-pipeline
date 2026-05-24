@@ -54,6 +54,10 @@
     "enabled": true,
     "name": "The AI Daily Roundup",
     "image_url": "https://aidailyroundup.com/podcast-logo.png",
+    "owner": {
+      "name": "The AI Daily Roundup",
+      "email": "mwoolley2@gmail.com"
+    },
     "hosts": [
       {
         "tag": "ALEX",
