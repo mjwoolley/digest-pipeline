@@ -49,6 +49,10 @@
     "name": "The WealthTech Daily Roundup",
     "image_url": "https://wealthtechdigest.com/brand.png",
     "pages_base_url": "https://wealthtechdigest.com",
+    "owner": {
+      "name": "The WealthTech Daily Roundup",
+      "email": "mwoolley2@gmail.com"
+    },
     "hosts": [
       {
         "tag": "ALEX",

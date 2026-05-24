@@ -299,7 +299,9 @@ def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
 
         # Build XML
         ITUNES_NS = "http://www.itunes.com/dtds/podcast-1.0.dtd"
+        ATOM_NS = "http://www.w3.org/2005/Atom"
         ET.register_namespace("itunes", ITUNES_NS)
+        ET.register_namespace("atom", ATOM_NS)
         rss = ET.Element("rss", version="2.0")
         channel = ET.SubElement(rss, "channel")
         ET.SubElement(channel, "title").text = title
@@ -307,8 +309,18 @@ def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
         ET.SubElement(channel, "language").text = language
         landing_url = f"{pages_base}/"
         ET.SubElement(channel, "link").text = landing_url
+        ET.SubElement(channel, f"{{{ATOM_NS}}}link",
+                      rel="self", type="application/rss+xml", href=feed_url)
         ET.SubElement(channel, "{http://www.itunes.com/dtds/podcast-1.0.dtd}author").text = title
         ET.SubElement(channel, "{http://www.itunes.com/dtds/podcast-1.0.dtd}explicit").text = "false"
+        ET.SubElement(channel, "{http://www.itunes.com/dtds/podcast-1.0.dtd}type").text = "episodic"
+        owner_cfg = podcast_cfg.get("owner", {}) or {}
+        owner_email = owner_cfg.get("email", "")
+        if owner_email:
+            owner_el = ET.SubElement(channel, "{http://www.itunes.com/dtds/podcast-1.0.dtd}owner")
+            ET.SubElement(owner_el, "{http://www.itunes.com/dtds/podcast-1.0.dtd}name").text = (
+                owner_cfg.get("name") or title)
+            ET.SubElement(owner_el, "{http://www.itunes.com/dtds/podcast-1.0.dtd}email").text = owner_email
         image_url = podcast_cfg.get("image_url", "")
         if image_url:
             ET.SubElement(channel, "{http://www.itunes.com/dtds/podcast-1.0.dtd}image",
