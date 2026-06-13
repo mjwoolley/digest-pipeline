@@ -53,7 +53,7 @@
   "podcast": {
     "enabled": true,
     "name": "The AI Daily Roundup",
-    "image_url": "https://aidailyroundup.com/podcast-logo.png",
+    "image_url": "https://aidailyroundup.com/ai-podcast-logo.jpg",
     "owner": {
       "name": "The AI Daily Roundup",
       "email": "mwoolley2@gmail.com"
