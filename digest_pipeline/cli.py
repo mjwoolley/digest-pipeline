@@ -11,6 +11,7 @@ def main():
       digest-pipeline /path/to/config.json --podcast-only [--dry-run] [date]
       digest-pipeline /path/to/config.json --backfill
       digest-pipeline --backfill-source-history [--digests-dir DIR] [--digest SLUG]
+      digest-pipeline --backfill-titles [--digests-dir DIR] [--digest SLUG] [--force] [--dry-run]
       digest-pipeline --audit-sources [--digests-dir DIR] [--digest SLUG] [--dry-run | --json]
       digest-pipeline --discover-twitter [--digests-dir DIR] [--digest SLUG] [--dry-run] [--json]
       digest-pipeline --add-twitter-account HANDLE [HANDLE ...] --digest SLUG [--digests-dir DIR] [--dry-run]
@@ -66,6 +67,10 @@ def main():
 
     if "--backfill-source-history" in args:
         _run_backfill_source_history(args)
+        return
+
+    if "--backfill-titles" in args:
+        _run_backfill_titles(args)
         return
 
     if "--audit-sources" in args:
@@ -352,6 +357,97 @@ def _run_backfill_source_history(args):
         data_root = cfg["_data_root"]
         total = source_history.rebuild(data_root, date_re)
         print(f"  {slug}: wrote {total} rows -> {data_root / source_history.LEDGER_FILENAME}")
+
+
+def _run_backfill_titles(args):
+    """Generate one-line episode titles for past episodes missing a .title file.
+
+    For each digest, every podcast script (`podcasts/<date>.txt`) without a
+    matching `<date>.title` gets a title generated from that day's digest
+    markdown (preferred) or the script itself. Afterwards the RSS feed and
+    landing page are rebuilt so the new titles take effect.
+    """
+    import logging
+    import re
+    from pathlib import Path
+    from .config import load_config
+    from . import podcast as podcast_mod
+
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+    logger = logging.getLogger("backfill-titles")
+
+    force = "--force" in args
+    dry_run = "--dry-run" in args
+
+    digests_dir = None
+    if "--digests-dir" in args:
+        try:
+            idx = args.index("--digests-dir")
+            digests_dir = args[idx + 1]
+        except (ValueError, IndexError):
+            print("Error: --digests-dir requires a path")
+            sys.exit(1)
+    if not digests_dir:
+        candidate = Path(__file__).resolve().parent.parent / "digests"
+        if candidate.is_dir():
+            digests_dir = str(candidate)
+        else:
+            print("Error: provide --digests-dir or run from a checkout with digests/")
+            sys.exit(1)
+
+    target_slug = None
+    if "--digest" in args:
+        try:
+            idx = args.index("--digest")
+            target_slug = args[idx + 1]
+        except (ValueError, IndexError):
+            print("Error: --digest requires a slug")
+            sys.exit(1)
+
+    date_re = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+    configs = sorted(Path(digests_dir).glob("*/config.json"))
+    if not configs:
+        print(f"No digest configs found in {digests_dir}")
+        return
+
+    for cfg_path in configs:
+        slug = cfg_path.parent.name
+        if target_slug and slug != target_slug:
+            continue
+        cfg = load_config(str(cfg_path))
+        if not cfg.get("podcast", {}).get("enabled", True):
+            continue
+        data_root = cfg["_data_root"]
+        podcasts_dir = data_root / "podcasts"
+        if not podcasts_dir.is_dir():
+            continue
+
+        made = 0
+        for script in sorted(podcasts_dir.glob("*.txt")):
+            ep_date = script.stem
+            if not date_re.match(ep_date):
+                continue
+            title_file = podcasts_dir / f"{ep_date}.title"
+            if title_file.exists() and not force:
+                continue
+            digest_md = data_root / f"{ep_date}.md"
+            source = (digest_md.read_text(errors="replace") if digest_md.is_file()
+                      else script.read_text(errors="replace"))
+            title = podcast_mod._generate_title(source, cfg, logger)
+            if not title:
+                print(f"  {slug} {ep_date}: FAILED to generate")
+                continue
+            print(f"  {slug} {ep_date}: {title}")
+            if not dry_run:
+                title_file.write_text(title + "\n")
+                made += 1
+
+        if made:
+            podcast_mod._update_rss_feed(podcasts_dir, "", {}, cfg, logger)
+            podcast_mod._update_landing_page(podcasts_dir, cfg, logger)
+            print(f"  {slug}: wrote {made} titles, rebuilt feed + landing page")
+        elif dry_run:
+            print(f"  {slug}: dry run — no files written")
 
 
 def _run_source_audit(args):
