@@ -135,20 +135,6 @@
   "llm": {
     "provider": "openrouter"
   },
-  "archive": {
-    "enabled": true,
-    "push": true,
-    "branch": "master",
-    "commit_message": "Daily archive: {date}",
-    "artifacts": [
-      "{date}.md",
-      "podcasts/{date}.mp3",
-      "podcasts/{date}.txt",
-      "podcast.xml",
-      "index.html",
-      ".seen_embeddings.json"
-    ]
-  },
   "sources": {
     "twitter": {
       "accounts": [

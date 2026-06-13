@@ -10,7 +10,7 @@ def load_config(config_path: str) -> dict:
     If the ``DIGEST_ENV`` environment variable is set (e.g. ``staging``), a
     sibling overlay file named ``config.{DIGEST_ENV}.json`` is deep-merged on
     top of the base config. This lets non-production deployments override
-    only the fields that differ (public URLs, ports, archive flags, telegram
+    only the fields that differ (public URLs, ports, telegram
     chat id, etc.) without forking the base config. Overlay files are
     gitignored — they are per-deployment artifacts, not source-of-truth.
 

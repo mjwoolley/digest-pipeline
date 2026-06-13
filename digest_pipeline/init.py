@@ -156,20 +156,6 @@ def run_init():
         "llm": {
             "provider": "openrouter",
         },
-        "archive": {
-            "enabled": True,
-            "push": True,
-            "branch": "master",
-            "commit_message": f"{name} archive: {{date}}",
-            "artifacts": [
-                "{date}.md",
-                "podcasts/{date}.mp3",
-                "podcasts/{date}.txt",
-                "podcast.xml",
-                "index.html",
-                ".seen_embeddings.json",
-            ],
-        },
         "sources": {
             "blogs": {},
         },
