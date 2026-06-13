@@ -9,7 +9,6 @@ import html
 import json
 import logging
 import re
-import subprocess
 import sys
 import time
 import xml.etree.ElementTree as ET
@@ -498,63 +497,6 @@ def _update_landing_page(podcasts_dir: Path, config: dict,
         logger.info(f"[LANDING] Updated index.html with {len(episodes)} episodes")
     except Exception as e:
         logger.error(f"[LANDING] Landing page update failed: {e}", exc_info=True)
-
-
-def _git_publish(podcasts_dir: Path, date: str, config: dict,
-                 logger: logging.Logger) -> None:
-    """Commit and push podcast MP3, script, and RSS feed to the git remote.
-
-    This makes the new episode available via GitHub Pages for podcast app
-    subscriptions. Failures are logged but non-fatal.
-    """
-    try:
-        data_root = config["_data_root"]
-        repo_root = data_root.parent.parent
-
-        mp3_file = podcasts_dir / f"{date}.mp3"
-        txt_file = podcasts_dir / f"{date}.txt"
-        xml_file = data_root / "podcast.xml"
-        html_file = data_root / "index.html"
-
-        # Stage only the podcast-related files that exist
-        files_to_add = [f for f in [mp3_file, txt_file, xml_file, html_file]
-                        if f.exists()]
-        if not files_to_add:
-            logger.warning("[GIT] No podcast files to publish")
-            return
-
-        rel_paths = [str(f.relative_to(repo_root)) for f in files_to_add]
-
-        subprocess.run(
-            ["git", "add"] + rel_paths,
-            cwd=repo_root, capture_output=True, text=True, check=True, timeout=30
-        )
-
-        result = subprocess.run(
-            ["git", "diff", "--cached", "--quiet"],
-            cwd=repo_root, capture_output=True, timeout=10
-        )
-        if result.returncode == 0:
-            logger.info("[GIT] No changes to commit")
-            return
-
-        subprocess.run(
-            ["git", "commit", "-m", f"Add podcast episode {date}"],
-            cwd=repo_root, capture_output=True, text=True, check=True, timeout=30
-        )
-
-        push_result = subprocess.run(
-            ["git", "push"],
-            cwd=repo_root, capture_output=True, text=True, timeout=60
-        )
-        if push_result.returncode == 0:
-            logger.info(f"[GIT] Podcast {date} published to remote")
-        else:
-            logger.error(f"[GIT] Push failed: {push_result.stderr[:300]}")
-            delivery.send_alert("PUBLISH",
-                                f"Git push failed: {push_result.stderr[:200]}", config)
-    except Exception as e:
-        logger.error(f"[GIT] Publish failed: {e}", exc_info=True)
 
 
 def _get_swap_usage() -> str:
