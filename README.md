@@ -25,9 +25,8 @@ flowchart TD
 
     DL --> EMAIL[Email]
     DL --> TG[Telegram]
-    DL --> AR[Archive — git commit + push]
 
-    AR --> SG[Script gen — two-host conversational script]
+    DL --> SG[Script gen — two-host conversational script]
     SG --> PN[Pronunciation rewrite for TTS]
     PN --> AU[Audio — Kokoro TTS, MP3 + RSS feed]
     AU --> TG
@@ -44,7 +43,7 @@ flowchart TD
 7. **Cross-day dedup** — embeddings of today's articles are compared against a rolling 5-day window of `.seen_embeddings.json`. Anything that has already shipped recently is dropped.
 8. **Prioritize** *(only if over `digest.max_articles`)* — Haiku scores each article. The selector guarantees at least one article per category, then fills the rest by score.
 9. **Format** — one Sonnet call writes the final markdown digest, organized by category, in your configured tone.
-10. **Deliver** — sends the digest by email and/or Telegram, then archives the rendered markdown to `<data_root>/<date>.md`. The `archive` step optionally commits and pushes the day's artifacts to git.
+10. **Deliver** — sends the digest by email and/or Telegram, then archives the rendered markdown to `<data_root>/<date>.md`.
 
 **Podcast pipeline** *(optional, runs after the digest)*:
 
@@ -79,7 +78,6 @@ The pipeline shells out to a few CLI tools. You only need the ones for the sourc
 | `bird` | Twitter/X fetching | [github.com/nichochar/bird](https://github.com/nichochar/bird) |
 | `curl` | HTTP fetches (RSS, HTML, GitHub) | pre-installed on most systems |
 | `ffmpeg` | WAV → MP3 for the podcast | `apt install ffmpeg` / `brew install ffmpeg` |
-| `git` | Daily archive commits (optional) | usually already installed |
 
 ## Quick start
 
@@ -102,7 +100,7 @@ The `digest-pipeline` command does several jobs depending on flags. The first no
 ### Run a digest
 
 ```bash
-digest-pipeline digests/ai/config.json                 # digest + podcast + archive
+digest-pipeline digests/ai/config.json                 # digest + podcast
 digest-pipeline digests/ai/config.json --dry-run       # log what would happen, send nothing
 digest-pipeline digests/ai/config.json --digest-only   # skip the podcast
 digest-pipeline digests/ai/config.json --podcast-only  # regenerate audio from an archived digest
@@ -192,7 +190,6 @@ Top-level structure:
   "podcast":          { "enabled": true, "name": "...", "hosts": [...], "tts_backend": "kokoro", "pronunciation": {...} },
   "delivery":         { "email": {...}, "notify": { "telegram": {...} } },
   "subscriptions":    { "public_base_url": "...", "cors_origins": [...], "port": 5100 },
-  "archive":          { "enabled": true, "push": true, "branch": "master", "artifacts": [...] },
   "llm":              { "provider": "openrouter" }
 }
 ```
@@ -212,12 +209,11 @@ A complete real-world example lives at [digests/ai/config.json](digests/ai/confi
   - `email`: backend (`smtp`, `gog`, `agentmail`, or `resend`), to/from addresses, env-var keys for credentials.
   - `notify.telegram`: chat id (or env-var name) for status pings and audio delivery.
 - **`subscriptions`** — public base URL (used in unsubscribe links), allowed CORS origins, and the port the `--serve` API binds to.
-- **`archive`** — whether to commit and push daily artifacts after a successful run, which branch, and the file pattern allowlist (each pattern can include `{date}`).
 - **`llm`** — pick `openrouter` or `anthropic`. Both providers are supported by the same client.
 
 ### Staging overlays
 
-Set `DIGEST_ENV=staging` and the loader will deep-merge a sibling `config.staging.json` (or any other `config.<env>.json`) on top of the base. Useful for non-prod deployments that need only a few overrides — public URL, port, telegram chat id, archive disabled, etc. Overlay files are gitignored.
+Set `DIGEST_ENV=staging` and the loader will deep-merge a sibling `config.staging.json` (or any other `config.<env>.json`) on top of the base. Useful for non-prod deployments that need only a few overrides — public URL, port, telegram chat id, etc. Overlay files are gitignored.
 
 ```bash
 DIGEST_ENV=staging digest-pipeline digests/ai/config.json
@@ -247,7 +243,7 @@ Each digest's directory holds both source-of-truth files (committed to git) and 
 digests/<slug>/
 ├── config.json                 # digest configuration
 ├── index.html                  # public landing page (subscribe form, podcast feed link)
-├── 2026-04-23.md               # archived daily digest (committed)
+├── 2026-04-23.md               # archived daily digest (gitignored)
 ├── podcasts/
 │   ├── 2026-04-23.mp3          # episode audio
 │   ├── 2026-04-23.txt          # script transcript
@@ -261,7 +257,7 @@ digests/<slug>/
 └── .source_state.json          # per-source incremental cursor
 ```
 
-The `work/`, `logs/`, `subscribers.json`, `*.jsonl`, and dotfile caches are all gitignored. The daily markdown, MP3, transcript, RSS feed, landing page, and seen-embeddings cache are committed by the archive step (configurable per digest).
+Everything except `config.json` is a runtime artifact and gitignored — the daily markdown, MP3, transcript, RSS feed, landing page, subscriber list, audit logs, work files, and dotfile caches all live on disk next to the config but are never committed.
 
 ## Management Console
 
@@ -322,7 +318,7 @@ Notes from the reference deployment on a small Hetzner VPS (`ubuntu-2gb-ash-1`).
 
 - **Subscription API** — systemd unit `digest-subscriptions.service`, listens on `127.0.0.1:5100`, fronted by Caddy with automatic Let's Encrypt TLS.
 - **Management Console** — systemd unit `digest-console.service`, listens on `100.95.155.14:5200` (Tailscale-only, no public exposure, no auth needed).
-- **Daily run** — cron entry that calls `run.sh` once per day; archive step commits the day's artifacts to git and pushes.
+- **Daily run** — cron entry that calls `run.sh` once per day.
 
 **Caddy:** `/etc/caddy/Caddyfile`. Each digest's public hostname (e.g. `aidailyroundup.com`, `staging.aidailyroundup.com`) is a vhost that reverse-proxies `/api/*` to the subscription API and serves the static landing page. Caddy is bound to a specific public IP rather than `0.0.0.0` to avoid colliding with Tailscale on `:443`.
 
@@ -368,9 +364,8 @@ digest_pipeline/
   kokoro_tts.py        # Kokoro-82M local TTS (streams to disk, ffmpeg-encoded MP3)
   podcast_stats.py     # subscriber + download analytics from access logs
 
-  # Delivery & archival
+  # Delivery
   delivery.py          # email (SMTP / Resend / AgentMail / GOG), Telegram, Slack, audio send
-  archive.py           # allowlist-based git commit + push of daily artifacts
   subscribers.py       # subscriber CRUD with atomic writes, JSONL audit logs
 
   # Servers
@@ -401,9 +396,9 @@ pyproject.toml         # package metadata + dependencies + console-script entry
 - **Incremental processing.** `.source_state.json` tracks the IDs already seen per source so the LLM never re-reads items from previous days. The state is updated only after a successful run.
 - **Cross-day dedup.** A rolling 5-day window of article embeddings (`.seen_embeddings.json`) prevents the same story from showing up in tomorrow's digest, even if multiple sources keep covering it.
 - **Streaming TTS.** Kokoro writes audio to disk turn-by-turn rather than buffering the whole episode in memory, which matters on small VPS instances.
-- **Non-destructive pronunciation.** Pronunciation rewrites are applied to the in-memory script right before TTS only — the saved transcript stays clean for archive and email use.
+- **Non-destructive pronunciation.** Pronunciation rewrites are applied to the in-memory script right before TTS only — the saved transcript stays clean for storage and email use.
 - **Multi-digest by directory.** Each digest is a fully self-contained `digests/<slug>/` folder. The CLI, subscription API, and dashboard all auto-discover them.
-- **Config-driven everything.** Categories, sources, hosts, voices, delivery backends, archive rules, and even prompt-template variables are all set in JSON. No code changes to spin up a new topic.
+- **Config-driven everything.** Categories, sources, hosts, voices, delivery backends, and even prompt-template variables are all set in JSON. No code changes to spin up a new topic.
 
 ## Testing
 

@@ -15,7 +15,7 @@ Stages (functions imported from sibling modules):
     7. CROSS-DAY    — drop articles in last N days of digests        (seen_articles.py)
     8. PRIORITIZE   — Haiku scores when over digest.max_articles     (llm.py)
     9. FORMAT       — Sonnet writes the final markdown               (llm.py)
-   10. DELIVER      — email + notification + archive                 (delivery.py)
+   10. DELIVER      — email + notification                          (delivery.py)
 
 Usage:
     python3 -m digest_pipeline.digest --config /path/to/config.json [--dry-run]
@@ -618,7 +618,7 @@ def main():
         # Save final digest
         (work_dir / "final-digest.md").write_text(final_digest)
 
-        # 9. Deliver: send via email + archive
+        # 9. Deliver: send via email
         run_log.complete(tracker)
         if dry_run:
             logger.info("[PIPELINE] DRY RUN — skipping delivery")
