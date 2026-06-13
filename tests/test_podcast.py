@@ -45,3 +45,43 @@ def test_get_swap_usage_format(tmp_path, monkeypatch):
     monkeypatch.setattr(podcast_mod, "_get_swap_usage", patched)
     result = podcast_mod._get_swap_usage()
     assert result == "2.0G / 4.0G (50%)"
+
+
+# ── _clean_title ─────────────────────────────────────────────────────────────
+
+from digest_pipeline.podcast import _clean_title, _episode_title
+
+
+def test_clean_title_strips_quotes_period_and_whitespace():
+    assert _clean_title('  "Anthropic ships 1M context."  ') == "Anthropic ships 1M context"
+
+
+def test_clean_title_collapses_newlines_to_one_line():
+    assert _clean_title("Big\n  model\n  drop") == "Big model drop"
+
+
+def test_clean_title_caps_length():
+    out = _clean_title("x" * 200, max_chars=100)
+    assert len(out) == 101 and out.endswith("…")
+
+
+def test_clean_title_handles_empty():
+    assert _clean_title("") == ""
+    assert _clean_title(None) == ""
+
+
+# ── _episode_title ───────────────────────────────────────────────────────────
+
+def test_episode_title_reads_file(tmp_path):
+    (tmp_path / "2026-06-13.title").write_text("Anthropic ships 1M context\n")
+    assert _episode_title(tmp_path, "2026-06-13", fallback="fb") == "Anthropic ships 1M context"
+
+
+def test_episode_title_falls_back_when_missing(tmp_path):
+    assert _episode_title(tmp_path, "2026-06-13", fallback="The AI Daily Roundup — 2026-06-13") \
+        == "The AI Daily Roundup — 2026-06-13"
+
+
+def test_episode_title_falls_back_when_blank(tmp_path):
+    (tmp_path / "2026-06-13.title").write_text("   \n")
+    assert _episode_title(tmp_path, "2026-06-13", fallback="fb") == "fb"
