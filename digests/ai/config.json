@@ -189,9 +189,10 @@
         "min_posts_per_week": 1.0,
         "top_n": 10,
         "score_weights": {
-          "followers": 1.0,
-          "post_frequency": 0.5,
-          "engagement": 0.3
+          "followers": 2.0,
+          "post_frequency": 0.0,
+          "engagement": 0.3,
+          "llm_score": 2.0
         },
         "llm_filter": {
           "enabled": true,

@@ -38,7 +38,7 @@ DEFAULT_TWEETS_PER_KEYWORD = 50
 DEFAULT_MIN_FOLLOWERS = 5000
 DEFAULT_MIN_POSTS_PER_WEEK = 1.0
 DEFAULT_TOP_N = 10
-DEFAULT_WEIGHTS = {"followers": 1.0, "post_frequency": 0.5, "engagement": 0.3}
+DEFAULT_WEIGHTS = {"followers": 2.0, "post_frequency": 0.0, "engagement": 0.3, "llm_score": 2.0}
 
 # Telegram message cap (matches source_audit.TELEGRAM_LENGTH_CAP).
 TELEGRAM_LENGTH_CAP = 3800
@@ -227,7 +227,7 @@ def discover(config: dict) -> DiscoveryReport:
         eval_top_n = int(llm_cfg.get("evaluate_top_n", DEFAULT_LLM_EVALUATE_TOP_N))
         min_relevance = int(llm_cfg.get("min_relevance", DEFAULT_LLM_MIN_RELEVANCE))
         ranked = _llm_filter(
-            ranked, authors, preferences, provider, eval_top_n, min_relevance, report
+            ranked, authors, preferences, provider, eval_top_n, min_relevance, weights, report
         )
 
     report.candidates = ranked[:top_n]
@@ -378,13 +378,14 @@ def _llm_filter(
     provider: str,
     evaluate_top_n: int,
     min_relevance: int,
+    weights: dict,
     report: DiscoveryReport,
 ) -> list[Candidate]:
     """Ask the LLM to score each top candidate's relevance to preferences.
 
     Mutates ``Candidate.llm_score`` / ``llm_rationale`` on each scored item.
-    Drops candidates below ``min_relevance`` and re-sorts by LLM score
-    (composite score breaks ties).
+    Drops candidates below ``min_relevance`` and re-sorts by a blended
+    score: ``composite + weights['llm_score'] * llm_score``.
     """
     if not candidates:
         return candidates
@@ -408,8 +409,9 @@ def _llm_filter(
     if failures:
         report.errors.append(f"{failures} LLM evaluation(s) failed")
 
+    w_llm = float(weights.get("llm_score", 0.0))
     kept = [c for c in pool if c.llm_score is not None and c.llm_score >= min_relevance]
-    kept.sort(key=lambda c: (c.llm_score or 0, c.score), reverse=True)
+    kept.sort(key=lambda c: c.score + w_llm * (c.llm_score or 0), reverse=True)
     return kept
 
 
