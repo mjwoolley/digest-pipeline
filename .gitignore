@@ -39,3 +39,6 @@ console/node_modules/
 
 # OS
 .DS_Store
+
+# Claude Code local (per-machine) settings
+.claude/settings.local.json
