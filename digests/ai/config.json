@@ -53,7 +53,7 @@
   "podcast": {
     "enabled": true,
     "name": "The AI Daily Roundup",
-    "description": "Trying to keep up with AI without drowning in it? The AI Daily Roundup is your daily catch-up on everything that matters — delivered every morning. Each episode walks through the day's biggest model releases and capability upgrades, the developer tools and agent frameworks worth knowing about, new research and techniques, the infrastructure powering it all, real-world product launches, and the funding, partnerships, and strategy moves driving the industry. The technical depth when it matters, the big-picture context when it counts — smart, fast, and no filler. New episodes daily, also available as an email digest at aidailyroundup.com.",
+    "description": "Trying to keep up with AI without drowning in it? The AI Daily Roundup is your daily catch-up on everything that matters — delivered every morning. Each episode walks through the day's biggest model releases and capability upgrades, the developer tools and agent frameworks worth knowing about, new research and techniques, the infrastructure powering it all, real-world product launches, and the funding, partnerships, and strategy moves driving the industry. The technical depth when it matters, the big-picture context when it counts — smart, fast, and no filler. New episodes daily, also available as an email digest at aidailyroundup.com. Hosted by AI, curated for humans.",
     "image_url": "https://aidailyroundup.com/ai-podcast-logo.jpg",
     "owner": {
       "name": "The AI Daily Roundup",
