@@ -5,6 +5,7 @@ script, apply pronunciation rewrites for TTS, synthesize audio with Kokoro,
 deliver the MP3, and refresh ``podcast.xml`` + the landing page so podcast
 apps and human visitors see the new episode.
 """
+import html
 import json
 import logging
 import re
@@ -162,6 +163,15 @@ def main():
         script_path.write_text(script_text)
         logger.info(f"[SCRIPTGEN] Script saved: {script_path} ({len(script_text)} chars, {scriptgen_duration:.1f}s)")
 
+        # Episode title — a one-line summary used as the RSS item title and on
+        # the landing page (falls back to a date-based title if generation fails).
+        title_text = _generate_title(digest_text, config, logger)
+        if title_text:
+            (podcasts_dir / f"{date}.title").write_text(title_text + "\n")
+            logger.info(f"[TITLE] Episode title: {title_text}")
+        else:
+            logger.warning("[TITLE] No title generated; feed will fall back to date")
+
         # Parse and validate
         speaker_tags = get_speaker_tags(config)
         turns = parse_script(script_text, speaker_tags=speaker_tags)
@@ -264,6 +274,45 @@ def _episode_description(podcasts_dir: Path, ep_date: str, max_chars: int = 300)
     return f"Daily AI roundup for {ep_date}"
 
 
+def _clean_title(raw: str, max_chars: int = 100) -> str:
+    """Normalise an LLM-generated title: one line, no wrapping quotes/period, capped."""
+    title = " ".join((raw or "").split())
+    title = title.strip().strip('"').strip("'").strip().rstrip(".").strip()
+    if len(title) > max_chars:
+        title = title[:max_chars].rstrip() + "…"
+    return title
+
+
+def _generate_title(source_text: str, config: dict, logger: logging.Logger) -> str:
+    """Generate a one-line episode title from digest/script text via the cheap model.
+
+    Returns "" on any failure so callers can fall back to a date-based title.
+    """
+    if not (source_text or "").strip():
+        return ""
+    try:
+        provider = config.get("llm", {}).get("provider", "openrouter")
+        llm.configure(provider)
+        prompt = render_prompt("episode_title.md", config, {"DIGEST": source_text})
+        model = llm.MODELS[provider]["haiku"]
+        raw, _usage = llm.chat([{"role": "user", "content": prompt}], model,
+                               max_tokens=64)
+        return _clean_title(raw)
+    except Exception as e:
+        logger.warning(f"[TITLE] Title generation failed: {e}")
+        return ""
+
+
+def _episode_title(podcasts_dir: Path, ep_date: str, fallback: str) -> str:
+    """Return the stored one-line episode title, or ``fallback`` if none exists."""
+    title_file = podcasts_dir / f"{ep_date}.title"
+    if title_file.is_file():
+        text = " ".join(title_file.read_text(errors="replace").split())
+        if text:
+            return text
+    return fallback
+
+
 def _episode_duration_s(work_root: Path, ep_date: str, size: int) -> int:
     run_json = work_root / ep_date / "run.json"
     if run_json.is_file():
@@ -321,6 +370,8 @@ def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
                 "dt": ep_dt,
                 "filename": mp3.name,
                 "size": size,
+                "title": _episode_title(podcasts_dir, ep_date,
+                                        fallback=f"{title} — {ep_date}"),
                 "description": _episode_description(podcasts_dir, ep_date),
                 "duration_s": _episode_duration_s(work_root, ep_date, size),
             })
@@ -363,7 +414,7 @@ def _update_rss_feed(podcasts_dir: Path, date: str, audio_usage: dict,
 
         for ep in episodes:
             item = ET.SubElement(channel, "item")
-            ET.SubElement(item, "title").text = f"{title} — {ep['date']}"
+            ET.SubElement(item, "title").text = ep["title"]
             ET.SubElement(item, "pubDate").text = format_datetime(ep["dt"])
             ET.SubElement(item, "guid", isPermaLink="true").text = (
                 f"{base_url}/{ep['filename']}")
@@ -414,29 +465,36 @@ def _update_landing_page(podcasts_dir: Path, config: dict,
         # Build episode HTML
         ep_html_lines = []
         for ep_date in episodes:
+            ep_title = _episode_title(podcasts_dir, ep_date, fallback=ep_date)
+            title_html = html.escape(ep_title)
+            # Show the date as a muted subtitle only when it isn't already the title
+            # (i.e. when a real one-line title exists).
+            date_html = ("" if ep_title == ep_date else
+                         f'\n    <div class="ep-date" style="color: var(--muted); '
+                         f'font-size: 0.85rem; margin-top: 0.15rem;">{ep_date}</div>')
             ep_html_lines.append(
                 f'  <div class="episode">\n'
-                f'    <div class="ep-title">{ep_date}</div>\n'
+                f'    <div class="ep-title">{title_html}</div>{date_html}\n'
                 f'    <audio controls preload="none" '
                 f'src="{base_url}/{ep_date}.mp3"></audio>\n'
                 f'  </div>'
             )
         ep_block = "\n".join(ep_html_lines)
 
-        html = index_path.read_text()
+        page_html = index_path.read_text()
         # Substitute the PUBLIC_BASE_URL placeholder used in the static parts of
         # the template (RSS input field, feedUrl JS constant, etc). Episode MP3
         # URLs are regenerated below from {base_url}, which is also derived from
         # pages_base, so staging deployments with a different public_base_url
         # get a fully self-consistent landing page.
-        html = html.replace("{{PUBLIC_BASE_URL}}", pages_base)
-        html = re.sub(
+        page_html = page_html.replace("{{PUBLIC_BASE_URL}}", pages_base)
+        page_html = re.sub(
             r'<!-- EPISODES_START -->.*?<!-- EPISODES_END -->',
             f'<!-- EPISODES_START -->\n{ep_block}\n  <!-- EPISODES_END -->',
-            html,
+            page_html,
             flags=re.DOTALL,
         )
-        index_path.write_text(html)
+        index_path.write_text(page_html)
         logger.info(f"[LANDING] Updated index.html with {len(episodes)} episodes")
     except Exception as e:
         logger.error(f"[LANDING] Landing page update failed: {e}", exc_info=True)
