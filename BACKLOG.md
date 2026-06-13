@@ -89,6 +89,13 @@
   - Ensure artwork meets platform requirements.
   - Add `<itunes:*>` tags if needed.
 
+- [ ] **Fix podcast post-run import/archive invocation bug**
+  - Investigate the non-fatal tail error after podcast delivery:
+    - `ImportError: attempted relative import with no known parent package`
+  - Confirm which follow-up/archive step is invoking `digest_pipeline/podcast.py` incorrectly.
+  - Change the invocation to run as a package/module or make the import path robust.
+  - Verify that podcast delivery, RSS update, and archive/publish all complete cleanly in one run.
+
 ---
 
 ## Completed
