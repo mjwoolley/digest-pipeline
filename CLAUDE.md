@@ -6,8 +6,8 @@ Quick orientation for AI agents working in this repo. **For full project documen
 
 There are two checkouts of this repo on the VPS:
 
-- `~/digest-pipeline` — **production**, cron-driven, sends real digests, runs the daily archive cron.
-- `~/digest-pipeline-staging` — **development sandbox**, manual runs only, isolated subscribers, staging subdomains, no archive commits.
+- `~/digest-pipeline` — **production**, cron-driven, sends real digests.
+- `~/digest-pipeline-staging` — **development sandbox**, manual runs only, isolated subscribers, staging subdomains.
 
 **Always develop in staging, and always sync staging with `origin/master` before starting.** The two checkouts share a remote, and master can move forward from elsewhere (e.g. work committed directly in prod, or another machine). Branching off a stale local master is what causes painful merges later.
 
@@ -63,4 +63,3 @@ For the full module-by-module breakdown and the 10-stage pipeline flow, see [Pro
 
 - **Entry point for systemd / scripts:** use `.venv/bin/digest-pipeline` (the installed console script), not `python -m digest_pipeline.cli`. There is no `__main__.py` for the package.
 - **Staging requires `DIGEST_ENV=staging`** when running manually. Without it, the run uses prod values from the base config — the staging overlay only applies when the env var is set. The systemd unit sets it; for shell runs, do it explicitly: `DIGEST_ENV=staging bash run.sh digests/ai/config.json`.
-- **Staging's `digests/*/index.html` drifts after every podcast run.** The landing-page rewrite happens on every podcast generation, but staging has no archive cron to commit/discard the result. Run `git checkout -- digests/*/index.html` before `git pull` in staging if `git status` shows it dirty.
