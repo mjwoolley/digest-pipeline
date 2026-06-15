@@ -17,6 +17,7 @@ from datetime import datetime, time as dt_time
 from email.utils import format_datetime
 from pathlib import Path
 from .pipeline_date import PIPELINE_TZ, today_str
+from . import episode_title
 from .config import load_config, render_prompt, get_voice_map, get_speaker_tags
 from .run_log import RunLog
 from . import llm
@@ -161,14 +162,23 @@ def main():
         script_path.write_text(script_text)
         logger.info(f"[SCRIPTGEN] Script saved: {script_path} ({len(script_text)} chars, {scriptgen_duration:.1f}s)")
 
-        # Episode title — a one-line summary used as the RSS item title and on
-        # the landing page (falls back to a date-based title if generation fails).
-        title_text = _generate_title(digest_text, config, logger)
-        if title_text:
-            (podcasts_dir / f"{date}.title").write_text(title_text + "\n")
-            logger.info(f"[TITLE] Episode title: {title_text}")
+        # Episode title — a one-line summary used as the RSS item title, the
+        # landing page, and the email subject. The digest stage normally
+        # generates this once and writes <date>.title; reuse it so the podcast
+        # and email always match. Only generate here if it's missing (e.g. a
+        # standalone --podcast-only run with no preceding digest stage).
+        title_file = podcasts_dir / f"{date}.title"
+        existing_title = (title_file.read_text(errors="replace").strip()
+                          if title_file.is_file() else "")
+        if existing_title:
+            logger.info(f"[TITLE] Reusing title from digest stage: {existing_title}")
         else:
-            logger.warning("[TITLE] No title generated; feed will fall back to date")
+            title_text = _generate_title(digest_text, config, logger)
+            if title_text:
+                title_file.write_text(title_text + "\n")
+                logger.info(f"[TITLE] Episode title: {title_text}")
+            else:
+                logger.warning("[TITLE] No title generated; feed will fall back to date")
 
         # Parse and validate
         speaker_tags = get_speaker_tags(config)
@@ -272,33 +282,10 @@ def _episode_description(podcasts_dir: Path, ep_date: str, max_chars: int = 300)
     return f"Daily AI roundup for {ep_date}"
 
 
-def _clean_title(raw: str, max_chars: int = 100) -> str:
-    """Normalise an LLM-generated title: one line, no wrapping quotes/period, capped."""
-    title = " ".join((raw or "").split())
-    title = title.strip().strip('"').strip("'").strip().rstrip(".").strip()
-    if len(title) > max_chars:
-        title = title[:max_chars].rstrip() + "…"
-    return title
-
-
-def _generate_title(source_text: str, config: dict, logger: logging.Logger) -> str:
-    """Generate a one-line episode title from digest/script text via the cheap model.
-
-    Returns "" on any failure so callers can fall back to a date-based title.
-    """
-    if not (source_text or "").strip():
-        return ""
-    try:
-        provider = config.get("llm", {}).get("provider", "openrouter")
-        llm.configure(provider)
-        prompt = render_prompt("episode_title.md", config, {"DIGEST": source_text})
-        model = llm.MODELS[provider]["haiku"]
-        raw, _usage = llm.chat([{"role": "user", "content": prompt}], model,
-                               max_tokens=64)
-        return _clean_title(raw)
-    except Exception as e:
-        logger.warning(f"[TITLE] Title generation failed: {e}")
-        return ""
+# Title generation lives in episode_title; kept aliased here under the original
+# private names so existing callers (e.g. cli.py --backfill-titles) still work.
+_clean_title = episode_title.clean
+_generate_title = episode_title.generate
 
 
 def _episode_title(podcasts_dir: Path, ep_date: str, fallback: str) -> str:

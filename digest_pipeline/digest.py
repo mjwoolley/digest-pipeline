@@ -30,6 +30,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from . import pipeline_date
+from . import episode_title
 from .config import load_config, render_prompt
 from .log import setup_logger
 from . import llm
@@ -632,7 +633,19 @@ def main():
             logger.info("[PIPELINE] Stage: DELIVER (Email)")
             emoji = digest_cfg.get("emoji", "📰")
             tagline = digest_cfg.get("name", "Digest")
-            subject = f"{emoji} {tagline} — {date_display}"
+            # Generate the one-line episode title once here and persist it to
+            # <date>.title so the podcast stage reuses the exact same headline.
+            # The email subject is the bare title; fall back to "brand — date"
+            # if title generation fails.
+            episode_headline = episode_title.generate(final_digest, config, logger)
+            if episode_headline:
+                podcasts_dir = data_root / "podcasts"
+                podcasts_dir.mkdir(parents=True, exist_ok=True)
+                (podcasts_dir / f"{date}.title").write_text(episode_headline + "\n")
+                subject = episode_headline
+                logger.info(f"[TITLE] Episode title: {episode_headline}")
+            else:
+                subject = f"{emoji} {tagline} — {date_display}"
 
             # Send to subscribers with personalized unsubscribe links
             from .subscribers import unsubscribe_url as _unsub_url
