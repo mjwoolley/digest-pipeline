@@ -16,8 +16,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, time as dt_time
 from email.utils import format_datetime
 from pathlib import Path
-from zoneinfo import ZoneInfo
-
+from .pipeline_date import PIPELINE_TZ, today_str
 from .config import load_config, render_prompt, get_voice_map, get_speaker_tags
 from .run_log import RunLog
 from . import llm
@@ -27,7 +26,7 @@ from . import delivery
 
 # Default speaker tags for parse_script when none are provided
 _DEFAULT_SPEAKERS = ["ALEX", "SARAH"]
-_PODCAST_TZ = ZoneInfo("America/New_York")
+_PODCAST_TZ = PIPELINE_TZ
 
 
 def _podcast_pub_datetime(ep_date: str) -> datetime:
@@ -78,7 +77,7 @@ def parse_script(script_text: str, speaker_tags: list[str] = None) -> list[tuple
 
 
 def main():
-    """Run the podcast pipeline for one date (defaults to today UTC).
+    """Run the podcast pipeline for one date (defaults to today, US Eastern).
 
     Reads the config path and optional ``YYYY-MM-DD`` date from ``sys.argv``.
     Failures are non-fatal to the digest pipeline that calls into here — they
@@ -87,7 +86,7 @@ def main():
     # Parse args
     dry_run = False
     config_path = None
-    date = datetime.now(_PODCAST_TZ).strftime("%Y-%m-%d")
+    date = today_str()
 
     i = 1
     while i < len(sys.argv):

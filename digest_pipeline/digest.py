@@ -27,9 +27,9 @@ import sys
 import time
 import traceback
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from pathlib import Path
 
+from . import pipeline_date
 from .config import load_config, render_prompt
 from .log import setup_logger
 from . import llm
@@ -285,8 +285,11 @@ def main():
     digest_cfg = config.get("digest", {})
     provider = config.get("llm", {}).get("provider", "openrouter")
 
-    date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    date_display = datetime.now(timezone.utc).strftime("%A, %B %d, %Y")
+    # Publication date is anchored to the pipeline timezone (US Eastern), the
+    # single source of truth shared with the podcast stage — see pipeline_date.
+    _today = pipeline_date.now()
+    date = _today.strftime("%Y-%m-%d")
+    date_display = _today.strftime("%A, %B %d, %Y")
     work_dir = data_root / "work" / date
 
     # 1. Setup
@@ -635,13 +638,11 @@ def main():
             from .subscribers import unsubscribe_url as _unsub_url
             _pub_base = config.get("subscriptions", {}).get("public_base_url", "")
             _digest_slug = config["_data_root"].name
-            now = datetime.now(timezone.utc)
-            short_date = f"{now.strftime('%A, %B')} {now.day}, {now.year}"
             def _make_html(email, token):
                 return _markdown_to_email_html(
                     formatted, config,
                     unsubscribe_url=_unsub_url(_pub_base, token, digest=_digest_slug),
-                    date_display=short_date,
+                    date_display=date_display,
                 )
             def _unsub_for(email, token):
                 return _unsub_url(_pub_base, token, digest=_digest_slug)
