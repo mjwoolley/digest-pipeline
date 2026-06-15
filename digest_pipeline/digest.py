@@ -285,6 +285,10 @@ def main():
     data_root = config["_data_root"]
     digest_cfg = config.get("digest", {})
     provider = config.get("llm", {}).get("provider", "openrouter")
+    # Brand bits used by every exit path (skip notifications + delivery), so
+    # define them up front — the skip blocks below run long before delivery.
+    emoji = digest_cfg.get("emoji", "📰")
+    tagline = digest_cfg.get("name", "Digest")
 
     # Publication date is anchored to the pipeline timezone (US Eastern), the
     # single source of truth shared with the podcast stage — see pipeline_date.
@@ -631,8 +635,6 @@ def main():
             print("=" * 60)
         else:
             logger.info("[PIPELINE] Stage: DELIVER (Email)")
-            emoji = digest_cfg.get("emoji", "📰")
-            tagline = digest_cfg.get("name", "Digest")
             # Generate the one-line episode title once here and persist it to
             # <date>.title so the podcast stage reuses the exact same headline.
             # The email subject is the bare title; fall back to "brand — date"
