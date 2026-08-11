@@ -305,7 +305,7 @@ def main():
     start_time = time.time()
     tracker = TokenTracker()
 
-    llm.configure(provider)
+    llm.configure(provider, config.get("llm", {}).get("models"))
 
     try:
         # 2. Gather
@@ -381,7 +381,7 @@ def main():
             articles, usage = llm.extract_normalize(batch, date, extract_prompt)
             dur = time.time() - t0
 
-            model_name = llm.MODELS[provider]["haiku"]
+            model_name = llm.model_for("extract")
             tracker.add(f"Extract {i}/{len(batches)}", model_name, usage, dur)
             all_articles.extend(articles)
 
@@ -430,7 +430,11 @@ def main():
         if config.get("relevance_filter", {}).get("enabled", False):
             logger.info("[PIPELINE] Stage: RELEVANCE FILTER")
             before = len(all_articles)
-            all_articles, removed = filter_articles(all_articles, config)
+            t0 = time.time()
+            all_articles, removed, rel_usage = filter_articles(all_articles, config)
+            if rel_usage.get("input_tokens") or rel_usage.get("cost"):
+                tracker.add("Relevance", llm.model_for("relevance"),
+                            rel_usage, time.time() - t0)
             logger.info(f"[RELEVANCE] Kept {len(all_articles)}/{before} articles, removed {len(removed)}")
             if removed:
                 (work_dir / "filtered.json").write_text(json.dumps(removed, indent=2), encoding="utf-8")
@@ -481,7 +485,7 @@ def main():
         deduped, dedupe_usage = llm.dedupe_merge(clusters, date, dedupe_prompt)
         dedupe_dur = time.time() - t0
 
-        tracker.add("Dedupe", llm.MODELS[provider]["sonnet"],
+        tracker.add("Dedupe", llm.model_for("dedupe"),
                      dedupe_usage, dedupe_dur)
 
         logger.info(f"[DEDUPE] {len(all_articles)} -> {len(deduped)} articles, "
@@ -533,7 +537,7 @@ def main():
             if candidates:
                 same_prompt = render_prompt("same_story.md", config)
                 dup_ids, grey_usage = llm.same_story_check(candidates, same_prompt)
-                tracker.add("CrossDedup (LLM)", llm.MODELS[provider]["haiku"],
+                tracker.add("CrossDedup (LLM)", llm.model_for("same_story"),
                             grey_usage, 0)
                 if dup_ids:
                     by_idx = {c["index"]: c for c in candidates}
@@ -627,7 +631,7 @@ def main():
             scored, prio_usage = llm.prioritize_score(deduped, prioritize_prompt)
             prio_dur = time.time() - t0
 
-            model_name = llm.MODELS[provider]["haiku"]
+            model_name = llm.model_for("prioritize")
             tracker.add("Prioritize", model_name, prio_usage, prio_dur)
 
             score_map = {}
@@ -707,7 +711,7 @@ def main():
                                                         format_prompt)
         format_dur = time.time() - t0
 
-        tracker.add("Format", llm.MODELS[provider]["sonnet"],
+        tracker.add("Format", llm.model_for("format"),
                      format_usage, format_dur)
 
         logger.info(f"[FORMAT] Formatted digest ({len(formatted)} chars), "
@@ -725,7 +729,6 @@ def main():
         (work_dir / "final-digest.md").write_text(final_digest, encoding="utf-8")
 
         # 9. Deliver: send via email
-        run_log.complete(tracker)
         if dry_run:
             logger.info("[PIPELINE] DRY RUN — skipping delivery")
             print("\n" + "=" * 60)
@@ -737,7 +740,8 @@ def main():
             # <date>.title so the podcast stage reuses the exact same headline.
             # The email subject is the bare title; fall back to "brand — date"
             # if title generation fails.
-            episode_headline = episode_title.generate(final_digest, config, logger)
+            episode_headline = episode_title.generate(final_digest, config, logger,
+                                                      tracker=tracker)
             if episode_headline:
                 podcasts_dir = data_root / "podcasts"
                 podcasts_dir.mkdir(parents=True, exist_ok=True)
@@ -807,7 +811,10 @@ def main():
         except Exception as e:
             logger.warning(f"[SOURCE-HISTORY] append_daily failed: {e}")
 
-        # 11. Report
+        # 11. Report. complete() runs after delivery so the title and
+        # relevance calls' usage lands in run.json totals; a failure anywhere
+        # above still ends in run_log.fail() via the except handler.
+        run_log.complete(tracker)
         total_dur = time.time() - start_time
         logger.info(f"[PIPELINE] Complete in {total_dur:.1f}s | "
                      f"${tracker.total_cost:.2f} | "

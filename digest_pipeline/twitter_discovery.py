@@ -435,7 +435,7 @@ def _llm_evaluate(
         "Return JSON only (no markdown, no extra text):\n"
         '{"score": <integer 0-10>, "rationale": "<one short sentence>"}'
     )
-    model = llm.MODELS[provider]["haiku"]
+    model = llm.model_for("discovery")
     messages = [{"role": "user", "content": prompt}]
     text, _usage = llm.chat(messages, model, max_tokens=200)
     data = _extract_json_object(text)

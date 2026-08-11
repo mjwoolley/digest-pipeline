@@ -713,7 +713,7 @@ def _run_backfill(args):
     data_root = config["_data_root"]
 
     provider = config.get("llm", {}).get("provider", "openrouter")
-    llm.configure(provider)
+    llm.configure(provider, config.get("llm", {}).get("models"))
 
     # Step 1: Backfill embeddings
     print("=== Backfilling .seen_embeddings.json ===\n")

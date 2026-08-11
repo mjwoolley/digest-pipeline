@@ -27,7 +27,7 @@ def test_include_overrides_exclude():
 def test_borderline_kept_conservatively_without_llm():
     config = {"relevance_filter": {"enabled": True, "keywords_include": ["AI"], "keywords_exclude": ["sports"], "borderline_llm": False}}
     article = {"title": "Enterprise software update", "description": "General business tooling"}
-    kept, removed = filter_articles([article], config)
+    kept, removed, _usage = filter_articles([article], config)
     assert len(kept) == 1
     assert len(removed) == 0
 
@@ -35,7 +35,7 @@ def test_borderline_kept_conservatively_without_llm():
 def test_removed_articles_get_reason():
     config = {"relevance_filter": {"enabled": True, "keywords_include": [], "keywords_exclude": ["weather"]}}
     article = {"title": "Weather warning", "description": "Storms incoming"}
-    kept, removed = filter_articles([article], config)
+    kept, removed, _usage = filter_articles([article], config)
     assert len(kept) == 0
     assert removed[0]["_filter_reason"] == "exclude keyword: weather"
 
@@ -45,10 +45,10 @@ def test_borderline_llm_drop(monkeypatch):
     article = {"title": "Enterprise software update", "description": "General business tooling"}
 
     def fake_llm(article, config):
-        return False, "not primarily AI-related"
+        return False, "not primarily AI-related", {"input_tokens": 5, "output_tokens": 2, "cost": 0.0}
 
     monkeypatch.setattr("digest_pipeline.relevance._llm_relevance_decision", fake_llm)
-    kept, removed = filter_articles([article], config)
+    kept, removed, _usage = filter_articles([article], config)
     assert len(kept) == 0
     assert removed[0]["_filter_reason"] == "llm: not primarily AI-related"
 
@@ -58,9 +58,9 @@ def test_borderline_llm_keep(monkeypatch):
     article = {"title": "Enterprise software update", "description": "General business tooling"}
 
     def fake_llm(article, config):
-        return True, "useful AI builder news"
+        return True, "useful AI builder news", {"input_tokens": 5, "output_tokens": 2, "cost": 0.0}
 
     monkeypatch.setattr("digest_pipeline.relevance._llm_relevance_decision", fake_llm)
-    kept, removed = filter_articles([article], config)
+    kept, removed, _usage = filter_articles([article], config)
     assert len(kept) == 1
     assert len(removed) == 0

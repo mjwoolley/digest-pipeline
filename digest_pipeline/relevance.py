@@ -2,10 +2,14 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any
 
 from . import llm
 from .config import render_prompt
+from .util import extract_json_object
+
+logger = logging.getLogger("digest")
 
 
 def _norm(text: str) -> str:
@@ -40,24 +44,13 @@ def classify_article(article: dict[str, Any], config: dict[str, Any]) -> tuple[s
     return "borderline", "no relevance rule matched"
 
 
-def _extract_json_object(text: str) -> dict[str, Any]:
-    text = (text or "").strip()
-    if not text:
-        raise ValueError("empty response")
-    if text.startswith("```"):
-        lines = text.splitlines()
-        if len(lines) >= 3:
-            text = "\n".join(lines[1:-1]).strip()
-    start = text.find("{")
-    end = text.rfind("}")
-    if start == -1 or end == -1 or end < start:
-        raise ValueError(f"no JSON object found in: {text[:200]}")
-    return json.loads(text[start:end+1])
+def _llm_relevance_decision(article: dict[str, Any], config: dict[str, Any]
+                            ) -> tuple[bool, str, dict]:
+    """Borderline classification via one cheap LLM call.
 
-
-def _llm_relevance_decision(article: dict[str, Any], config: dict[str, Any]) -> tuple[bool, str]:
+    Returns (relevant, reason, usage).
+    """
     rf = config.get("relevance_filter", {})
-    provider = config.get("llm", {}).get("provider", "openrouter")
     topic = rf.get("topic", "artificial intelligence, machine learning, and AI products")
     prompt = render_prompt(
         "relevance_check.md",
@@ -76,22 +69,30 @@ def _llm_relevance_decision(article: dict[str, Any], config: dict[str, Any]) -> 
             ),
         },
     )
-    model = llm.MODELS[provider]["haiku"]
+    model = llm.model_for("relevance")
     messages = [{"role": "user", "content": prompt}]
-    text, _usage = llm.chat(messages, model, max_tokens=300)
-    data = _extract_json_object(text)
-    return bool(data.get("relevant", False)), data.get("reason", "LLM relevance check")
+    text, usage = llm.chat(messages, model, max_tokens=300)
+    data = extract_json_object(text)
+    return (bool(data.get("relevant", False)),
+            data.get("reason", "LLM relevance check"),
+            usage)
 
 
-def filter_articles(articles: list[dict[str, Any]], config: dict[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+def filter_articles(articles: list[dict[str, Any]], config: dict[str, Any]
+                    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict]:
     """Filter articles via rules-first relevance logic.
 
-    Returns (kept, removed). Removed items get `_filter_reason` metadata.
-    Borderline items can optionally be checked with a cheap LLM classifier.
+    Returns (kept, removed, usage). Removed items get `_filter_reason`
+    metadata; usage aggregates the borderline-LLM calls (previously
+    discarded, understating the reported run cost).
+
+    A malformed LLM response for one article degrades to keeping that
+    article — it must not kill the whole run.
     """
     rf = config.get("relevance_filter", {})
+    total_usage = {"input_tokens": 0, "output_tokens": 0, "cost": 0.0}
     if not rf.get("enabled", False):
-        return articles, []
+        return articles, [], total_usage
 
     kept: list[dict[str, Any]] = []
     removed: list[dict[str, Any]] = []
@@ -105,7 +106,19 @@ def filter_articles(articles: list[dict[str, Any]], config: dict[str, Any]) -> t
             kept.append(article)
         else:
             if borderline_llm:
-                relevant, llm_reason = _llm_relevance_decision(article, config)
+                try:
+                    relevant, llm_reason, usage = _llm_relevance_decision(
+                        article, config)
+                    total_usage["input_tokens"] += usage.get(
+                        "prompt_tokens", usage.get("input_tokens", 0))
+                    total_usage["output_tokens"] += usage.get(
+                        "completion_tokens", usage.get("output_tokens", 0))
+                    total_usage["cost"] += usage.get("cost", 0.0)
+                except Exception as e:
+                    logger.warning(
+                        f"[RELEVANCE] LLM check failed for "
+                        f"'{article.get('title', '(untitled)')}': {e} — keeping")
+                    relevant, llm_reason = True, "llm check failed, kept by default"
                 if relevant:
                     kept.append(article)
                 else:
@@ -113,4 +126,4 @@ def filter_articles(articles: list[dict[str, Any]], config: dict[str, Any]) -> t
             else:
                 kept.append(article)
 
-    return kept, removed
+    return kept, removed, total_usage

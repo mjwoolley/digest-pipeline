@@ -137,7 +137,7 @@ def main():
         digest_text = digest_path.read_text(encoding="utf-8")
         logger.info(f"[SCRIPTGEN] Loaded digest: {len(digest_text)} chars")
 
-        llm.configure(provider)
+        llm.configure(provider, config.get("llm", {}).get("models"))
         # Format date as spoken English: "March 28th, 2026"
         _dt = datetime.strptime(date, "%Y-%m-%d")
         _day = _dt.day
@@ -147,7 +147,7 @@ def main():
         prompt = render_prompt("podcast_script.md", config,
                                {"DIGEST": digest_text, "DATE": spoken_date})
 
-        model = llm.MODELS[provider]["sonnet"]
+        model = llm.model_for("podcast")
         messages = [
             {"role": "system", "content": f"Today's date: {date}"},
             {"role": "user", "content": prompt},

@@ -28,6 +28,9 @@ _Why it matters: [1 sentence]_
 - List all source URLs on the → line as separate markdown links
 - Tone: {{TONE}}
 - Output ONLY the formatted message — no JSON, no preamble
+- Stick to the per-item format exactly: no extra sections, no closing
+  commentary, no padding. Summaries stay at 2-3 sentences even for big
+  stories — density over length
 
 ## Articles
 {{ARTICLES}}
