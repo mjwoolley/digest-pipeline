@@ -196,9 +196,34 @@ def _filter_blocks(source: dict, content: str,
     return filtered, new_ids
 
 
+# Multi-issue newsletter blocks are tagged by gather: === ISSUE <msgid> ===
+_ISSUE_MARKER_RE = re.compile(r"^=== ISSUE (\S+) ===$", re.MULTILINE)
+
+
 def _filter_newsletter(source: dict, content: str,
                        seen_ids: set[str]) -> tuple[dict, list[str]]:
-    """Filter newsletter by Message-ID or content hash (whole-source granularity)."""
+    """Filter newsletter by Message-ID or content hash.
+
+    Single-issue sources keep whole-source granularity. Multi-issue sources
+    (several emails arrived since the last run) are filtered per issue using
+    the === ISSUE <msgid> === markers gather inserts.
+    """
+    if source.get("message_ids") and _ISSUE_MARKER_RE.search(content):
+        parts = _ISSUE_MARKER_RE.split(content)
+        # parts = [preamble, msgid1, body1, msgid2, body2, ...]
+        new_blocks, new_ids = [], []
+        for mid, body in zip(parts[1::2], parts[2::2]):
+            issue_id = (f"msgid:{mid}" if mid != "unknown"
+                        else _extract_newsletter_id(body))
+            if issue_id and issue_id in seen_ids:
+                continue
+            new_blocks.append(f"=== ISSUE {mid} ===\n{body.strip()}")
+            if issue_id:
+                new_ids.append(issue_id)
+        if not new_blocks:
+            return {**source, "content": ""}, []
+        return {**source, "content": "\n\n".join(new_blocks)}, new_ids
+
     message_id = source.get("message_id")
     nl_id = _extract_newsletter_id(content, message_id=message_id)
     if nl_id and nl_id in seen_ids:
