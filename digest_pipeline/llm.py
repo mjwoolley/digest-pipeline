@@ -354,6 +354,35 @@ def prioritize_score(articles: list[dict], prompt: str) -> tuple[list[dict], dic
     return scored, usage
 
 
+def same_story_check(candidates: list[dict],
+                     prompt_template: str) -> tuple[set[int], dict]:
+    """Adjudicate grey-zone cross-day duplicate candidates in one Haiku call.
+
+    candidates: [{index, title, description, match_title, similarity}, ...]
+    Returns (indices judged to be the same story, usage).
+    """
+    model = MODELS[_provider]["haiku"]
+    pairs = [
+        {
+            "id": c["index"],
+            "candidate_title": c["title"],
+            "candidate_description": c["description"],
+            "previously_published_title": c["match_title"],
+        }
+        for c in candidates
+    ]
+    prompt = prompt_template.replace("{{PAIRS}}", json.dumps(pairs, indent=2))
+    text, usage = chat([{"role": "user", "content": prompt}], model,
+                       max_tokens=2048)
+    results = _parse_json_array(text)
+    dup_ids = {
+        r["id"] for r in results
+        if isinstance(r, dict) and r.get("same_story") is True
+        and isinstance(r.get("id"), int)
+    }
+    return dup_ids, usage
+
+
 def summarize_format(articles: list[dict], date: str,
                      prompt_template: str) -> tuple[str, dict]:
     """Summarize each article and format the digest.

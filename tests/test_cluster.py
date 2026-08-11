@@ -79,10 +79,22 @@ def test_cluster_sorted_by_size():
 
 def test_embedding_text_normal():
     article = {"title": "My Title", "description": "Some desc"}
-    assert embedding_text(article) == "My Title Some desc"
+    assert embedding_text(article) == "My Title. Some desc"
 
 
 def test_embedding_text_missing_fields():
-    assert embedding_text({}) == " "
-    assert embedding_text({"title": "T"}) == "T "
-    assert embedding_text({"description": "D"}) == " D"
+    assert embedding_text({}) == ""
+    assert embedding_text({"title": "T"}) == "T"
+    assert embedding_text({"description": "D"}) == "D"
+
+
+def test_embedding_text_truncates_long_description():
+    """The title must dominate the vector: only a short description prefix is
+    embedded, so divergent body prose can't drag same-story pairs apart."""
+    article = {"title": "Launch", "description": "x" * 5000}
+    text = embedding_text(article)
+    assert len(text) <= len("Launch. ") + 300
+
+
+def test_embedding_text_none_fields():
+    assert embedding_text({"title": None, "description": None}) == ""

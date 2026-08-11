@@ -59,8 +59,17 @@ def cluster_articles(articles: list[dict], embeddings: list[list[float]],
     return result
 
 
-def embedding_text(article: dict) -> str:
-    """Build the text to embed for an article."""
-    title = article.get("title", "")
-    desc = article.get("description", "")
-    return f"{title} {desc}"
+def embedding_text(article: dict, desc_chars: int = 300) -> str:
+    """Build the text to embed for an article.
+
+    The title is the identity signal: two outlets covering the same story
+    share headline vocabulary but diverge in body prose, so embedding the
+    full verbatim description let the divergent body dominate the vector
+    and dragged real duplicates below the similarity threshold. Only a
+    short description prefix is included for disambiguation.
+    """
+    title = (article.get("title") or "").strip()
+    desc = (article.get("description") or "").strip()[:desc_chars]
+    if title and desc:
+        return f"{title}. {desc}"
+    return title or desc

@@ -89,10 +89,22 @@
         "TAMP": "tamp"
       },
       "regex": [
-        {"pattern": "\\$([0-9]+)B\\b", "replacement": "$1 billion dollars"},
-        {"pattern": "\\$([0-9]+)M\\b", "replacement": "$1 million dollars"},
-        {"pattern": "\\$([0-9]+)T\\b", "replacement": "$1 trillion dollars"},
-        {"pattern": "\\bQ([1-4])\\b", "replacement": "quarter $1"}
+        {
+          "pattern": "\\$([0-9]+)B\\b",
+          "replacement": "$1 billion dollars"
+        },
+        {
+          "pattern": "\\$([0-9]+)M\\b",
+          "replacement": "$1 million dollars"
+        },
+        {
+          "pattern": "\\$([0-9]+)T\\b",
+          "replacement": "$1 trillion dollars"
+        },
+        {
+          "pattern": "\\bQ([1-4])\\b",
+          "replacement": "quarter $1"
+        }
       ]
     }
   },
@@ -114,11 +126,22 @@
   },
   "subscriptions": {
     "public_base_url": "https://wealthtechdigest.com",
-    "cors_origins": ["https://wealthtechdigest.com"],
+    "cors_origins": [
+      "https://wealthtechdigest.com"
+    ],
     "port": 5100
   },
   "llm": {
     "provider": "openrouter"
+  },
+  "clustering": {
+    "intra_day_threshold": 0.85,
+    "cross_day_threshold": 0.8,
+    "cross_day_lookback_days": 5,
+    "title_match_threshold": 0.6,
+    "url_lookback_days": 14,
+    "grey_zone_llm": true,
+    "grey_zone_low": 0.7
   },
   "sources": {
     "twitter": {

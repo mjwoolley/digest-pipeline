@@ -18,10 +18,10 @@ Give lower scores to minor updates, routine announcements, or highly niche topic
 We need to select the top ~{{MAX_ARTICLES}} articles from this list. Score generously for must-know items and critically for filler.
 
 ## Output Format
-JSON array in the SAME ORDER as the input:
+JSON array with one entry per input article, echoing each article's `id` exactly as given:
 [
-  {"title": "exact title from input", "score": 8},
-  {"title": "exact title from input", "score": 3},
+  {"id": 0, "score": 8},
+  {"id": 1, "score": 3},
   ...
 ]
 

@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from .cluster import cosine_similarity
+from .dedup_index import article_urls, best_title_match
 from .pipeline_date import today_str
 from .util import atomic_write_json
 
@@ -57,9 +58,11 @@ def save_today(data_root: Path, date: str, articles: list[dict],
     except (json.JSONDecodeError, OSError):
         store = {}
 
-    # Save today's entries
+    # Save today's entries (urls kept so future exact-URL hits don't have to
+    # clear the embedding threshold)
     store[date] = [
-        {"title": a.get("title", ""), "embedding": emb}
+        {"title": a.get("title", ""), "embedding": emb,
+         "urls": article_urls(a)}
         for a, emb in zip(articles, embeddings)
     ]
 
@@ -73,25 +76,43 @@ def save_today(data_root: Path, date: str, articles: list[dict],
 
 
 def filter_seen(articles: list[dict], embeddings: list[list[float]],
-                history: list[dict], threshold: float = 0.85
+                history: list[dict], threshold: float = 0.85,
+                title_threshold: float | None = 0.6
                 ) -> tuple[list[dict], list[dict], list[list[float]]]:
-    """Filter out articles that match historical embeddings above threshold.
+    """Filter out articles that match recent history.
 
-    Returns (kept_articles, skipped_articles, kept_embeddings).
+    Two independent gates, either of which marks an article as seen:
+    - lexical: normalized-title Jaccard >= title_threshold (catches
+      same-story-different-outlet pairs whose divergent body prose keeps
+      embedding similarity low; disabled when title_threshold is None)
+    - embedding: cosine similarity > threshold against any history entry
+
+    Returns (kept_articles, skipped_articles, kept_embeddings). Skipped
+    articles get a _skip_reason field.
     """
     hist_embeddings = [h["embedding"] for h in history]
+    hist_titles = [h.get("title", "") for h in history]
 
     kept_articles = []
     kept_embeddings = []
     skipped = []
 
     for article, emb in zip(articles, embeddings):
+        title = article.get("title", "(untitled)")
+        t_sim, t_match = (0.0, "")
+        if title_threshold is not None:
+            t_sim, t_match = best_title_match(article.get("title", ""), hist_titles)
         max_sim = max(
             (cosine_similarity(emb, h_emb) for h_emb in hist_embeddings),
             default=0.0
         )
-        if max_sim > threshold:
-            title = article.get("title", "(untitled)")
+        if title_threshold is not None and t_sim >= title_threshold:
+            article["_skip_reason"] = f"title match {t_sim:.2f} vs '{t_match}'"
+            logger.info(f"[CROSS-DEDUP] Skipping '{title}' "
+                        f"(title similarity={t_sim:.2f} vs '{t_match}')")
+            skipped.append(article)
+        elif max_sim > threshold:
+            article["_skip_reason"] = f"embedding similarity {max_sim:.3f}"
             logger.info(f"[CROSS-DEDUP] Skipping '{title}' (similarity={max_sim:.3f})")
             skipped.append(article)
         else:
@@ -99,6 +120,36 @@ def filter_seen(articles: list[dict], embeddings: list[list[float]],
             kept_embeddings.append(emb)
 
     return kept_articles, skipped, kept_embeddings
+
+
+def grey_zone_candidates(articles: list[dict], embeddings: list[list[float]],
+                         history: list[dict], low: float, high: float
+                         ) -> list[dict]:
+    """Find kept articles whose best history match lands in [low, high).
+
+    That band is where genuine cross-source duplicates live — similar enough
+    to be suspicious, not similar enough for the hard embedding gate. Each
+    candidate is {index, title, description, match_title, similarity} for an
+    optional LLM same-story adjudication pass.
+    """
+    hist_embeddings = [h["embedding"] for h in history]
+    hist_titles = [h.get("title", "") for h in history]
+    candidates = []
+    for i, (article, emb) in enumerate(zip(articles, embeddings)):
+        best_sim, best_idx = 0.0, -1
+        for j, h_emb in enumerate(hist_embeddings):
+            sim = cosine_similarity(emb, h_emb)
+            if sim > best_sim:
+                best_sim, best_idx = sim, j
+        if low <= best_sim < high and best_idx >= 0:
+            candidates.append({
+                "index": i,
+                "title": article.get("title", ""),
+                "description": (article.get("description") or "")[:300],
+                "match_title": hist_titles[best_idx],
+                "similarity": round(best_sim, 3),
+            })
+    return candidates
 
 
 def parse_digest_markdown(text: str) -> list[dict]:
