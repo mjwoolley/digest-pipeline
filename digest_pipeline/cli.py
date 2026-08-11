@@ -725,6 +725,17 @@ def _run_backfill(args):
     else:
         print("  Nothing to backfill (all dates already in store)")
 
+    # Step 1b: Seed the shipped-URL index from archived digests, so a fresh
+    # checkout's cross-day dedup works from day one instead of ramping up
+    # over the URL lookback window.
+    from . import pipeline_date
+    from .dedup_index import backfill_url_index
+    print("\n=== Backfilling .shipped_urls.json ===\n")
+    url_lookback = config.get("clustering", {}).get("url_lookback_days", 14)
+    url_count = backfill_url_index(data_root, pipeline_date.today_str(),
+                                   lookback_days=url_lookback)
+    print(f"  {url_count} shipped URLs in index (last {url_lookback} days)")
+
     # Step 2: Simulate dedup to show what would have been caught
     print("\n=== Cross-Day Dedup Simulation ===\n")
     sim = simulate_dedup(data_root)

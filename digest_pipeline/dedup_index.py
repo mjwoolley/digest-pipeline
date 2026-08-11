@@ -142,6 +142,60 @@ def record_shipped(index: dict[str, str], articles: list[dict],
     return index
 
 
+# ── Archived-digest parsing (shared by backfill + offline tooling) ───────────
+
+# Markdown link on an article title line: [**Title**](url)
+ARCHIVE_LINK_RE = re.compile(r"\[\*\*(.+?)\*\*\]\((https?://[^)]+)\)")
+_ARCHIVE_DATE_MD = re.compile(r"^(\d{4}-\d{2}-\d{2})\.md$")
+
+
+def load_archive(data_root: Path) -> dict[str, list[dict]]:
+    """Parse archived digests into {date: [{title, description, urls}]}.
+
+    Used by the URL-index backfill and the offline comparison/replay tools.
+    """
+    from .seen_articles import parse_digest_markdown
+
+    days: dict[str, list[dict]] = {}
+    for f in sorted(Path(data_root).glob("????-??-??.md")):
+        m = _ARCHIVE_DATE_MD.match(f.name)
+        if not m:
+            continue
+        text = f.read_text(encoding="utf-8")
+        articles = parse_digest_markdown(text)
+        title_urls = {t: u for t, u in ARCHIVE_LINK_RE.findall(text)}
+        for a in articles:
+            url = title_urls.get(a["title"], "")
+            a["urls"] = [url] if url else []
+        if articles:
+            days[m.group(1)] = articles
+    return days
+
+
+def backfill_url_index(data_root: Path, today: str,
+                       lookback_days: int = DEFAULT_URL_LOOKBACK_DAYS) -> int:
+    """Seed .shipped_urls.json from archived digests in the lookback window.
+
+    Without this, a fresh checkout's URL index starts empty and cross-day
+    dedup underperforms for its first lookback_days — exactly the window a
+    staging/prod parallel comparison cares about. Returns the number of URLs
+    now in the index.
+    """
+    cutoff = (datetime.strptime(today, "%Y-%m-%d")
+              - timedelta(days=lookback_days)).strftime("%Y-%m-%d")
+    index = load_url_index(data_root)
+    for date, articles in load_archive(data_root).items():
+        if cutoff <= date <= today:
+            # Preserve each URL's original ship date (setdefault in
+            # record_shipped keeps the earliest date written)
+            record_shipped(index, articles, date)
+    save_url_index(data_root, index, today, lookback_days=lookback_days)
+    pruned = load_url_index(data_root)
+    logger.info(f"[URL-INDEX] Backfilled {len(pruned)} shipped URLs "
+                f"({cutoff}..{today})")
+    return len(pruned)
+
+
 # ── Lexical title similarity ─────────────────────────────────────────────────
 
 _STOPWORDS = frozenset(

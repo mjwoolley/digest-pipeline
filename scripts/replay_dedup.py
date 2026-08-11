@@ -9,37 +9,14 @@ Usage:
     python3 -m scripts.replay_dedup digests/ai [--lookback 5] [--title-threshold 0.6] [-v]
 """
 import argparse
-import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from digest_pipeline.dedup_index import (  # noqa: E402
-    best_title_match, canonicalize_url,
+    best_title_match, canonicalize_url, load_archive,
 )
-from digest_pipeline.seen_articles import parse_digest_markdown  # noqa: E402
-
-_LINK_RE = re.compile(r"\[\*\*(.+?)\*\*\]\((https?://[^)]+)\)")
-_DATE_MD = re.compile(r"^(\d{4}-\d{2}-\d{2})\.md$")
-
-
-def load_archive(data_root: Path) -> dict[str, list[dict]]:
-    """{date: [{title, description, urls}]} from archived digest markdown."""
-    days = {}
-    for f in sorted(data_root.glob("????-??-??.md")):
-        m = _DATE_MD.match(f.name)
-        if not m:
-            continue
-        text = f.read_text(encoding="utf-8")
-        articles = parse_digest_markdown(text)
-        title_urls = {t: u for t, u in _LINK_RE.findall(text)}
-        for a in articles:
-            url = title_urls.get(a["title"], "")
-            a["urls"] = [url] if url else []
-        if articles:
-            days[m.group(1)] = articles
-    return days
 
 
 def replay(days: dict[str, list[dict]], lookback: int = 5,

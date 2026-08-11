@@ -221,6 +221,31 @@ Set `DIGEST_ENV=staging` and the loader will deep-merge a sibling `config.stagin
 DIGEST_ENV=staging digest-pipeline digests/ai/config.json
 ```
 
+### Parallel staging comparison
+
+To evaluate a branch before cutting prod over, run staging as a daily prod-parallel and let `scripts/compare_digests.py` diff the two outputs.
+
+One-time setup in the staging checkout:
+
+```bash
+cd ~/digest-pipeline-staging
+git fetch origin && git checkout <branch>
+# Seed cross-day dedup state (embeddings + shipped-URL index) from the
+# archived digests so staging isn't handicapped by a cold start:
+DIGEST_ENV=staging .venv/bin/digest-pipeline digests/ai/config.json --backfill
+```
+
+Then add two cron lines next to the prod one (prod fires 3:00 AM ET; adjust to taste):
+
+```cron
+# staging parallel run, 5 min after prod's slot
+5 3 * * *  cd ~/digest-pipeline-staging && DIGEST_ENV=staging bash run.sh digests/ai/config.json >> logs/cron.log 2>&1
+# daily comparison ~90 min later: Telegram summary + full report on disk
+30 4 * * * cd ~/digest-pipeline-staging && DIGEST_ENV=staging .venv/bin/python3 scripts/compare_digests.py ~/digest-pipeline/digests/ai digests/ai --llm-judge --notify digests/ai/config.json >> logs/compare.log 2>&1
+```
+
+Each day this writes `compare-<date>.md` into the staging data root (article diff with suppression reasons, repeat-stories-shipped per side, cost/stage table, blind LLM quality judgment) and pings Telegram with the headline numbers. `--days N` produces a rollup across the run. Staging emails go to the isolated staging subscriber list, so received-email quality can be compared directly. Remove the two cron lines at cutover.
+
 ### Secrets
 
 API keys and passwords are loaded from a `secrets.env` file at the repo root (gitignored). Already-set environment variables take precedence.
