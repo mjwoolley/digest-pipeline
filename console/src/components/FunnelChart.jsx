@@ -5,6 +5,7 @@ export function FunnelChart({ funnel }) {
     { key: 'extracted', label: 'Extracted' },
     { key: 'clustered', label: 'Clustered' },
     { key: 'deduped', label: 'Deduped' },
+    { key: 'cross_deduped', label: 'Cross-day' },
     { key: 'prioritized', label: 'Prioritized' },
     { key: 'formatted', label: 'Formatted' },
   ];

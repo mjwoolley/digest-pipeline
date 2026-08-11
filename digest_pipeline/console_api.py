@@ -742,13 +742,18 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
         extracted = _count_file("extracted.json")
         clusters = _count_file("clusters.json")
         deduped = _count_file("deduped.json")
+        cross_deduped = _count_file("cross_deduped.json")
         prioritized = _count_file("prioritized.json")
 
-        # If no prioritized.json, articles weren't pruned — use deduped count
-        if prioritized == 0 and deduped > 0:
-            prioritized_path = work_dir / "prioritized.json"
-            if not prioritized_path.exists():
-                prioritized = deduped
+        # Older runs predate cross_deduped.json — fall back to deduped so the
+        # funnel doesn't show a false cliff. (A dead cross-day stage used to
+        # be invisible here; the artifact makes it show up as a real step.)
+        if cross_deduped == 0 and not (work_dir / "cross_deduped.json").exists():
+            cross_deduped = deduped
+
+        # If no prioritized.json, articles weren't pruned — use post-cross count
+        if prioritized == 0 and not (work_dir / "prioritized.json").exists():
+            prioritized = cross_deduped
 
         # Formatted = same count as prioritized if final digest exists
         final = (work_dir / "final-digest.md").exists()
@@ -758,6 +763,7 @@ def create_app(digests_dir: str = None, config_path: str = None) -> Flask:
             "extracted": extracted,
             "clustered": clusters,
             "deduped": deduped,
+            "cross_deduped": cross_deduped,
             "prioritized": prioritized,
             "formatted": formatted,
         })

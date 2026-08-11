@@ -804,7 +804,9 @@ def main():
             total_dur = time.time() - start_time
             delivery.send_notification(
                 f"✅ {tagline} delivered to email\n"
-                f"Articles: {len(deduped)} | Cross-day dupes skipped: {cross_skipped_count}\n"
+                f"Sources with content: {len(fetched_keys)}/{len(sources)} | "
+                f"Articles: {len(deduped)} | "
+                f"Cross-day dupes skipped: {cross_skipped_count}\n"
                 f"{tracker.summary()}\n"
                 f"Duration: {total_dur:.0f}s | Chars: {len(final_digest)}",
                 config
