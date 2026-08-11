@@ -431,7 +431,7 @@ def _read_state(data_root: Path) -> dict:
     if not path.exists():
         return {}
     try:
-        raw = json.loads(path.read_text())
+        raw = json.loads(path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError):
         return {}
     # Apply the same migration shim as source_state.load_state.
@@ -449,7 +449,7 @@ def _read_ledger(data_root: Path) -> list[dict]:
         return []
     rows = []
     try:
-        with path.open() as f:
+        with path.open(encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line:
@@ -480,7 +480,7 @@ def _recent_work_dirs(data_root: Path, n: int) -> list[dict]:
         run_path = d / "run.json"
         if run_path.exists():
             try:
-                run_json = json.loads(run_path.read_text())
+                run_json = json.loads(run_path.read_text(encoding="utf-8"))
             except (json.JSONDecodeError, OSError):
                 run_json = None
         history.append({"date": d.name, "path": d, "run_json": run_json})
@@ -629,7 +629,7 @@ def _extracted_in_recent_runs(work_history: list[dict], src: dict) -> int:
         if not ex_path.exists():
             continue
         try:
-            arts = json.loads(ex_path.read_text())
+            arts = json.loads(ex_path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
             continue
         if not isinstance(arts, list):

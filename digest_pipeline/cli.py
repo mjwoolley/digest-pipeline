@@ -427,7 +427,7 @@ def _run_backfill_titles(args):
                 continue
             print(f"  {slug} {ep_date}: {title}")
             if not dry_run:
-                title_file.write_text(title + "\n")
+                title_file.write_text(title + "\n", encoding="utf-8")
                 made += 1
 
         if made:

@@ -11,6 +11,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from .cluster import cosine_similarity
+from .pipeline_date import today_str
+from .util import atomic_write_json
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +29,7 @@ def load_history(data_root: Path, today: str, lookback_days: int = 5) -> list[di
         return []
 
     try:
-        store = json.loads(store_path.read_text())
+        store = json.loads(store_path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError) as e:
         logger.warning(f"[CROSS-DEDUP] Failed to load history: {e}")
         return []
@@ -51,7 +53,7 @@ def save_today(data_root: Path, date: str, articles: list[dict],
     store_path = data_root / STORE_FILENAME
 
     try:
-        store = json.loads(store_path.read_text()) if store_path.exists() else {}
+        store = json.loads(store_path.read_text(encoding="utf-8")) if store_path.exists() else {}
     except (json.JSONDecodeError, OSError):
         store = {}
 
@@ -66,7 +68,7 @@ def save_today(data_root: Path, date: str, articles: list[dict],
     cutoff = cutoff_dt.strftime("%Y-%m-%d")
     store = {k: v for k, v in store.items() if k >= cutoff}
 
-    store_path.write_text(json.dumps(store))
+    atomic_write_json(store_path, store, indent=None)
     logger.info(f"[CROSS-DEDUP] Saved {len(store[date])} embeddings for {date}")
 
 
@@ -150,13 +152,13 @@ def backfill(data_root: Path, lookback_days: int = 5) -> dict[str, int]:
 
     store_path = data_root / STORE_FILENAME
     try:
-        existing = json.loads(store_path.read_text()) if store_path.exists() else {}
+        existing = json.loads(store_path.read_text(encoding="utf-8")) if store_path.exists() else {}
     except (json.JSONDecodeError, OSError):
         existing = {}
 
     # Find digest files matching YYYY-MM-DD.md
     date_pattern = re.compile(r'^(\d{4}-\d{2}-\d{2})\.md$')
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = today_str()
     today_dt = datetime.strptime(today, "%Y-%m-%d")
     cutoff = (today_dt - timedelta(days=lookback_days)).strftime("%Y-%m-%d")
 
@@ -174,7 +176,7 @@ def backfill(data_root: Path, lookback_days: int = 5) -> dict[str, int]:
             logger.info(f"[BACKFILL] Skipping {date} (already in store)")
             continue
 
-        text = digest_files[date].read_text()
+        text = digest_files[date].read_text(encoding="utf-8")
         articles = parse_digest_markdown(text)
         if not articles:
             logger.info(f"[BACKFILL] No articles parsed from {date}")
@@ -201,7 +203,7 @@ def simulate_dedup(data_root: Path, lookback_days: int = 5) -> dict[str, list[st
     from .cluster import embedding_text
 
     date_pattern = re.compile(r'^(\d{4}-\d{2}-\d{2})\.md$')
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = today_str()
     today_dt = datetime.strptime(today, "%Y-%m-%d")
     cutoff = (today_dt - timedelta(days=lookback_days)).strftime("%Y-%m-%d")
 
@@ -218,7 +220,7 @@ def simulate_dedup(data_root: Path, lookback_days: int = 5) -> dict[str, list[st
     result = {}
 
     for date in sorted(digest_files):
-        text = digest_files[date].read_text()
+        text = digest_files[date].read_text(encoding="utf-8")
         articles = parse_digest_markdown(text)
         if not articles:
             continue

@@ -20,8 +20,10 @@ def setup_logger(date: str, logs_dir: Path = None) -> logging.Logger:
     fmt = logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s",
                             datefmt="%Y-%m-%d %H:%M:%S")
 
-    # File handler
-    fh = logging.FileHandler(logs_dir / f"digest-{date}.log")
+    # File handler — explicit UTF-8 so emoji in titles/log lines can't raise
+    # UnicodeEncodeError under a C/POSIX locale (cron, systemd without LANG=)
+    fh = logging.FileHandler(logs_dir / f"digest-{date}.log",
+                             encoding="utf-8", errors="replace")
     fh.setLevel(logging.DEBUG)
     fh.setFormatter(fmt)
     logger.addHandler(fh)

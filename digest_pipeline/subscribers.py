@@ -6,12 +6,12 @@ timestamp, and source indicator.
 """
 import json
 import logging
-import os
 import re
 import secrets
-import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
+
+from .util import atomic_write_json
 
 logger = logging.getLogger("digest")
 
@@ -50,7 +50,7 @@ def load_subscribers(data_root: Path) -> list[dict]:
     if not path.exists():
         return []
     try:
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding="utf-8"))
         return data.get("subscribers", [])
     except (json.JSONDecodeError, KeyError):
         logger.warning(f"[SUBSCRIBERS] Corrupt subscribers file: {path}")
@@ -61,18 +61,7 @@ def save_subscribers(data_root: Path, subscribers: list[dict]) -> None:
     """Save subscriber list to disk atomically."""
     path = _subscribers_path(data_root)
     path.parent.mkdir(parents=True, exist_ok=True)
-    fd, tmp_path = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
-    try:
-        with os.fdopen(fd, 'w') as f:
-            json.dump({"subscribers": subscribers}, f, indent=2)
-            f.write("\n")
-        os.replace(tmp_path, path)
-    except BaseException:
-        try:
-            os.unlink(tmp_path)
-        except OSError:
-            pass
-        raise
+    atomic_write_json(path, {"subscribers": subscribers})
 
 
 def log_subscription_event(data_root: Path, event_type: str, email: str,
@@ -86,7 +75,7 @@ def log_subscription_event(data_root: Path, event_type: str, email: str,
         "token": token,
         "source": source,
     }
-    with open(path, "a") as f:
+    with open(path, "a", encoding="utf-8") as f:
         f.write(json.dumps(entry) + "\n")
 
 
@@ -105,7 +94,7 @@ def log_send(data_root: Path, digest_date: str, email: str, status: str,
         entry["error"] = error
     if method:
         entry["method"] = method
-    with open(path, "a") as f:
+    with open(path, "a", encoding="utf-8") as f:
         f.write(json.dumps(entry) + "\n")
 
 

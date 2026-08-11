@@ -27,13 +27,13 @@ def load_config(config_path: str) -> dict:
     if not path.exists():
         raise FileNotFoundError(f"Config not found: {path}")
 
-    config = json.loads(path.read_text())
+    config = json.loads(path.read_text(encoding="utf-8"))
 
     env = os.environ.get("DIGEST_ENV", "").strip()
     if env:
         overlay_path = path.with_name(f"config.{env}.json")
         if overlay_path.exists():
-            overlay = json.loads(overlay_path.read_text())
+            overlay = json.loads(overlay_path.read_text(encoding="utf-8"))
             config = _deep_merge(config, overlay)
 
     config["_data_root"] = path.parent
@@ -42,7 +42,7 @@ def load_config(config_path: str) -> dict:
     # Load secrets.env from project root (repo root) if it exists
     secrets_file = config["_pipeline_dir"].parent / "secrets.env"
     if secrets_file.exists():
-        for line in secrets_file.read_text().splitlines():
+        for line in secrets_file.read_text(encoding="utf-8").splitlines():
             line = line.strip()
             if not line or line.startswith("#"):
                 continue
@@ -83,7 +83,7 @@ def render_prompt(template_name: str, config: dict, extra_vars: dict = None) -> 
         + any extra_vars passed in
     """
     prompts_dir = config["_pipeline_dir"] / "prompts"
-    template = (prompts_dir / template_name).read_text()
+    template = (prompts_dir / template_name).read_text(encoding="utf-8")
 
     # Build config-derived variables
     categories = config.get("categories", [])

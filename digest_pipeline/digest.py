@@ -403,7 +403,7 @@ def main():
 
         # Save extracted articles for debugging
         (work_dir / "extracted.json").write_text(
-            json.dumps(all_articles, indent=2))
+            json.dumps(all_articles, indent=2), encoding="utf-8")
 
         # 5. Check: if no articles extracted, exit gracefully
         if not all_articles:
@@ -433,7 +433,7 @@ def main():
             all_articles, removed = filter_articles(all_articles, config)
             logger.info(f"[RELEVANCE] Kept {len(all_articles)}/{before} articles, removed {len(removed)}")
             if removed:
-                (work_dir / "filtered.json").write_text(json.dumps(removed, indent=2))
+                (work_dir / "filtered.json").write_text(json.dumps(removed, indent=2), encoding="utf-8")
                 for article in removed[:20]:
                     logger.info(
                         f"[RELEVANCE] Dropped: {article.get('title', '(untitled)')} "
@@ -462,7 +462,7 @@ def main():
 
         # Save clusters for debugging
         (work_dir / "clusters.json").write_text(
-            json.dumps([[a.get("title", "") for a in c] for c in clusters], indent=2))
+            json.dumps([[a.get("title", "") for a in c] for c in clusters], indent=2), encoding="utf-8")
 
         # 7. Dedupe: 1 Sonnet call
         logger.info("[PIPELINE] Stage: DEDUPE")
@@ -484,7 +484,7 @@ def main():
 
         # Save deduped for debugging
         (work_dir / "deduped.json").write_text(
-            json.dumps(deduped, indent=2))
+            json.dumps(deduped, indent=2), encoding="utf-8")
 
         # 7b. Cross-day dedup: skip articles seen in last 5 days
         logger.info("[PIPELINE] Stage: CROSS-DAY DEDUP")
@@ -572,9 +572,9 @@ def main():
 
             # Save debug files
             (work_dir / "prioritized.json").write_text(
-                json.dumps(kept, indent=2))
+                json.dumps(kept, indent=2), encoding="utf-8")
             (work_dir / "prioritized_dropped.json").write_text(
-                json.dumps(dropped, indent=2))
+                json.dumps(dropped, indent=2), encoding="utf-8")
 
             # Clean up internal score field
             for a in kept:
@@ -624,7 +624,7 @@ def main():
         final_digest = formatted + "\n\n" + tracker.summary()
 
         # Save final digest
-        (work_dir / "final-digest.md").write_text(final_digest)
+        (work_dir / "final-digest.md").write_text(final_digest, encoding="utf-8")
 
         # 9. Deliver: send via email
         run_log.complete(tracker)
@@ -643,7 +643,7 @@ def main():
             if episode_headline:
                 podcasts_dir = data_root / "podcasts"
                 podcasts_dir.mkdir(parents=True, exist_ok=True)
-                (podcasts_dir / f"{date}.title").write_text(episode_headline + "\n")
+                (podcasts_dir / f"{date}.title").write_text(episode_headline + "\n", encoding="utf-8")
                 subject = episode_headline
                 logger.info(f"[TITLE] Episode title: {episode_headline}")
             else:
@@ -675,7 +675,7 @@ def main():
 
         # Archive digest to data_root (e.g. digests/ai/2026-03-09.md)
         digest_path = data_root / f"{date}.md"
-        digest_path.write_text(final_digest)
+        digest_path.write_text(final_digest, encoding="utf-8")
         logger.info(f"[DELIVER] Archived to {digest_path}")
 
         # 10. Commit source state (only after successful processing)

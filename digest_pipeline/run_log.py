@@ -5,10 +5,11 @@ to render run history, stage timelines, and totals. The file is rewritten
 after every stage so a crashed run still has a partial record up to the
 failure point.
 """
-import json
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+
+from .util import atomic_write_json
 
 
 class RunLog:
@@ -94,7 +95,7 @@ class RunLog:
         self._flush()
 
     def _flush(self):
-        self._path.write_text(json.dumps(self._data, indent=2))
+        atomic_write_json(self._path, self._data)
 
 
 def _now():

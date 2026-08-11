@@ -8,8 +8,11 @@ import hashlib
 import json
 import logging
 import re
-from datetime import datetime, timedelta
+from datetime import timedelta
 from pathlib import Path
+
+from .pipeline_date import now as pipeline_now
+from .util import atomic_write_json
 
 logger = logging.getLogger("digest")
 
@@ -39,7 +42,7 @@ def load_state(data_root: Path) -> dict:
     if not path.exists():
         return {}
     try:
-        state = json.loads(path.read_text())
+        state = json.loads(path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError) as e:
         logger.warning(f"[SOURCE-STATE] Failed to load state: {e}")
         return {}
@@ -54,12 +57,12 @@ def load_state(data_root: Path) -> dict:
 def save_state(data_root: Path, state: dict) -> None:
     """Write source state to disk."""
     path = data_root / STATE_FILENAME
-    path.write_text(json.dumps(state, indent=2))
+    atomic_write_json(path, state)
 
 
 def prune_state(state: dict, max_age_days: int = 7) -> dict:
     """Remove entries older than max_age_days based on most recent activity."""
-    cutoff = (datetime.utcnow() - timedelta(days=max_age_days)).strftime("%Y-%m-%d")
+    cutoff = (pipeline_now() - timedelta(days=max_age_days)).strftime("%Y-%m-%d")
     def _most_recent(entry: dict) -> str:
         return max(
             entry.get("last_fetched") or "",
@@ -212,8 +215,7 @@ def _get_seen_ids_for_source(source_key: str, entry: dict) -> set[str]:
     """
     seen_ids_raw = entry.get("seen_ids", [])
     if source_key.startswith("github_trending:") and isinstance(seen_ids_raw, dict):
-        today = datetime.utcnow().strftime("%Y-%m-%d")
-        cutoff = (datetime.utcnow() - timedelta(days=DEFAULT_TRENDING_COOLDOWN_DAYS)).strftime("%Y-%m-%d")
+        cutoff = (pipeline_now() - timedelta(days=DEFAULT_TRENDING_COOLDOWN_DAYS)).strftime("%Y-%m-%d")
         return {item_id for item_id, first_seen in seen_ids_raw.items()
                 if first_seen >= cutoff}
     return set(seen_ids_raw)
@@ -290,7 +292,7 @@ def commit_pending(state: dict, pending_ids: dict[str, list[str]],
                 if item_id not in existing:
                     existing[item_id] = date
             # Prune expired cooldowns
-            cutoff = (datetime.utcnow() - timedelta(days=DEFAULT_TRENDING_COOLDOWN_DAYS)).strftime("%Y-%m-%d")
+            cutoff = (pipeline_now() - timedelta(days=DEFAULT_TRENDING_COOLDOWN_DAYS)).strftime("%Y-%m-%d")
             existing = {k: v for k, v in existing.items() if v >= cutoff}
             # Cap size
             if len(existing) > max_ids:

@@ -167,12 +167,12 @@ def run_init():
 
     # config.json
     config_path = digest_dir / "config.json"
-    config_path.write_text(json.dumps(config, indent=2) + "\n")
+    config_path.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
     print(f"\n  Created {config_path}")
 
     # subscribers.json
     subs_path = digest_dir / "subscribers.json"
-    subs_path.write_text(json.dumps({"subscribers": []}, indent=2) + "\n")
+    subs_path.write_text(json.dumps({"subscribers": []}, indent=2) + "\n", encoding="utf-8")
     print(f"  Created {subs_path}")
 
     # Brand image
@@ -186,7 +186,7 @@ def run_init():
     # Landing page from template
     template_path = Path(__file__).resolve().parent / "templates" / "landing_page.html"
     if template_path.exists():
-        template = template_path.read_text()
+        template = template_path.read_text(encoding="utf-8")
         podcast_feed_url = f"https://{domain}/podcast.xml"
         about_text = (
             f"{name} is an AI-generated digest and podcast. "
@@ -204,7 +204,7 @@ def run_init():
                 .replace("{{HOSTS_HTML}}", hosts_html))
 
         index_path = digest_dir / "index.html"
-        index_path.write_text(html)
+        index_path.write_text(html, encoding="utf-8")
         print(f"  Created {index_path}")
 
     # Next steps

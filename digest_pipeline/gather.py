@@ -37,7 +37,7 @@ MAX_CONCURRENT = 6
 def load_secrets(secrets_file: Path):
     """Load key=value pairs from secrets.env if vars aren't already set."""
     if secrets_file.exists():
-        for line in secrets_file.read_text().splitlines():
+        for line in secrets_file.read_text(encoding="utf-8").splitlines():
             line = line.strip()
             if not line or line.startswith("#"):
                 continue
@@ -658,7 +658,7 @@ def gather_all(work_dir: Path = None, sources_config: dict = None,
         sources_file = skill_dir / "sources.json"
         secrets_file = skill_dir / "sources-secrets.env"
         load_secrets(secrets_file)
-        sources_config = json.load(open(sources_file))
+        sources_config = json.load(open(sources_file, encoding="utf-8"))
 
     # Determine last successful run date for newsletter lookback
     last_success = _get_last_success_date(data_root)
@@ -731,7 +731,7 @@ def gather_all(work_dir: Path = None, sources_config: dict = None,
         for r in results:
             safe_key = r["source_key"].replace(":", "-")
             out = work_dir / f"raw-{safe_key}.txt"
-            out.write_text(r.get("content", ""))
+            out.write_text(r.get("content", ""), encoding="utf-8")
 
     # Sort by source_key for deterministic ordering
     results.sort(key=lambda r: r["source_key"])

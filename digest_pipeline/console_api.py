@@ -20,6 +20,7 @@ from .config import load_config
 from .podcast_stats import discover_log_paths
 from .source_state import load_state
 from .subscribers import load_subscribers
+from .util import atomic_write_json
 
 logger = logging.getLogger("digest")
 
@@ -29,7 +30,7 @@ DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 def _read_json(path: Path):
     """Read a JSON file, returning None on any error."""
     try:
-        return json.loads(path.read_text())
+        return json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return None
 
@@ -39,7 +40,7 @@ def _read_jsonl_tail(path: Path, n: int = 500) -> list[dict]:
     if not path.exists():
         return []
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             lines = deque(f, maxlen=n)
         results = []
         for line in lines:
@@ -187,7 +188,7 @@ def _aggregate_from_ledger(ledger_path: Path, cutoff: str) -> dict:
     """Sum per-source counts from source_history.jsonl over rows >= cutoff."""
     metrics: dict[str, dict] = {}
     try:
-        with ledger_path.open() as f:
+        with ledger_path.open(encoding="utf-8") as f:
             for line in f:
                 if not line.strip():
                     continue
@@ -545,7 +546,7 @@ def _validate_source(source_type, key, fields):
 def _write_config(cfg_path, config):
     """Atomic config write — re-reads disk, applies sources mutation, writes back."""
     cfg_path = str(cfg_path)
-    with open(cfg_path) as f:
+    with open(cfg_path, encoding="utf-8") as f:
         disk_config = json.load(f)
 
     # Apply only the sources section from the in-memory config
@@ -577,12 +578,13 @@ def _clean_source_state(data_root, source_key):
     if not state_path.exists():
         return
     try:
-        state = json.loads(state_path.read_text())
+        state = json.loads(state_path.read_text(encoding="utf-8"))
         if source_key in state:
             del state[source_key]
-            state_path.write_text(json.dumps(state, indent=2) + "\n")
+            atomic_write_json(state_path, state)
     except Exception:
-        pass
+        logger.warning(f"[CONSOLE] Failed to clean {source_key} from source state",
+                       exc_info=True)
 
 
 def create_app(digests_dir: str = None, config_path: str = None) -> Flask:

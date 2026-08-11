@@ -16,10 +16,10 @@ file lock if that ever becomes a real problem.
 from __future__ import annotations
 
 import json
-import os
-import tempfile
 from dataclasses import dataclass
 from pathlib import Path
+
+from .util import atomic_write_text
 
 
 @dataclass
@@ -87,21 +87,10 @@ def add_twitter_accounts(
 
 
 def _atomic_write_json(path: Path, data: dict) -> None:
-    """Write JSON to ``path`` atomically via tempfile + os.replace."""
-    payload = json.dumps(data, indent=2) + "\n"
-    dir_ = path.parent
-    fd, tmp_name = tempfile.mkstemp(
-        prefix=path.name + ".",
-        suffix=".tmp",
-        dir=str(dir_),
-    )
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            f.write(payload)
-        os.replace(tmp_name, path)
-    except Exception:
-        try:
-            os.unlink(tmp_name)
-        except FileNotFoundError:
-            pass
-        raise
+    """Write JSON to ``path`` atomically via tempfile + os.replace.
+
+    Keeps config.json's human-edited formatting (indent=2, ASCII-preserving
+    json.dumps defaults) rather than delegating the serialization to
+    util.atomic_write_json.
+    """
+    atomic_write_text(path, json.dumps(data, indent=2) + "\n")
