@@ -20,6 +20,7 @@ Stages (functions imported from sibling modules):
 Usage:
     python3 -m digest_pipeline.digest --config /path/to/config.json [--dry-run]
 """
+import html
 import json
 import logging
 import re
@@ -146,6 +147,53 @@ def batch_sources(sources: list[dict], max_chars_per_batch: int = 200_000) -> li
     return batches
 
 
+# ── Prioritize selection ─────────────────────────────────────────────────────
+
+def score_articles_by_id(scored: list[dict], n: int,
+                         default: int = 5) -> list[int]:
+    """Map the prioritize LLM's [{"id", "score"}] output to a score per
+    article index. Unknown/malformed entries fall back to the default."""
+    score_map = {}
+    for item in scored:
+        idx = item.get("id")
+        score = item.get("score", default)
+        if isinstance(idx, int) and isinstance(score, (int, float)):
+            score_map[idx] = int(score)
+    return [score_map.get(i, default) for i in range(n)]
+
+
+def select_top_articles(articles: list[dict], scores: list[int],
+                        max_articles: int) -> list[int]:
+    """Category-aware selection: guarantee the top-1 of each category a slot,
+    then fill the remainder by score. Returns kept indices in original order.
+
+    Index-based so duplicate or missing titles can't collapse two articles
+    into one selection slot.
+    """
+    by_category: dict[str, list[int]] = {}
+    for i, a in enumerate(articles):
+        cat = a.get("category", "other")
+        by_category.setdefault(cat, []).append(i)
+
+    kept_idx: list[int] = []
+    remaining_slots = max_articles
+
+    # First pass: pick top-1 from each category
+    for cat, idxs in by_category.items():
+        idxs.sort(key=lambda i: scores[i], reverse=True)
+        if idxs and remaining_slots > 0:
+            kept_idx.append(idxs[0])
+            remaining_slots -= 1
+
+    # Second pass: fill remaining slots by score
+    kept_set = set(kept_idx)
+    unkept = [i for i in range(len(articles)) if i not in kept_set]
+    unkept.sort(key=lambda i: scores[i], reverse=True)
+    kept_idx.extend(unkept[:remaining_slots])
+    kept_idx.sort()
+    return kept_idx
+
+
 # ── Markdown to HTML (for email) ─────────────────────────────────────────────
 
 def _markdown_to_email_html(md: str, config: dict,
@@ -206,7 +254,11 @@ def _markdown_to_email_html(md: str, config: dict,
             html_lines.append('<hr style="border: none; border-top: 1px solid #ddd; margin: 16px 0;">')
             continue
 
-        processed = stripped
+        # Escape HTML-special chars before markdown conversion: an &, <, or
+        # " in an LLM-written title or URL otherwise breaks tags/attributes
+        # in the rendered email. Markdown syntax chars are unaffected, so
+        # the link/bold/italic regexes below still match.
+        processed = html.escape(stripped, quote=True)
         processed = re.sub(
             r'\[([^\]]+)\]\(([^)]+)\)',
             r'<a href="\2" style="color: #1a73e8; text-decoration: none;">\1</a>',
@@ -307,9 +359,16 @@ def main():
 
     llm.configure(provider, config.get("llm", {}).get("models"))
 
+    # Defined before the try so the except handler can't hit an
+    # UnboundLocalError (which used to mask the real failure and skip the
+    # alert when RunLog construction itself failed).
+    run_log = None
+
     try:
         # 2. Gather
-        work_dir.mkdir(exist_ok=True)
+        # parents=True: on a brand-new digest, work/ doesn't exist yet —
+        # init.py doesn't create it, so the very first run used to crash here.
+        work_dir.mkdir(parents=True, exist_ok=True)
         run_log = RunLog(digest_cfg.get("name", "Digest"), date, work_dir)
         logger.info("[PIPELINE] Stage: GATHER")
         t0 = time.time()
@@ -361,6 +420,7 @@ def main():
                 save_state(data_root, source_state)
             # Exit 10/11 are skip codes, not failures — run.sh treats them as "no new
             # content today" and suppresses the failure alert it would normally send.
+            run_log.skip(msg)
             sys.exit(10)
 
         # 4. Extract: batched Haiku calls
@@ -421,6 +481,7 @@ def main():
                 )
             except Exception:
                 logger.error("[PIPELINE] Failed to send skip notification")
+            run_log.skip(msg)
             sys.exit(11)
 
         logger.info(f"[PIPELINE] Total articles extracted: {len(all_articles)}")
@@ -608,6 +669,7 @@ def main():
                     source_state, pending_ids, fetched_keys, set(), date)
                 source_state = prune_state(source_state)
                 save_state(data_root, source_state)
+            run_log.skip(msg)
             sys.exit(10)
 
         # 8. Prioritize: trim to max_articles if needed
@@ -634,40 +696,12 @@ def main():
             model_name = llm.model_for("prioritize")
             tracker.add("Prioritize", model_name, prio_usage, prio_dur)
 
-            score_map = {}
-            for item in scored:
-                idx = item.get("id")
-                score = item.get("score", 5)
-                if isinstance(idx, int) and isinstance(score, (int, float)):
-                    score_map[idx] = int(score)
-            scores = [score_map.get(i, 5) for i in range(len(deduped))]
+            scores = score_articles_by_id(scored, len(deduped))
             for i, a in enumerate(deduped):
                 a["_priority_score"] = scores[i]
 
-            # Category-aware selection: guarantee at least 1 per category
-            by_category: dict[str, list[int]] = {}
-            for i, a in enumerate(deduped):
-                cat = a.get("category", "other")
-                by_category.setdefault(cat, []).append(i)
-
-            kept_idx: list[int] = []
-            remaining_slots = max_articles
-
-            # First pass: pick top-1 from each category
-            for cat, idxs in by_category.items():
-                idxs.sort(key=lambda i: scores[i], reverse=True)
-                if idxs and remaining_slots > 0:
-                    kept_idx.append(idxs[0])
-                    remaining_slots -= 1
-
-            # Second pass: fill remaining slots by score
+            kept_idx = select_top_articles(deduped, scores, max_articles)
             kept_set = set(kept_idx)
-            unkept = [i for i in range(len(deduped)) if i not in kept_set]
-            unkept.sort(key=lambda i: scores[i], reverse=True)
-            kept_idx.extend(unkept[:remaining_slots])
-            kept_set = set(kept_idx)
-            kept_idx.sort()
-
             kept = [deduped[i] for i in kept_idx]
             dropped = [deduped[i] for i in range(len(deduped)) if i not in kept_set]
 
@@ -822,7 +856,8 @@ def main():
 
     except Exception as e:
         logger.error(f"[PIPELINE] FAILED: {e}\n{traceback.format_exc()}")
-        run_log.fail(str(e))
+        if run_log is not None:
+            run_log.fail(str(e))
         try:
             delivery.send_alert("Pipeline", str(e), config)
         except Exception:

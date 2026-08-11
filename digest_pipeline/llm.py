@@ -375,10 +375,26 @@ def dedupe_merge(clusters: list[list[dict]], date: str,
     text, usage = chat(messages, model, max_tokens=8192)
     merged = _parse_json_array(text, strict=True)
 
-    # Stamp source provenance from input clusters onto merged articles
+    # Stamp source provenance from input clusters onto merged articles,
+    # matched by the group_id the model echoes. Positional matching silently
+    # mis-attributed sources whenever the model reordered, split, or dropped
+    # a group.
     for i, article in enumerate(merged):
-        if i < len(multi_clusters):
+        gid = article.pop("group_id", None)
+        prov = None
+        if isinstance(gid, int) and 1 <= gid <= len(multi_clusters):
+            prov = _collect_source_provenance(multi_clusters[gid - 1])
+        elif len(merged) == len(multi_clusters):
+            # 1:1 output without usable ids — positional is unambiguous
+            logger.warning(f"[DEDUPE] Missing/invalid group_id "
+                           f"'{gid}' — falling back to positional match")
             prov = _collect_source_provenance(multi_clusters[i])
+        else:
+            logger.warning(f"[DEDUPE] Cannot attribute sources for "
+                           f"'{article.get('title', '(untitled)')}' "
+                           f"(group_id={gid!r}, {len(merged)} merged vs "
+                           f"{len(multi_clusters)} groups)")
+        if prov:
             article.update(prov)
         # Remove any per-article source fields the LLM might have echoed
         for field in ("source_key", "source_type", "source_label", "source_url"):

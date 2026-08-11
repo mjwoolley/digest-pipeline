@@ -86,6 +86,18 @@ class RunLog:
         self._data["totals"] = totals
         self._flush()
 
+    def skip(self, reason: str):
+        """Mark the run as skipped (no content to send today).
+
+        Without a terminal state, the sys.exit(10/11) skip paths left the
+        record stuck in "running" forever in the console's run history.
+        """
+        self._data["status"] = "skipped"
+        self._data["completed_at"] = _now()
+        self._data["duration_s"] = round(time.time() - self._start, 1)
+        self._data["error"] = reason
+        self._flush()
+
     def fail(self, error: str):
         """Mark the run failed with ``error`` as the top-level reason."""
         self._data["status"] = "failure"

@@ -12,7 +12,11 @@ EXTRA_ARGS="${@:2}"
 
 echo "[$(date -u '+%Y-%m-%d %H:%M:%S')] Starting digest pipeline: $CONFIG"
 
-# Prefer .venv CLI, fall back to system CLI, then module execution
+# Prefer .venv CLI, fall back to system CLI, then module execution.
+# The CLI runs digest AND podcast; the module fallback runs each explicitly.
+# Note: the package files use relative imports, so the fallback must use
+# `python -m digest_pipeline.<module>` — running the files directly always
+# fails with an ImportError.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DIGEST_EXIT=0
 if [ -x "$SCRIPT_DIR/.venv/bin/digest-pipeline" ]; then
@@ -26,7 +30,11 @@ else
         PYTHON="python3"
     fi
 
-    $PYTHON "$SCRIPT_DIR/digest_pipeline/digest.py" --config "$CONFIG" $EXTRA_ARGS 2>&1 || DIGEST_EXIT=$?
+    $PYTHON -m digest_pipeline.digest --config "$CONFIG" $EXTRA_ARGS 2>&1 || DIGEST_EXIT=$?
+
+    if [ "$DIGEST_EXIT" -eq 0 ]; then
+        $PYTHON -m digest_pipeline.podcast --config "$CONFIG" $EXTRA_ARGS 2>&1 || echo "Podcast generation failed (non-fatal)"
+    fi
 fi
 
 if [ "$DIGEST_EXIT" -eq 10 ] || [ "$DIGEST_EXIT" -eq 11 ]; then
@@ -37,13 +45,5 @@ fi
 if [ "$DIGEST_EXIT" -ne 0 ]; then
     exit "$DIGEST_EXIT"
 fi
-
-if [ -f "$SCRIPT_DIR/.venv/bin/python3" ]; then
-    PYTHON="${PYTHON:-$SCRIPT_DIR/.venv/bin/python3}"
-else
-    PYTHON="${PYTHON:-python3}"
-fi
-
-$PYTHON "$SCRIPT_DIR/digest_pipeline/podcast.py" --config "$CONFIG" $EXTRA_ARGS 2>&1 || echo "Podcast generation failed (non-fatal)"
 
 echo "[$(date -u '+%Y-%m-%d %H:%M:%S')] Pipeline complete"

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from typing import Any
 
 from . import llm
@@ -27,6 +28,20 @@ def _article_text(article: dict[str, Any]) -> str:
     return "\n".join(p for p in parts if p)
 
 
+def _keyword_hits(keywords: list[str], text: str) -> list[str]:
+    """Whole-word keyword matching.
+
+    Substring matching made "AI" hit m-ai-n, s-ai-d, em-ai-l, etc., so the
+    include list kept nearly everything, the exclude list never fired, and
+    the borderline LLM check never ran.
+    """
+    hits = []
+    for k in keywords:
+        if k and re.search(r"\b" + re.escape(k) + r"\b", text):
+            hits.append(k)
+    return hits
+
+
 def classify_article(article: dict[str, Any], config: dict[str, Any]) -> tuple[str, str]:
     """Classify article as keep/drop/borderline using rules only."""
     rf = config.get("relevance_filter", {})
@@ -34,8 +49,8 @@ def classify_article(article: dict[str, Any], config: dict[str, Any]) -> tuple[s
     includes = [_norm(k) for k in rf.get("keywords_include", []) if k]
     excludes = [_norm(k) for k in rf.get("keywords_exclude", []) if k]
 
-    include_hits = [k for k in includes if k and k in text]
-    exclude_hits = [k for k in excludes if k and k in text]
+    include_hits = _keyword_hits(includes, text)
+    exclude_hits = _keyword_hits(excludes, text)
 
     if include_hits:
         return "keep", f"include keyword: {include_hits[0]}"

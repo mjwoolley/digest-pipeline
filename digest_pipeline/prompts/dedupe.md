@@ -13,8 +13,9 @@ For each group:
 NOTE: Do NOT include source fields (source_key, source_type, source_label, source_url) — those are handled by code.
 
 ## Output Format
-JSON array of merged objects:
+JSON array of merged objects. `group_id` MUST echo the group number from the input heading (e.g. articles merged from "## Group 2" get `"group_id": 2`):
 {
+  "group_id": 1,
   "title": "Best headline",
   "category": "{{CATEGORY_VALUES}}",
   "description": "Combined full description with details from all sources",
