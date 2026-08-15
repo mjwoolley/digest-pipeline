@@ -18,6 +18,7 @@ digests/*/*.md
 !digests/*/README.md
 digests/*/podcasts/
 digests/*/.seen_embeddings.json
+digests/*/.shipped_urls.json
 digests/*/index.html
 digests/*/podcast.xml
 digests/*/podcast_stats.json
