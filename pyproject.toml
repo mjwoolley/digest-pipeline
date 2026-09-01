@@ -18,3 +18,10 @@ digest-pipeline = "digest_pipeline.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["digest_pipeline"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "replay: offline dedup replay against archived digests (run with -m replay)",
+]
+addopts = "-m 'not replay'"

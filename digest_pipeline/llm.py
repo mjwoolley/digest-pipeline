@@ -1,9 +1,12 @@
 """OpenRouter / Anthropic API client for chat completions and embeddings."""
 import json
 import logging
+import random
 import time
 import urllib.request
 import urllib.error
+
+from .util import extract_json_array
 
 logger = logging.getLogger("digest")
 
@@ -20,37 +23,73 @@ MODELS = {
     "openrouter": {
         "haiku": "anthropic/claude-haiku-4.5",
         "sonnet": "anthropic/claude-sonnet-4.6",
+        "opus": "anthropic/claude-opus-5",
         "embedding": "openai/text-embedding-3-small",
     },
     "anthropic": {
-        "haiku": "claude-haiku-4-5-20251001",
-        "sonnet": "claude-sonnet-4-6-20250514",
+        "haiku": "claude-haiku-4-5",
+        "sonnet": "claude-sonnet-4-6",
+        "opus": "claude-opus-5",
         "embedding": "openai/text-embedding-3-small",  # always via OpenRouter
     },
+}
+
+# Which model tier each pipeline stage runs on by default. The writing
+# stages (reader-visible prose: merged descriptions, summaries and
+# why-it-matters, podcast script) get Opus; mechanical extraction,
+# classification, and scoring stay on Haiku. Override per digest via the
+# config's llm.models block, e.g. {"format": "sonnet"} or a full model id.
+STAGE_DEFAULTS = {
+    "extract": "haiku",
+    "relevance": "haiku",
+    "prioritize": "haiku",
+    "title": "haiku",
+    "discovery": "haiku",
+    "same_story": "haiku",
+    "dedupe": "opus",
+    "format": "opus",
+    "podcast": "opus",
 }
 
 # Pricing per million tokens (OpenRouter rates)
 PRICING = {
     "anthropic/claude-haiku-4.5": {"input": 0.80, "output": 4.00},
+    "claude-haiku-4-5": {"input": 0.80, "output": 4.00},
     "claude-haiku-4-5-20251001": {"input": 0.80, "output": 4.00},
     "anthropic/claude-sonnet-4.6": {"input": 3.00, "output": 15.00},
-    "claude-sonnet-4-6-20250514": {"input": 3.00, "output": 15.00},
+    "claude-sonnet-4-6": {"input": 3.00, "output": 15.00},
+    "anthropic/claude-opus-5": {"input": 5.00, "output": 25.00},
+    "claude-opus-5": {"input": 5.00, "output": 25.00},
     "openai/text-embedding-3-small": {"input": 0.02, "output": 0.0},
 }
 
 TIMEOUT = 300
-MAX_RETRIES = 1
-RETRY_BACKOFF = 5
+MAX_RETRIES = 4
+RETRY_BACKOFF = 5   # base seconds; grows exponentially with jitter
+RETRY_MAX_SLEEP = 60
 
 _keys: dict[str, str] = {}
+_stage_overrides: dict[str, str] = {}
 
 
-def configure(provider: str = "openrouter"):
-    """Set the chat provider and load API keys."""
-    global _provider, _keys
+def configure(provider: str = "openrouter", stage_models: dict = None):
+    """Set the chat provider, per-stage model overrides, and load API keys.
+
+    stage_models maps a stage name (see STAGE_DEFAULTS) to a tier name
+    ("haiku"/"sonnet"/"opus") or a full model id.
+    """
+    global _provider, _keys, _stage_overrides
     _provider = provider
+    _stage_overrides = dict(stage_models or {})
     _keys = _load_keys()
-    logger.info(f"[LLM] Provider: {_provider}")
+    logger.info(f"[LLM] Provider: {_provider}"
+                + (f" | model overrides: {_stage_overrides}" if _stage_overrides else ""))
+
+
+def model_for(stage: str) -> str:
+    """Resolve the model id for a pipeline stage."""
+    choice = _stage_overrides.get(stage) or STAGE_DEFAULTS.get(stage, "haiku")
+    return MODELS[_provider].get(choice, choice)
 
 
 def _load_keys() -> dict[str, str]:
@@ -93,6 +132,12 @@ def _chat_openrouter(messages: list[dict], model: str,
         "Authorization": f"Bearer {_keys['openrouter']}",
     }
     data = _request_with_retry(OPENROUTER_URL, payload, headers)
+    # OpenRouter returns HTTP 200 with an error envelope (and no choices) on
+    # upstream provider errors, moderation blocks, and credit exhaustion.
+    if not isinstance(data, dict) or "choices" not in data or not data["choices"]:
+        err = (data or {}).get("error") if isinstance(data, dict) else None
+        preview = json.dumps(err or data, ensure_ascii=False)[:500]
+        raise RuntimeError(f"OpenRouter returned no choices: {preview}")
     finish_reason = data["choices"][0].get("finish_reason", "")
     if finish_reason == "length":
         logger.warning(f"[LLM] Output truncated (hit max_tokens={max_tokens})")
@@ -209,9 +254,9 @@ def extract_normalize(sources_batch: list[dict], date: str,
     prompt. The model emits src_ref per article; code maps it back to the
     gathered source provenance (source_key, source_type, source_label, source_url).
 
-    Returns (articles, usage). Uses Haiku.
+    Returns (articles, usage).
     """
-    model = MODELS[_provider]["haiku"]
+    model = model_for("extract")
 
     # Build source content with SRC reference tokens.
     # The model only sees opaque ``SRC1`` / ``SRC2`` labels and is asked to
@@ -247,8 +292,10 @@ def extract_normalize(sources_batch: list[dict], date: str,
         {"role": "system", "content": f"Today's date: {date}"},
         {"role": "user", "content": prompt},
     ]
-    text, usage = chat(messages, model, max_tokens=65536)
-    articles = _parse_json_array(text)
+    # Haiku 4.5 caps output at 64K; the article JSON for a batch is far
+    # smaller than the raw input, so 32K is generous headroom.
+    text, usage = chat(messages, model, max_tokens=32768)
+    articles = _parse_json_array(text, strict=True)
 
     # Stamp source provenance from gathered sources, replacing src_ref
     stamped = []
@@ -284,12 +331,12 @@ def _collect_source_provenance(articles: list[dict]) -> dict:
 def dedupe_merge(clusters: list[list[dict]], date: str,
                  prompt_template: str) -> tuple[list[dict], dict]:
     """Merge articles within each cluster into canonical items.
-    Returns (merged_articles, usage). Uses Sonnet.
+    Returns (merged_articles, usage).
 
     Source provenance (source_keys, source_labels) is collected by code
     from the input articles in each cluster, not by the LLM.
     """
-    model = MODELS[_provider]["sonnet"]
+    model = model_for("dedupe")
 
     # Only send multi-article clusters for merging; pass through singletons
     singletons = []
@@ -326,12 +373,28 @@ def dedupe_merge(clusters: list[list[dict]], date: str,
         {"role": "user", "content": prompt},
     ]
     text, usage = chat(messages, model, max_tokens=8192)
-    merged = _parse_json_array(text)
+    merged = _parse_json_array(text, strict=True)
 
-    # Stamp source provenance from input clusters onto merged articles
+    # Stamp source provenance from input clusters onto merged articles,
+    # matched by the group_id the model echoes. Positional matching silently
+    # mis-attributed sources whenever the model reordered, split, or dropped
+    # a group.
     for i, article in enumerate(merged):
-        if i < len(multi_clusters):
+        gid = article.pop("group_id", None)
+        prov = None
+        if isinstance(gid, int) and 1 <= gid <= len(multi_clusters):
+            prov = _collect_source_provenance(multi_clusters[gid - 1])
+        elif len(merged) == len(multi_clusters):
+            # 1:1 output without usable ids — positional is unambiguous
+            logger.warning(f"[DEDUPE] Missing/invalid group_id "
+                           f"'{gid}' — falling back to positional match")
             prov = _collect_source_provenance(multi_clusters[i])
+        else:
+            logger.warning(f"[DEDUPE] Cannot attribute sources for "
+                           f"'{article.get('title', '(untitled)')}' "
+                           f"(group_id={gid!r}, {len(merged)} merged vs "
+                           f"{len(multi_clusters)} groups)")
+        if prov:
             article.update(prov)
         # Remove any per-article source fields the LLM might have echoed
         for field in ("source_key", "source_type", "source_label", "source_url"):
@@ -342,10 +405,9 @@ def dedupe_merge(clusters: list[list[dict]], date: str,
 
 def prioritize_score(articles: list[dict], prompt: str) -> tuple[list[dict], dict]:
     """Score articles by importance for prioritization.
-    Returns (scored_list, usage) where scored_list is [{"title": str, "score": int}, ...].
-    Uses Haiku.
+    Returns (scored_list, usage) where scored_list is [{"id": int, "score": int}, ...].
     """
-    model = MODELS[_provider]["haiku"]
+    model = model_for("prioritize")
     messages = [
         {"role": "user", "content": prompt},
     ]
@@ -354,12 +416,41 @@ def prioritize_score(articles: list[dict], prompt: str) -> tuple[list[dict], dic
     return scored, usage
 
 
+def same_story_check(candidates: list[dict],
+                     prompt_template: str) -> tuple[set[int], dict]:
+    """Adjudicate grey-zone cross-day duplicate candidates in one Haiku call.
+
+    candidates: [{index, title, description, match_title, similarity}, ...]
+    Returns (indices judged to be the same story, usage).
+    """
+    model = model_for("same_story")
+    pairs = [
+        {
+            "id": c["index"],
+            "candidate_title": c["title"],
+            "candidate_description": c["description"],
+            "previously_published_title": c["match_title"],
+        }
+        for c in candidates
+    ]
+    prompt = prompt_template.replace("{{PAIRS}}", json.dumps(pairs, indent=2))
+    text, usage = chat([{"role": "user", "content": prompt}], model,
+                       max_tokens=2048)
+    results = _parse_json_array(text)
+    dup_ids = {
+        r["id"] for r in results
+        if isinstance(r, dict) and r.get("same_story") is True
+        and isinstance(r.get("id"), int)
+    }
+    return dup_ids, usage
+
+
 def summarize_format(articles: list[dict], date: str,
                      prompt_template: str) -> tuple[str, dict]:
     """Summarize each article and format the digest.
-    Returns (formatted_message, usage). Uses Sonnet.
+    Returns (formatted_message, usage).
     """
-    model = MODELS[_provider]["sonnet"]
+    model = model_for("format")
     articles_str = json.dumps(articles, indent=2)
     prompt = prompt_template.replace("{{ARTICLES}}", articles_str).replace("{{DATE}}", date)
 
@@ -373,9 +464,25 @@ def summarize_format(articles: list[dict], date: str,
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
+def _retry_sleep_seconds(attempt: int, retry_after: str = None) -> float:
+    """Backoff for a retry: honor Retry-After when given, else exponential
+    with jitter (5s, 10s, 20s, 40s… capped)."""
+    if retry_after:
+        try:
+            return min(max(float(retry_after), 1.0), RETRY_MAX_SLEEP)
+        except ValueError:
+            pass
+    delay = min(RETRY_BACKOFF * (2 ** attempt), RETRY_MAX_SLEEP)
+    return delay + random.uniform(0, delay * 0.25)
+
+
 def _request_with_retry(url: str, payload: bytes,
                         headers: dict) -> dict:
-    """Make HTTP request with 1 retry on 5xx errors."""
+    """Make an HTTP request, retrying 429s, 5xx, and connection errors.
+
+    429 was previously not retried at all — one rate-limit hit on any of the
+    per-run LLM calls killed the whole day's digest.
+    """
     last_err = None
     for attempt in range(1 + MAX_RETRIES):
         req = urllib.request.Request(url, data=payload, headers=headers)
@@ -385,38 +492,38 @@ def _request_with_retry(url: str, payload: bytes,
         except urllib.error.HTTPError as e:
             body = e.read().decode(errors="replace")
             logger.warning(f"[LLM] HTTP {e.code} (attempt {attempt+1}): {body[:200]}")
-            if e.code >= 500 and attempt < MAX_RETRIES:
-                time.sleep(RETRY_BACKOFF)
+            retryable = e.code == 429 or e.code >= 500
+            if retryable and attempt < MAX_RETRIES:
+                sleep = _retry_sleep_seconds(attempt, e.headers.get("Retry-After")
+                                             if e.headers else None)
+                logger.info(f"[LLM] Retrying in {sleep:.0f}s")
+                time.sleep(sleep)
                 last_err = e
                 continue
             raise RuntimeError(f"API error {e.code}: {body[:500]}") from e
         except urllib.error.URLError as e:
             logger.warning(f"[LLM] URL error (attempt {attempt+1}): {e}")
             if attempt < MAX_RETRIES:
-                time.sleep(RETRY_BACKOFF)
+                time.sleep(_retry_sleep_seconds(attempt))
                 last_err = e
                 continue
             raise RuntimeError(f"API connection error: {e}") from e
     raise RuntimeError(f"API request failed after retries: {last_err}")
 
 
-def _parse_json_array(text: str) -> list[dict]:
-    """Parse a JSON array from LLM output, stripping markdown fences."""
-    text = text.strip()
-    if text.startswith("```"):
-        lines = text.split("\n")
-        lines = lines[1:]
-        if lines and lines[-1].strip() == "```":
-            lines = lines[:-1]
-        text = "\n".join(lines).strip()
+def _parse_json_array(text: str, strict: bool = False) -> list[dict]:
+    """Parse a JSON array from LLM output.
+
+    strict=True raises on failure — used on stages where silently returning
+    [] would make an entire batch of content vanish and ship a thin digest
+    with no error. Non-strict callers degrade gracefully instead.
+    """
     try:
-        result = json.loads(text)
-        if isinstance(result, list):
-            return result
-        logger.warning(f"[LLM] Expected JSON array, got {type(result).__name__}")
-        return []
-    except json.JSONDecodeError as e:
-        logger.error(f"[LLM] JSON parse error: {e}\nRaw text: {text[:500]}")
+        return extract_json_array(text)
+    except ValueError as e:
+        if strict:
+            raise RuntimeError(f"LLM returned unparseable JSON: {e}") from e
+        logger.error(f"[LLM] JSON parse error: {e}")
         return []
 
 

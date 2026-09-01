@@ -187,7 +187,7 @@ def _event_from_record(record: dict) -> RequestEvent | None:
 
 def _iter_json_records(path: Path):
     try:
-        with path.open() as f:
+        with path.open(encoding="utf-8") as f:
             first = f.read(1)
             if not first:
                 return
@@ -405,6 +405,6 @@ def write_podcast_metrics(config: dict, data_root: Path, *, log_paths: list[Path
     ``podcast_downloads.json`` under ``data_root``. Returns the same
     ``(stats, downloads)`` tuple as ``compute_podcast_metrics``."""
     stats, downloads = compute_podcast_metrics(config, data_root, log_paths=log_paths, now=now)
-    (data_root / "podcast_stats.json").write_text(json.dumps(stats, indent=2) + "\n")
-    (data_root / "podcast_downloads.json").write_text(json.dumps(downloads, indent=2) + "\n")
+    (data_root / "podcast_stats.json").write_text(json.dumps(stats, indent=2) + "\n", encoding="utf-8")
+    (data_root / "podcast_downloads.json").write_text(json.dumps(downloads, indent=2) + "\n", encoding="utf-8")
     return stats, downloads

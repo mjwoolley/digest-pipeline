@@ -31,13 +31,52 @@ logger = logging.getLogger("digest")
 
 MAX_CONCURRENT = 6
 
+# Cap on how far back a last-run-aware RSS window can stretch, so a long
+# outage doesn't dump weeks of posts into one digest.
+RSS_LOOKBACK_CAP_HOURS = 7 * 24
+
+# Cap on newsletter issues fetched per source per run.
+MAX_NEWSLETTER_ISSUES = 5
+
+_LOOKBACK_RE = re.compile(r"^(\d+)\s*([hd])$", re.IGNORECASE)
+
+
+def _parse_lookback(value) -> timedelta | None:
+    """Parse a config lookback like '36h' or '2d' into a timedelta."""
+    if not value:
+        return None
+    m = _LOOKBACK_RE.match(str(value).strip())
+    if not m:
+        return None
+    n, unit = int(m.group(1)), m.group(2).lower()
+    return timedelta(hours=n) if unit == "h" else timedelta(days=n)
+
+
+def _curl(url: str, timeout: int = 10) -> subprocess.CompletedProcess:
+    """Fetch a URL via curl with transient-failure retries.
+
+    Raises RuntimeError if curl isn't installed. Callers check returncode;
+    stderr is captured for logging.
+    """
+    try:
+        return subprocess.run(
+            ["curl", "-sSL", "--compressed", "--max-time", str(timeout),
+             "--retry", "2", "--retry-delay", "2", url],
+            capture_output=True, text=True, timeout=timeout * 3 + 10,
+        )
+    except FileNotFoundError:
+        raise RuntimeError(
+            "'curl' not found. Install with: apt install curl (Linux) "
+            "or brew install curl (macOS)"
+        )
+
 
 # ── Credential loading ──────────────────────────────────────────────────────
 
 def load_secrets(secrets_file: Path):
     """Load key=value pairs from secrets.env if vars aren't already set."""
     if secrets_file.exists():
-        for line in secrets_file.read_text().splitlines():
+        for line in secrets_file.read_text(encoding="utf-8").splitlines():
             line = line.strip()
             if not line or line.startswith("#"):
                 continue
@@ -48,18 +87,31 @@ def load_secrets(secrets_file: Path):
 
 # ── Source fetchers ──────────────────────────────────────────────────────────
 
-def _fetch_twitter(account: str, auth_token: str, ct0: str) -> dict:
-    """Fetch tweets for a single account."""
+def _fetch_twitter(account: str, auth_token: str, ct0: str,
+                   max_items: int = 10, lookback=None) -> dict:
+    """Fetch tweets for a single account.
+
+    max_items / lookback come from the config's sources.twitter block
+    (max_per_account, lookback) — previously documented and surfaced in the
+    console but never actually passed to the bird CLI.
+    """
     source_label = f"@{account}"
     source_key = f"twitter:{account}"
     source_url = f"https://twitter.com/{account}"
     env = {**os.environ, "AUTH_TOKEN": auth_token, "CT0": ct0}
     base = {"source_key": source_key, "source_type": "twitter",
             "source_label": source_label, "source_url": source_url}
+    query = f"from:{account}"
+    delta = _parse_lookback(lookback)
+    if delta:
+        # Twitter search supports day-granular since: — round down so a 36h
+        # lookback never excludes tweets it should include.
+        since = (datetime.now(timezone.utc) - delta).strftime("%Y-%m-%d")
+        query += f" since:{since}"
     try:
         try:
             result = subprocess.run(
-                ["bird", "search", f"from:{account}", "-n", "10"],
+                ["bird", "search", query, "-n", str(max_items)],
                 capture_output=True, text=True, env=env, timeout=30
             )
         except FileNotFoundError:
@@ -69,7 +121,10 @@ def _fetch_twitter(account: str, auth_token: str, ct0: str) -> dict:
             )
         content = result.stdout.strip() if result.returncode == 0 else ""
         if not content:
-            logger.warning(f"[GATHER] {source_label}: empty or failed")
+            stderr = (result.stderr or "").strip()
+            detail = f": {stderr[:200]}" if stderr else ""
+            logger.warning(f"[GATHER] {source_label}: empty or failed "
+                           f"(exit {result.returncode}){detail}")
         else:
             logger.info(f"[GATHER] {source_label}: OK")
         return {**base, "content": content}
@@ -89,10 +144,15 @@ def _get_last_success_date(data_root: Path = None) -> datetime | None:
     try:
         dates = []
         for f in data_root.iterdir():
-            if f.suffix == ".md" and re.match(r"\d{4}-\d{2}-\d{2}", f.stem):
+            # fullmatch: a prefix match let files like "2026-03-02-draft.md"
+            # through to strptime, whose ValueError silently disabled the
+            # last-run lookback for every source.
+            if f.suffix == ".md" and re.fullmatch(r"\d{4}-\d{2}-\d{2}", f.stem):
                 dates.append(datetime.strptime(f.stem, "%Y-%m-%d").replace(tzinfo=timezone.utc))
         return max(dates) if dates else None
     except Exception:
+        logger.warning("[GATHER] Failed to determine last successful run date",
+                       exc_info=True)
         return None
 
 
@@ -101,8 +161,11 @@ def _fetch_newsletter(key: str, nl: dict, imap_host: str,
                       last_success: datetime = None) -> dict:
     """Fetch a newsletter via IMAP.
 
-    Connects to the IMAP server, searches for recent emails matching the
-    sender address, and returns the plain-text body of the most recent match.
+    Connects to the IMAP server, searches for emails matching the sender
+    address since the last successful run (or lookback_days), and returns
+    the plain-text bodies of ALL matches — a skipped day, a failed run, or
+    a bonus edition previously meant only the newest issue survived and the
+    rest fell outside every future window.
 
     If last_success is provided, uses that as the lookback date instead of
     lookback_days, ensuring no newsletters are missed between runs.
@@ -130,27 +193,45 @@ def _fetch_newsletter(key: str, nl: dict, imap_host: str,
             logger.info(f"[GATHER] {source_label}: no recent issue")
             return {**base, "content": ""}
 
-        # Fetch the most recent match
-        latest_id = msg_ids[0].split()[-1]
-        status, msg_data = conn.fetch(latest_id, "(RFC822)")
+        # Fetch every match since the window opened (newest last), capped
+        ids = msg_ids[0].split()[-MAX_NEWSLETTER_ISSUES:]
+        issues = []  # (message_id, text)
+        for mid in ids:
+            status, msg_data = conn.fetch(mid, "(RFC822)")
+            if status != "OK" or not msg_data or not msg_data[0]:
+                logger.warning(f"[GATHER] {source_label}: fetch failed for one issue")
+                continue
+            msg = email.message_from_bytes(msg_data[0][1], policy=email.policy.default)
+            text = _extract_email_text(msg)
+            # Truncate each issue to its first 300 lines
+            text = "\n".join(text.split("\n")[:300])
+            if text.strip():
+                issues.append((_extract_message_id(msg), text))
         conn.logout()
 
-        if status != "OK":
+        if not issues:
             logger.warning(f"[GATHER] {source_label}: fetch failed")
             return {**base, "content": ""}
 
-        msg = email.message_from_bytes(msg_data[0][1], policy=email.policy.default)
-        content = _extract_email_text(msg)
-        # Truncate to first 300 lines
-        content = "\n".join(content.split("\n")[:300])
+        if len(issues) == 1:
+            msg_id, content = issues[0]
+            logger.info(f"[GATHER] {source_label}: OK")
+            result = {**base, "content": content}
+            if msg_id:
+                result["message_id"] = msg_id
+            return result
 
-        # Extract Message-ID for stable dedup identity
-        msg_id = _extract_message_id(msg)
-
-        logger.info(f"[GATHER] {source_label}: OK")
-        result = {**base, "content": content}
-        if msg_id:
-            result["message_id"] = msg_id
+        # Multiple issues: tag each block so per-issue dedup identity survives
+        blocks = [
+            f"=== ISSUE {mid or 'unknown'} ===\n{text}"
+            for mid, text in issues
+        ]
+        logger.info(f"[GATHER] {source_label}: OK ({len(issues)} issues)")
+        result = {**base, "content": "\n\n".join(blocks)}
+        result["message_ids"] = [mid for mid, _ in issues if mid]
+        # Newest issue's id kept for backward compatibility
+        if issues[-1][0]:
+            result["message_id"] = issues[-1][0]
         return result
     except Exception as e:
         logger.warning(f"[GATHER] {source_label}: {e}")
@@ -208,8 +289,14 @@ def _is_bad_payload(text: str) -> bool:
     return False
 
 
-def _fetch_blog(key: str, blog: dict, source_type: str = "blog") -> dict:
-    """Fetch and parse a blog source. Dispatches by strategy."""
+def _fetch_blog(key: str, blog: dict, source_type: str = "blog",
+                last_success: datetime = None) -> dict:
+    """Fetch and parse a blog source. Dispatches by strategy.
+
+    The RSS window is last-run-aware: if the pipeline missed a day, posts
+    from the gap are still inside the window instead of being cut off at a
+    fixed 24 hours (capped at RSS_LOOKBACK_CAP_HOURS).
+    """
     source_label = blog["name"]
     source_key = f"{source_type}:{key}"
     source_url = blog.get("url", blog.get("feed_url", ""))
@@ -222,18 +309,11 @@ def _fetch_blog(key: str, blog: dict, source_type: str = "blog") -> dict:
 
     # Default: RSS strategy
     try:
-        try:
-            result = subprocess.run(
-                ["curl", "-sL", "--compressed", "--max-time", "10", blog["feed_url"]],
-                capture_output=True, text=True, timeout=15
-            )
-        except FileNotFoundError:
-            raise RuntimeError(
-                "'curl' not found. Install with: apt install curl (Linux) "
-                "or brew install curl (macOS)"
-            )
+        result = _curl(blog["feed_url"], timeout=10)
         if result.returncode != 0 or not result.stdout.strip():
-            logger.warning(f"[GATHER] {source_label}: fetch failed")
+            stderr = (result.stderr or "").strip()
+            detail = f": {stderr[:200]}" if stderr else ""
+            logger.warning(f"[GATHER] {source_label}: fetch failed{detail}")
             return {**base, "content": ""}
 
         if _is_bad_payload(result.stdout):
@@ -241,6 +321,9 @@ def _fetch_blog(key: str, blog: dict, source_type: str = "blog") -> dict:
             return {**base, "content": ""}
 
         feed_hours = blog.get("feed_hours", 24)
+        if last_success is not None:
+            gap_hours = (datetime.now(timezone.utc) - last_success).total_seconds() / 3600
+            feed_hours = min(max(feed_hours, gap_hours + 6), RSS_LOOKBACK_CAP_HOURS)
         parsed = parse_rss_recent(result.stdout, hours=feed_hours)
         if parsed is not None:
             content = parsed
@@ -396,12 +479,11 @@ def _fetch_blog_html_scrape(key: str, blog: dict,
             "source_label": source_label, "source_url": source_url}
     scrape_parser = blog.get("scrape_parser", "")
     try:
-        result = subprocess.run(
-            ["curl", "-sL", "--compressed", "--max-time", "10", source_url],
-            capture_output=True, text=True, timeout=15
-        )
+        result = _curl(source_url, timeout=10)
         if result.returncode != 0 or not result.stdout.strip():
-            logger.warning(f"[GATHER] {source_label}: fetch failed")
+            stderr = (result.stderr or "").strip()
+            detail = f": {stderr[:200]}" if stderr else ""
+            logger.warning(f"[GATHER] {source_label}: fetch failed{detail}")
             return {**base, "content": ""}
 
         if _is_bad_payload(result.stdout):
@@ -453,7 +535,8 @@ def parse_rss_recent(xml_text, hours=24):
         content = (entry.findtext("atom:content", "", ns)
                    or entry.findtext("atom:summary", "", ns) or "")
         date_str = updated or published
-        if date_str and _parse_date(date_str) and _parse_date(date_str) < cutoff:
+        entry_dt = _parse_date(date_str) if date_str else None
+        if entry_dt and entry_dt < cutoff:
             continue
         entries.append(f"TITLE: {title}\nLINK: {link}\n{content[:2000]}\n---")
 
@@ -468,7 +551,8 @@ def parse_rss_recent(xml_text, hours=24):
             content_encoded = item.findtext(
                 "{http://purl.org/rss/1.0/modules/content/}encoded", "") or ""
             body = content_encoded or desc
-            if pub_date and _parse_date(pub_date) and _parse_date(pub_date) < cutoff:
+            item_dt = _parse_date(pub_date) if pub_date else None
+            if item_dt and item_dt < cutoff:
                 continue
             entries.append(f"TITLE: {title}\nLINK: {link}\n{body[:2000]}\n---")
 
@@ -566,11 +650,9 @@ class TrendingParser(HTMLParser):
 def _fetch_readme(owner: str, repo: str) -> str:
     """Fetch first 3000 chars of a repo's README via raw.githubusercontent.com."""
     try:
-        result = subprocess.run(
-            ["curl", "-sL", "--compressed", "--max-time", "5",
-             f"https://raw.githubusercontent.com/{owner}/{repo}/HEAD/README.md"],
-            capture_output=True, text=True, timeout=8
-        )
+        result = _curl(
+            f"https://raw.githubusercontent.com/{owner}/{repo}/HEAD/README.md",
+            timeout=5)
         if result.returncode == 0 and "404" not in result.stdout[:20]:
             return result.stdout[:3000]
     except Exception:
@@ -617,12 +699,11 @@ def _fetch_github_trending(cfg: dict) -> dict:
     base = {"source_key": source_key, "source_type": "github_trending",
             "source_label": source_label, "source_url": source_url}
     try:
-        result = subprocess.run(
-            ["curl", "-sL", "--compressed", "--max-time", "10", source_url],
-            capture_output=True, text=True, timeout=15
-        )
+        result = _curl(source_url, timeout=10)
         if result.returncode != 0 or not result.stdout.strip():
-            logger.warning(f"[GATHER] {source_label}: fetch failed")
+            stderr = (result.stderr or "").strip()
+            detail = f": {stderr[:200]}" if stderr else ""
+            logger.warning(f"[GATHER] {source_label}: fetch failed{detail}")
             return {**base, "content": ""}
 
         content = parse_github_trending(
@@ -658,7 +739,7 @@ def gather_all(work_dir: Path = None, sources_config: dict = None,
         sources_file = skill_dir / "sources.json"
         secrets_file = skill_dir / "sources-secrets.env"
         load_secrets(secrets_file)
-        sources_config = json.load(open(sources_file))
+        sources_config = json.load(open(sources_file, encoding="utf-8"))
 
     # Determine last successful run date for newsletter lookback
     last_success = _get_last_success_date(data_root)
@@ -687,8 +768,12 @@ def gather_all(work_dir: Path = None, sources_config: dict = None,
     with ThreadPoolExecutor(max_workers=MAX_CONCURRENT) as pool:
         # Twitter
         if "twitter" in sources_config:
-            for account in sources_config["twitter"]["accounts"]:
-                f = pool.submit(_fetch_twitter, account, auth_token, ct0)
+            tw_cfg = sources_config["twitter"]
+            tw_max = int(tw_cfg.get("max_per_account", 10) or 10)
+            tw_lookback = tw_cfg.get("lookback")
+            for account in tw_cfg["accounts"]:
+                f = pool.submit(_fetch_twitter, account, auth_token, ct0,
+                                max_items=tw_max, lookback=tw_lookback)
                 futures[f] = f"twitter:{account}"
 
         # Newsletters
@@ -703,13 +788,15 @@ def gather_all(work_dir: Path = None, sources_config: dict = None,
         # Blogs
         if "blogs" in sources_config:
             for key, blog in sources_config["blogs"].items():
-                f = pool.submit(_fetch_blog, key, blog)
+                f = pool.submit(_fetch_blog, key, blog,
+                                last_success=last_success)
                 futures[f] = f"blog:{key}"
 
         # Research (treated as blogs with distinct source_type)
         if "research" in sources_config:
             for key, blog in sources_config["research"].items():
-                f = pool.submit(_fetch_blog, key, blog, source_type="research")
+                f = pool.submit(_fetch_blog, key, blog, source_type="research",
+                                last_success=last_success)
                 futures[f] = f"research:{key}"
 
         # GitHub Trending
@@ -731,7 +818,7 @@ def gather_all(work_dir: Path = None, sources_config: dict = None,
         for r in results:
             safe_key = r["source_key"].replace(":", "-")
             out = work_dir / f"raw-{safe_key}.txt"
-            out.write_text(r.get("content", ""))
+            out.write_text(r.get("content", ""), encoding="utf-8")
 
     # Sort by source_key for deterministic ordering
     results.sort(key=lambda r: r["source_key"])

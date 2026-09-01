@@ -29,7 +29,7 @@ def _read_json(path: Path):
     if not path.exists():
         return None
     try:
-        return json.loads(path.read_text())
+        return json.loads(path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError) as e:
         logger.warning(f"[SOURCE-HISTORY] Failed to read {path}: {e}")
         return None
@@ -145,7 +145,7 @@ def append_daily(data_root: Path, work_dir: Path, date: str) -> int:
     if not rows:
         return 0
 
-    with ledger_path.open("a") as f:
+    with ledger_path.open("a", encoding="utf-8") as f:
         for row in rows:
             f.write(json.dumps(row) + "\n")
     logger.info(f"[SOURCE-HISTORY] Appended {len(rows)} rows for {date}")
@@ -170,7 +170,7 @@ def rebuild(data_root: Path, date_re) -> int:
     )
 
     total = 0
-    with ledger_path.open("w") as f:
+    with ledger_path.open("w", encoding="utf-8") as f:
         for day_dir in day_dirs:
             rows = compute_daily_rows(day_dir, day_dir.name)
             for row in rows:

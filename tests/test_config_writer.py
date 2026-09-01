@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from digest_pipeline import config_writer
+from digest_pipeline import config_writer, util
 from digest_pipeline.config_writer import AddResult, add_twitter_accounts
 
 
@@ -114,12 +114,12 @@ def test_atomic_write_failure_leaves_original_intact(tmp_path: Path, monkeypatch
     _write_cfg(p, accounts=["existing"])
     original = p.read_text()
 
-    real_replace = config_writer.os.replace
+    real_replace = util.os.replace
 
     def boom(src, dst):
         raise OSError("simulated crash mid-replace")
 
-    monkeypatch.setattr(config_writer.os, "replace", boom)
+    monkeypatch.setattr(util.os, "replace", boom)
     with pytest.raises(OSError):
         add_twitter_accounts(p, ["alice"])
     # Original file unchanged.
@@ -129,7 +129,7 @@ def test_atomic_write_failure_leaves_original_intact(tmp_path: Path, monkeypatch
     assert leftovers == []
 
     # Sanity: with real replace restored, it still works.
-    monkeypatch.setattr(config_writer.os, "replace", real_replace)
+    monkeypatch.setattr(util.os, "replace", real_replace)
     result = add_twitter_accounts(p, ["alice"])
     assert result.added == ["alice"]
 

@@ -17,10 +17,10 @@ flowchart TD
     SS --> EX[3 · Extract — Haiku parses raw text into structured articles]
     EX --> RF[4 · Relevance filter — keyword + LLM topic check]
     RF --> CL[5 · Cluster — group near-duplicates via embeddings]
-    CL --> DD[6 · Dedupe — Sonnet merges each cluster]
-    DD --> CD[7 · Cross-day dedup — drop articles already in recent digests]
+    CL --> DD[6 · Dedupe — Opus merges each cluster]
+    DD --> CD[7 · Cross-day dedup — URL index + title match + embeddings vs recent digests]
     CD --> PR[8 · Prioritize — Haiku scores when over the daily cap]
-    PR --> FM[9 · Format — Sonnet writes the final markdown]
+    PR --> FM[9 · Format — Opus writes the final markdown]
     FM --> DL[10 · Deliver]
 
     DL --> EMAIL[Email]
@@ -39,15 +39,15 @@ flowchart TD
 3. **Extract** — batched Haiku calls (max ~200K chars per batch) parse raw content into `{title, category, description, url, source}` records.
 4. **Relevance filter** *(optional)* — `keywords_include` keep, `keywords_exclude` drop, and a cheap Haiku classifier decides borderline cases. Off-topic articles are written to `work/<date>/filtered.json` for inspection.
 5. **Cluster** — articles are embedded with `text-embedding-3-small` and grouped via streaming cosine similarity (centroid threshold 0.85). Pure Python, no sklearn.
-6. **Dedupe** — one Sonnet call per run merges each cluster into a canonical article.
-7. **Cross-day dedup** — embeddings of today's articles are compared against a rolling 5-day window of `.seen_embeddings.json`. Anything that has already shipped recently is dropped.
+6. **Dedupe** — one Opus call per run merges each cluster into a canonical article (provenance matched by echoed group id).
+7. **Cross-day dedup** — three layered gates: a global canonical-URL index of everything shipped in the last 14 days (`.shipped_urls.json`), normalized-title similarity, and embedding cosine similarity against a rolling 5-day window of `.seen_embeddings.json` — plus an optional LLM adjudication of the grey zone. Anything that already shipped recently is dropped, and the skipped set is written to `work/<date>/cross_skipped.json`.
 8. **Prioritize** *(only if over `digest.max_articles`)* — Haiku scores each article. The selector guarantees at least one article per category, then fills the rest by score.
-9. **Format** — one Sonnet call writes the final markdown digest, organized by category, in your configured tone.
+9. **Format** — one Opus call writes the final markdown digest, organized by category, in your configured tone.
 10. **Deliver** — sends the digest by email and/or Telegram, then archives the rendered markdown to `<data_root>/<date>.md`.
 
 **Podcast pipeline** *(optional, runs after the digest)*:
 
-1. **Script generation** — Sonnet writes a conversational script for two hosts.
+1. **Script generation** — Opus writes a conversational script for two hosts.
 2. **Pronunciation rewrite** — non-destructive substitutions (terms + regex from config) are applied to the script before TTS so the audio sounds right without polluting the transcript.
 3. **Audio synthesis** — local Kokoro-82M TTS streams audio to disk; `ffmpeg` encodes MP3.
 4. **Publish** — the MP3 is sent to Telegram, `podcast.xml` is regenerated for podcast-app subscriptions, and the digest's `index.html` landing page is updated.
@@ -190,7 +190,8 @@ Top-level structure:
   "podcast":          { "enabled": true, "name": "...", "hosts": [...], "tts_backend": "kokoro", "pronunciation": {...} },
   "delivery":         { "email": {...}, "notify": { "telegram": {...} } },
   "subscriptions":    { "public_base_url": "...", "cors_origins": [...], "port": 5100 },
-  "llm":              { "provider": "openrouter" }
+  "llm":              { "provider": "openrouter", "models": { "format": "opus" } },
+  "clustering":       { "cross_day_threshold": 0.80, "title_match_threshold": 0.6, "grey_zone_llm": true }
 }
 ```
 
@@ -209,7 +210,8 @@ A complete real-world example lives at [digests/ai/config.json](digests/ai/confi
   - `email`: backend (`smtp`, `gog`, `agentmail`, or `resend`), to/from addresses, env-var keys for credentials.
   - `notify.telegram`: chat id (or env-var name) for status pings and audio delivery.
 - **`subscriptions`** — public base URL (used in unsubscribe links), allowed CORS origins, and the port the `--serve` API binds to.
-- **`llm`** — pick `openrouter` or `anthropic`. Both providers are supported by the same client.
+- **`llm`** — `provider` picks `openrouter` or `anthropic` (both supported by the same client). Optional `models` maps a pipeline stage to a model tier or full model id, e.g. `{"format": "sonnet"}` — defaults run the writing stages (`dedupe`, `format`, `podcast`) on Claude Opus 5 and everything else (`extract`, `relevance`, `prioritize`, `title`, `discovery`, `same_story`) on Haiku 4.5.
+- **`clustering`** *(optional)* — dedup tuning: `intra_day_threshold` (default 0.85), `cross_day_threshold` (0.80), `cross_day_lookback_days` (5), `title_match_threshold` (0.6), `url_lookback_days` (14), and `grey_zone_llm`/`grey_zone_low` for the optional LLM same-story check on the 0.70–0.85 similarity band.
 
 ### Staging overlays
 
@@ -218,6 +220,31 @@ Set `DIGEST_ENV=staging` and the loader will deep-merge a sibling `config.stagin
 ```bash
 DIGEST_ENV=staging digest-pipeline digests/ai/config.json
 ```
+
+### Parallel staging comparison
+
+To evaluate a branch before cutting prod over, run staging as a daily prod-parallel and let `scripts/compare_digests.py` diff the two outputs.
+
+One-time setup in the staging checkout:
+
+```bash
+cd ~/digest-pipeline-staging
+git fetch origin && git checkout <branch>
+# Seed cross-day dedup state (embeddings + shipped-URL index) from the
+# archived digests so staging isn't handicapped by a cold start:
+DIGEST_ENV=staging .venv/bin/digest-pipeline digests/ai/config.json --backfill
+```
+
+Then add two cron lines next to the prod one (prod fires 3:00 AM ET; adjust to taste):
+
+```cron
+# staging parallel run, 5 min after prod's slot
+5 3 * * *  cd ~/digest-pipeline-staging && DIGEST_ENV=staging bash run.sh digests/ai/config.json >> logs/cron.log 2>&1
+# daily comparison ~90 min later: Telegram summary + full report on disk
+30 4 * * * cd ~/digest-pipeline-staging && DIGEST_ENV=staging .venv/bin/python3 scripts/compare_digests.py ~/digest-pipeline/digests/ai digests/ai --llm-judge --notify digests/ai/config.json >> logs/compare.log 2>&1
+```
+
+Each day this writes `compare-<date>.md` into the staging data root (article diff with suppression reasons, repeat-stories-shipped per side, cost/stage table, blind LLM quality judgment) and pings Telegram with the headline numbers. `--days N` produces a rollup across the run. Staging emails go to the isolated staging subscriber list, so received-email quality can be compared directly. Remove the two cron lines at cutover.
 
 ### Secrets
 
@@ -244,16 +271,17 @@ digests/<slug>/
 ├── config.json                 # digest configuration
 ├── index.html                  # public landing page (subscribe form, podcast feed link)
 ├── 2026-04-23.md               # archived daily digest (gitignored)
+├── podcast.xml                 # RSS feed for podcast apps
 ├── podcasts/
 │   ├── 2026-04-23.mp3          # episode audio
-│   ├── 2026-04-23.txt          # script transcript
-│   └── podcast.xml             # RSS feed for podcast apps
+│   └── 2026-04-23.txt          # script transcript
 ├── subscribers.json            # subscriber list (gitignored)
 ├── subscription_events.jsonl   # subscribe/unsubscribe audit log
 ├── send_history.jsonl          # per-recipient delivery log
 ├── work/<date>/                # intermediate artifacts: extracted.json, clusters.json, deduped.json, run.json, raw-*.txt
 ├── logs/                       # daily log files (auto-cleaned after 30 days)
 ├── .seen_embeddings.json       # rolling cross-day dedup cache
+├── .shipped_urls.json          # global canonical-URL index of shipped articles
 └── .source_state.json          # per-source incremental cursor
 ```
 
@@ -374,7 +402,7 @@ digest_pipeline/
 
   # Plumbing
   config.py            # config loader, DIGEST_ENV staging overlay, prompt templating, voice mapping
-  log.py               # rotating file + console logger (30-day cleanup)
+  log.py               # per-date file + console logger (30-day cleanup)
   run_log.py           # writes structured run.json per pipeline run for the dashboard
   init.py              # `digest-pipeline init` interactive wizard
   prompts/             # LLM prompt templates: extract_normalize, relevance_check, dedupe, prioritize, summarize_format, podcast_script
@@ -394,7 +422,7 @@ pyproject.toml         # package metadata + dependencies + console-script entry
 - **No ML frameworks for clustering.** Pure-Python cosine similarity with running centroid averages. No sklearn, no scipy.
 - **Batched LLM calls.** Sources are batched by character count (~200K chars per extract batch) to stay inside context limits while minimizing per-call overhead.
 - **Incremental processing.** `.source_state.json` tracks the IDs already seen per source so the LLM never re-reads items from previous days. The state is updated only after a successful run.
-- **Cross-day dedup.** A rolling 5-day window of article embeddings (`.seen_embeddings.json`) prevents the same story from showing up in tomorrow's digest, even if multiple sources keep covering it.
+- **Cross-day dedup.** Layered gates — a 14-day global canonical-URL index (`.shipped_urls.json`), lexical title similarity, and a rolling 5-day window of article embeddings (`.seen_embeddings.json`) — prevent the same story from showing up in tomorrow's digest, even when different sources keep covering it with different prose. State is recorded only after successful delivery, so a failed run never burns unshipped articles as seen.
 - **Streaming TTS.** Kokoro writes audio to disk turn-by-turn rather than buffering the whole episode in memory, which matters on small VPS instances.
 - **Non-destructive pronunciation.** Pronunciation rewrites are applied to the in-memory script right before TTS only — the saved transcript stays clean for storage and email use.
 - **Multi-digest by directory.** Each digest is a fully self-contained `digests/<slug>/` folder. The CLI, subscription API, and dashboard all auto-discover them.

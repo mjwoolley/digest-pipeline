@@ -134,10 +134,10 @@ def main():
         if not digest_path.exists():
             raise FileNotFoundError(f"No digest found: {digest_path}")
 
-        digest_text = digest_path.read_text()
+        digest_text = digest_path.read_text(encoding="utf-8")
         logger.info(f"[SCRIPTGEN] Loaded digest: {len(digest_text)} chars")
 
-        llm.configure(provider)
+        llm.configure(provider, config.get("llm", {}).get("models"))
         # Format date as spoken English: "March 28th, 2026"
         _dt = datetime.strptime(date, "%Y-%m-%d")
         _day = _dt.day
@@ -147,7 +147,7 @@ def main():
         prompt = render_prompt("podcast_script.md", config,
                                {"DIGEST": digest_text, "DATE": spoken_date})
 
-        model = llm.MODELS[provider]["sonnet"]
+        model = llm.model_for("podcast")
         messages = [
             {"role": "system", "content": f"Today's date: {date}"},
             {"role": "user", "content": prompt},
@@ -159,7 +159,7 @@ def main():
 
         # Save script
         script_path = podcasts_dir / f"{date}.txt"
-        script_path.write_text(script_text)
+        script_path.write_text(script_text, encoding="utf-8")
         logger.info(f"[SCRIPTGEN] Script saved: {script_path} ({len(script_text)} chars, {scriptgen_duration:.1f}s)")
 
         # Episode title — a one-line summary used as the RSS item title, the
@@ -175,7 +175,7 @@ def main():
         else:
             title_text = _generate_title(digest_text, config, logger)
             if title_text:
-                title_file.write_text(title_text + "\n")
+                title_file.write_text(title_text + "\n", encoding="utf-8")
                 logger.info(f"[TITLE] Episode title: {title_text}")
             else:
                 logger.warning("[TITLE] No title generated; feed will fall back to date")
@@ -302,7 +302,7 @@ def _episode_duration_s(work_root: Path, ep_date: str, size: int) -> int:
     run_json = work_root / ep_date / "run.json"
     if run_json.is_file():
         try:
-            seconds = (json.loads(run_json.read_text()).get("totals") or {}).get("audio_duration_s")
+            seconds = (json.loads(run_json.read_text(encoding="utf-8")).get("totals") or {}).get("audio_duration_s")
             if seconds:
                 return int(round(float(seconds)))
         except (json.JSONDecodeError, OSError, TypeError, ValueError):
@@ -466,7 +466,7 @@ def _update_landing_page(podcasts_dir: Path, config: dict,
             )
         ep_block = "\n".join(ep_html_lines)
 
-        page_html = index_path.read_text()
+        page_html = index_path.read_text(encoding="utf-8")
         # Substitute the PUBLIC_BASE_URL placeholder used in the static parts of
         # the template (RSS input field, feedUrl JS constant, etc). Episode MP3
         # URLs are regenerated below from {base_url}, which is also derived from
@@ -479,7 +479,7 @@ def _update_landing_page(podcasts_dir: Path, config: dict,
             page_html,
             flags=re.DOTALL,
         )
-        index_path.write_text(page_html)
+        index_path.write_text(page_html, encoding="utf-8")
         logger.info(f"[LANDING] Updated index.html with {len(episodes)} episodes")
     except Exception as e:
         logger.error(f"[LANDING] Landing page update failed: {e}", exc_info=True)
@@ -488,7 +488,7 @@ def _update_landing_page(podcasts_dir: Path, config: dict,
 def _get_swap_usage() -> str:
     """Return swap usage summary like '1.7G / 4.0G (43%)'."""
     try:
-        meminfo = Path("/proc/meminfo").read_text()
+        meminfo = Path("/proc/meminfo").read_text(encoding="utf-8")
         vals = {}
         for line in meminfo.splitlines():
             if line.startswith(("SwapTotal:", "SwapFree:")):

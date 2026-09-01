@@ -23,20 +23,25 @@ def clean(raw: str, max_chars: int = 100) -> str:
     return title
 
 
-def generate(source_text: str, config: dict, logger: logging.Logger) -> str:
+def generate(source_text: str, config: dict, logger: logging.Logger,
+             tracker=None) -> str:
     """Generate a one-line title from digest/script text via the cheap model.
 
     Returns "" on any failure so callers can fall back to a date-based title.
+    When a TokenTracker is passed, the call's usage is recorded (it was
+    previously discarded, understating the reported run cost).
     """
     if not (source_text or "").strip():
         return ""
     try:
         provider = config.get("llm", {}).get("provider", "openrouter")
-        llm.configure(provider)
+        llm.configure(provider, config.get("llm", {}).get("models"))
         prompt = render_prompt("episode_title.md", config, {"DIGEST": source_text})
-        model = llm.MODELS[provider]["haiku"]
-        raw, _usage = llm.chat([{"role": "user", "content": prompt}], model,
-                               max_tokens=64)
+        model = llm.model_for("title")
+        raw, usage = llm.chat([{"role": "user", "content": prompt}], model,
+                              max_tokens=64)
+        if tracker is not None:
+            tracker.add("Title", model, usage, 0)
         return clean(raw)
     except Exception as e:
         logger.warning(f"[TITLE] Title generation failed: {e}")
