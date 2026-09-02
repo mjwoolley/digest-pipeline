@@ -1,9 +1,10 @@
 """Tests for digest_pipeline.source_state — incremental source processing."""
 import json
-from datetime import datetime, timedelta
+from datetime import timedelta
 from pathlib import Path
 from unittest.mock import patch
 
+from digest_pipeline.pipeline_date import now as pipeline_now
 from digest_pipeline.source_state import (
     load_state,
     save_state,
@@ -348,8 +349,8 @@ def test_load_state_migrates_legacy_last_updated(tmp_path):
 # ── State pruning ────────────────────────────────────────────────────────────
 
 def test_prune_state_keeps_recent():
-    today = datetime.utcnow().strftime("%Y-%m-%d")
-    old = (datetime.utcnow() - timedelta(days=14)).strftime("%Y-%m-%d")
+    today = pipeline_now().strftime("%Y-%m-%d")
+    old = (pipeline_now() - timedelta(days=14)).strftime("%Y-%m-%d")
     state = {
         "blog:a": {"seen_ids": ["x"], "last_fetched": today},
         "blog:b": {"seen_ids": ["y"], "last_fetched": old},
@@ -361,8 +362,8 @@ def test_prune_state_keeps_recent():
 
 def test_prune_state_uses_most_recent_of_fetched_or_included():
     """Either last_fetched or last_included being recent keeps the entry."""
-    today = datetime.utcnow().strftime("%Y-%m-%d")
-    old = (datetime.utcnow() - timedelta(days=14)).strftime("%Y-%m-%d")
+    today = pipeline_now().strftime("%Y-%m-%d")
+    old = (pipeline_now() - timedelta(days=14)).strftime("%Y-%m-%d")
     state = {
         "blog:fetched_only": {"seen_ids": [], "last_fetched": today},
         "blog:included_only": {"seen_ids": [], "last_included": today},
@@ -457,7 +458,7 @@ def test_update_source_state_preserves_old_included_when_not_included_today():
 
 def test_commit_pending_github_trending_uses_timestamps():
     """GitHub trending seen_ids should be a dict with dates, not a list."""
-    today = datetime.utcnow().strftime("%Y-%m-%d")
+    today = pipeline_now().strftime("%Y-%m-%d")
     state = {}
     pending = {"github_trending:trending": [
         "https://github.com/owner/repo",
@@ -472,8 +473,8 @@ def test_commit_pending_github_trending_uses_timestamps():
 
 def test_commit_pending_github_trending_preserves_existing_dates():
     """Re-seeing a repo should NOT update its first-seen date."""
-    today = datetime.utcnow().strftime("%Y-%m-%d")
-    earlier = (datetime.utcnow() - timedelta(days=5)).strftime("%Y-%m-%d")
+    today = pipeline_now().strftime("%Y-%m-%d")
+    earlier = (pipeline_now() - timedelta(days=5)).strftime("%Y-%m-%d")
     state = {"github_trending:trending": {
         "seen_ids": {"https://github.com/owner/repo": earlier},
         "last_fetched": earlier,
@@ -487,7 +488,7 @@ def test_commit_pending_github_trending_preserves_existing_dates():
 
 def test_commit_pending_github_trending_migrates_legacy_list():
     """Old list-format seen_ids should be migrated to dict format."""
-    today = datetime.utcnow().strftime("%Y-%m-%d")
+    today = pipeline_now().strftime("%Y-%m-%d")
     state = {"github_trending:trending": {
         "seen_ids": ["https://github.com/old/repo"],
         "last_fetched": today,
@@ -502,7 +503,7 @@ def test_commit_pending_github_trending_migrates_legacy_list():
 
 def test_get_seen_ids_cooldown_active():
     """Repos within the cooldown window are suppressed."""
-    today = datetime.utcnow().strftime("%Y-%m-%d")
+    today = pipeline_now().strftime("%Y-%m-%d")
     entry = {"seen_ids": {"https://github.com/owner/repo": today}}
     seen = _get_seen_ids_for_source("github_trending:trending", entry)
     assert "https://github.com/owner/repo" in seen
@@ -510,7 +511,7 @@ def test_get_seen_ids_cooldown_active():
 
 def test_get_seen_ids_cooldown_expired():
     """Repos past the cooldown window can reappear."""
-    old_date = (datetime.utcnow() - timedelta(days=DEFAULT_TRENDING_COOLDOWN_DAYS + 1)).strftime("%Y-%m-%d")
+    old_date = (pipeline_now() - timedelta(days=DEFAULT_TRENDING_COOLDOWN_DAYS + 1)).strftime("%Y-%m-%d")
     entry = {"seen_ids": {"https://github.com/owner/repo": old_date}}
     seen = _get_seen_ids_for_source("github_trending:trending", entry)
     assert "https://github.com/owner/repo" not in seen
@@ -518,8 +519,8 @@ def test_get_seen_ids_cooldown_expired():
 
 def test_get_seen_ids_cooldown_mixed():
     """Mix of active and expired cooldowns."""
-    today = datetime.utcnow().strftime("%Y-%m-%d")
-    old_date = (datetime.utcnow() - timedelta(days=DEFAULT_TRENDING_COOLDOWN_DAYS + 1)).strftime("%Y-%m-%d")
+    today = pipeline_now().strftime("%Y-%m-%d")
+    old_date = (pipeline_now() - timedelta(days=DEFAULT_TRENDING_COOLDOWN_DAYS + 1)).strftime("%Y-%m-%d")
     entry = {"seen_ids": {
         "https://github.com/active/repo": today,
         "https://github.com/expired/repo": old_date,
@@ -538,8 +539,8 @@ def test_get_seen_ids_non_trending_uses_flat_list():
 
 def test_github_trending_cooldown_integration():
     """End-to-end: repo suppressed during cooldown, reappears after expiry."""
-    today = datetime.utcnow().strftime("%Y-%m-%d")
-    old_date = (datetime.utcnow() - timedelta(days=DEFAULT_TRENDING_COOLDOWN_DAYS + 1)).strftime("%Y-%m-%d")
+    today = pipeline_now().strftime("%Y-%m-%d")
+    old_date = (pipeline_now() - timedelta(days=DEFAULT_TRENDING_COOLDOWN_DAYS + 1)).strftime("%Y-%m-%d")
 
     source = _github_source(SAMPLE_GITHUB)
 
@@ -565,7 +566,7 @@ def test_github_trending_cooldown_integration():
 
 def test_github_trending_state_roundtrip(tmp_path):
     """Roundtrip: commit trending state, reload, verify dict format persisted."""
-    today = datetime.utcnow().strftime("%Y-%m-%d")
+    today = pipeline_now().strftime("%Y-%m-%d")
     state = {}
     pending = {"github_trending:trending": ["https://github.com/owner/repo"]}
     state = commit_pending(state, pending, today)
