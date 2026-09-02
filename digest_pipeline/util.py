@@ -18,7 +18,14 @@ def atomic_write_json(path: Path, data, indent: int = 2) -> None:
 
 
 def atomic_write_text(path: Path, text: str) -> None:
-    """Write text to ``path`` atomically via tempfile + os.replace."""
+    """Write text to ``path`` atomically via tempfile + os.replace.
+
+    The temp file is chmod'd to 0644 before the replace. mkstemp hard-codes
+    0600 regardless of umask, and the pipeline writes these files as root
+    inside the batch container onto a bind mount — without this, every state
+    file it touches becomes root-readable-only on the host and the nightly
+    backup (which runs as the host user) silently stops being able to read it.
+    """
     path = Path(path)
     fd, tmp_name = tempfile.mkstemp(
         prefix=path.name + ".",
@@ -28,6 +35,7 @@ def atomic_write_text(path: Path, text: str) -> None:
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             f.write(text)
+        os.chmod(tmp_name, 0o644)
         os.replace(tmp_name, path)
     except BaseException:
         try:

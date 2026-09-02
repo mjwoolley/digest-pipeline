@@ -1,5 +1,6 @@
 """Tests for digest_pipeline.util atomic writes and shared JSON extraction."""
 import json
+import stat
 
 import pytest
 
@@ -43,6 +44,19 @@ def test_atomic_write_text_no_tmp_left_on_success(tmp_path):
     atomic_write_text(path, "hello")
     assert path.read_text(encoding="utf-8") == "hello"
     assert list(tmp_path.iterdir()) == [path]
+
+
+def test_atomic_write_is_world_readable(tmp_path):
+    """mkstemp defaults to 0600; the pipeline writes state as root in the batch
+    container onto a bind mount, so a 0600 state file is unreadable by the host
+    user and silently breaks the nightly backup. Both writers must land 0644."""
+    text_path = tmp_path / "out.txt"
+    atomic_write_text(text_path, "hello")
+    assert stat.S_IMODE(text_path.stat().st_mode) == 0o644
+
+    json_path = tmp_path / "state.json"
+    atomic_write_json(json_path, {"a": 1})
+    assert stat.S_IMODE(json_path.stat().st_mode) == 0o644
 
 
 def test_state_writers_use_atomic_write():
