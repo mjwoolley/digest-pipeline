@@ -1,147 +1,109 @@
-# Cutover Runbook — Digest Pipeline Redesign → Prod
+# Cutover Record — Digest Pipeline Redesign → Prod
 
-**Status when this was written:** the redesign is fully merged to `origin/master`
-(merge commit `e48a4bc`, 2026-08-15) and the multi-day prod-parallel staging
-trial is finished. What remains is server-side work on the mini server / homelab
-box that hosts the two checkouts. This file is written to be executed by a
-Claude session on that machine — every step has a verification, and nothing
-here should require force flags or destructive git operations.
+**Completed 2026-09-02.** The redesign (merge `e48a4bc`) is live in prod; the
+prod-parallel staging trial is over and its crons are removed. This file is kept
+as a record rather than deleted, because the original runbook was written against
+an older VPS/systemd/`.venv` deployment and **most of its commands did not work on
+the current Docker host**. The corrections below apply to the next promotion too.
 
-Delete this file (commit "Remove cutover runbook") once every step is checked
-off, or leave it as a record.
+## What this host actually looks like
 
----
+Everything runs in Docker on the Beelink mini-PC. **There is no `.venv` on the
+host** — any `.venv/bin/digest-pipeline` or bare `bash run.sh` instruction is
+wrong here. The repo checkouts are bind-mounted into the containers at `/app`
+(see `~/digest/compose.prod.yml`), so `git pull` is what promotes code; deps are
+baked into the `digest-pipeline:local` image.
 
-## Preconditions (verify before touching anything)
-
-```bash
-# The two checkouts exist where expected:
-ls -d ~/digest-pipeline ~/digest-pipeline-staging
-
-# origin/master tip is the redesign merge:
-cd ~/digest-pipeline && git fetch origin && git log -1 --oneline origin/master
-# EXPECT: e48a4bc Digest pipeline redesign: dedup overhaul, Opus 5 writing stages, bug fixes
-```
-
-If `origin/master` is NOT `e48a4bc` (or a descendant of it), stop and surface
-to the user — something moved.
-
-## Step 1 — Stop the parallel-comparison crons
+Run one-off commands through the batch container:
 
 ```bash
-crontab -l > ~/crontab.backup.$(date +%Y%m%d)   # backup first
-crontab -e
+docker compose -f ~/digest/compose.prod.yml run --rm digest-batch \
+  digest-pipeline /app/digests/ai/config.json --backfill
 ```
 
-Delete exactly these two lines (added for the staging trial):
+Cron does the same via `~/digest/scripts/run-batch.sh`, under a shared
+`/tmp/digest-batch.lock` and a 5g memory ceiling.
 
-```cron
-5 3 * * *  cd ~/digest-pipeline-staging && DIGEST_ENV=staging bash run.sh digests/ai/config.json >> logs/cron.log 2>&1
-30 4 * * * cd ~/digest-pipeline-staging && DIGEST_ENV=staging .venv/bin/python3 scripts/compare_digests.py ~/digest-pipeline/digests/ai digests/ai --llm-judge --notify digests/ai/config.json >> logs/compare.log 2>&1
-```
+## Four things the original runbook got wrong
 
-**Do NOT touch the original prod cron line** (the 3:00 AM ET `~/digest-pipeline`
-run). Verify: `crontab -l` shows only the prod line(s), no `digest-pipeline-staging`
-entries.
+1. **`.venv` commands.** See above — use `docker compose run --rm digest-batch`.
+2. **The crontab lines to remove.** The runbook named two `cd
+   ~/digest-pipeline-staging && DIGEST_ENV=staging …` lines. Reality was **three**
+   Compose lines using a UTC schedule with an `America/New_York` guard (Debian
+   Vixie cron ignores `CRON_TZ` and the host is UTC): staging digest 04:00 ET,
+   `compare_digests.py` 05:00 ET, `deep_compare.py` 05:15 ET. All three removed;
+   crontab backed up to `~/crontab.backup.20260902` first.
+3. **Restarting the long-running services was missing.** `digest-subscriptions`
+   and `digest-console` are Flask processes holding the bind-mounted code in
+   memory — `git pull` alone does not promote them. Both must be recreated. And
+   `digest-caddy` uses `network_mode: "service:digest-subscriptions"`, so **it
+   must be recreated after them** or it loses its netns and the public site 502s:
 
-## Step 2 — Promote prod
+   ```bash
+   docker compose -f ~/digest/compose.prod.yml up -d --force-recreate \
+     digest-subscriptions digest-console
+   docker compose -f ~/digest/compose.prod.yml up -d --force-recreate caddy
+   ```
+
+4. **Backfill counts.** The runbook predicted "~200" for ai from staging's
+   archive. Prod: **213** URLs for ai, **172** for wealthtech. The check is
+   non-zero, not a specific number.
+
+## What ran
+
+- Crontab backed up; three staging-trial lines removed; 7 prod lines intact.
+- Prod pulled to `a785e1d`; `--backfill` run for both digests (`.shipped_urls.json`
+  seeded; embeddings already current, so that half no-oped as designed).
+  The wealthtech dedup simulation retro-flagged 2 real repeats on 2026-08-31.
+- Prod services + caddy recreated; `/health` 200, console 200.
+- Staging returned to `master`; `claude/digest-pipeline-redesign-rsxppa` deleted
+  local and remote.
+- Test suite: 483 passing in the prod container.
+
+## Bug found and fixed during the cutover
+
+Prod state backups had been **silently failing since 2026-06-25** (69 days).
+`~/bin/backup-state.sh` runs `set -euo pipefail`; its rsync aborted with exit 23
+on `digests/ai/subscribers.json`, which the containerized subscription API had
+written as `root:0600`. Cron's only output went to `/tmp/backup-state.log`, which
+nothing watches, so it never surfaced.
+
+The redesign would have widened this from one file to five per digest:
+`tempfile.mkstemp` hard-codes 0600 regardless of umask, so every file written
+through the new `atomic_write_*` helpers inherits it.
+
+Three fixes, all applied:
+
+- **Ownership reset** — `chown -R 1000:1000 /app/digests` from inside the batch
+  container (host `sudo` needs a password; the container is already root over the
+  same bind mount).
+- **`digest_pipeline/util.py`** — `atomic_write_text` now chmods the temp file to
+  0644 before `os.replace`, with a mode assertion in `tests/test_atomic_io.py`.
+- **`~/bin/backup-state.sh`** — a Telegram alert on any non-zero exit (same
+  credential source as `run-batch.sh`), so this can never fail silently again;
+  and the two `~/bin/backup-*.sh` scripts now back themselves up via
+  `HOST_SCRIPTS`.
+
+Backups verified working: the state repo went from 2026-06-25 to current.
+
+## Rollback
+
+The redesign is one merge commit, so it still backs out cleanly:
 
 ```bash
-cd ~/digest-pipeline
-git status
-```
-
-**If the working tree is dirty: STOP and surface the diff to the user** — never
-pull on top of uncommitted prod changes (CLAUDE.md rule). If clean:
-
-```bash
-git pull
-git log -1 --oneline          # EXPECT: e48a4bc (or later)
-```
-
-Seed the new cross-day dedup state (shipped-URL index; embeddings backfill is
-idempotent and will mostly no-op) from prod's own archives — once per digest:
-
-```bash
-.venv/bin/digest-pipeline digests/ai/config.json --backfill
-.venv/bin/digest-pipeline digests/wealthtech/config.json --backfill
-```
-
-EXPECT each to print a "Backfilling .shipped_urls.json" section with a
-non-zero URL count (ai was ~200 in testing). Verify the files exist:
-
-```bash
-ls -la digests/ai/.shipped_urls.json digests/wealthtech/.shipped_urls.json
-```
-
-Note: no new runtime dependencies were added — the existing `.venv` works
-as-is. `pytest` is dev-only.
-
-## Step 3 — Reset staging back to master
-
-The staging checkout is currently on the feature branch. Per CLAUDE.md it
-should track master between projects:
-
-```bash
-cd ~/digest-pipeline-staging
-git status                     # if dirty: stop and surface to the user
-git checkout master
-git pull --ff-only origin master
-git log -1 --oneline           # EXPECT: e48a4bc (or later)
-```
-
-## Step 4 — Delete the merged feature branch
-
-Everything in it is in master now.
-
-```bash
-cd ~/digest-pipeline-staging
-git branch -d claude/digest-pipeline-redesign-rsxppa      # local (-d refuses if unmerged — good)
-git push origin --delete claude/digest-pipeline-redesign-rsxppa
-```
-
-## Step 5 — Verify the first prod run (next morning, or trigger manually)
-
-To verify immediately instead of waiting for cron:
-
-```bash
-cd ~/digest-pipeline && bash run.sh digests/ai/config.json
-```
-
-Check, in the Telegram notification / `digests/ai/<date>.md` token footer /
-`digests/ai/work/<date>/run.json`:
-
-- **Models**: `Format` and `Dedupe` lines show `anthropic/claude-opus-5`;
-  `Extract`/`Prioritize` still show `anthropic/claude-haiku-4.5`.
-- **New notification lines**: `Sources with content N/M` and
-  `Cross-day dupes skipped: N` are present.
-- **Cost**: total in the ~$0.15–0.35 range (busy days higher). If it's
-  wildly above, check `run.json` per-stage tokens before reacting.
-- **Dedup working**: `work/<date>/cross_deduped.json` exists;
-  `cross_skipped.json` lists anything suppressed, with reasons.
-- Email arrives to prod subscribers and renders correctly (spot-check
-  an article with `&` or quotes in the title if there is one).
-
-## Rollback (if the first prod runs go badly)
-
-The whole redesign is one merge commit, so backing it out is clean:
-
-```bash
-cd ~/digest-pipeline-staging          # develop the revert in staging per CLAUDE.md
-git revert -m 1 e48a4bc
-git push origin master
+cd ~/digest-pipeline-staging && git revert -m 1 e48a4bc && git push origin master
 cd ~/digest-pipeline && git status && git pull
+docker compose -f ~/digest/compose.prod.yml up -d --force-recreate \
+  digest-subscriptions digest-console
+docker compose -f ~/digest/compose.prod.yml up -d --force-recreate caddy
 ```
 
-State files written by the new code (`.shipped_urls.json`, the extra keys in
-`.seen_embeddings.json`) are ignored by the old code — no state cleanup needed
-on rollback.
+`.shipped_urls.json` and the extra `.seen_embeddings.json` keys are ignored by the
+old code — no state cleanup needed. **Do not revert the atomic-write permission
+fix** (`e5604d5`) along with it; it is independent and still wanted.
 
-## Checklist
+## First live run
 
-- [ ] Crontab backed up; two staging-trial lines removed; prod line intact
-- [ ] Prod: clean tree → pulled to `e48a4bc`+ → both digests backfilled
-- [ ] Staging back on master
-- [ ] Feature branch deleted (local + origin)
-- [ ] First prod run verified (models, dedup line, cost, email)
-- [ ] This runbook deleted or archived
+Verification of the first cron run (models, `Cross-day dupes skipped`, cost,
+email) was deferred to 03:00 ET on 2026-09-02 rather than triggering a manual run,
+which would have re-sent an already-delivered digest to live subscribers.
