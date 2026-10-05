@@ -209,6 +209,7 @@ A complete real-world example lives at [digests/ai/config.json](digests/ai/confi
 - **`delivery`** —
   - `email`: backend (`smtp`, `gog`, `agentmail`, or `resend`), to/from addresses, env-var keys for credentials.
   - `notify.telegram`: chat id (or env-var name) for status pings and audio delivery.
+  - `alert_email.to`: optional address that also gets every failure alert by email (sent via the `email` backend), independent of the notify channel.
 - **`subscriptions`** — public base URL (used in unsubscribe links), allowed CORS origins, and the port the `--serve` API binds to.
 - **`llm`** — `provider` picks `openrouter` or `anthropic` (both supported by the same client). Optional `models` maps a pipeline stage to a model tier or full model id, e.g. `{"format": "sonnet"}` — defaults run the writing stages (`dedupe`, `format`, `podcast`) on Claude Opus 5 and everything else (`extract`, `relevance`, `prioritize`, `title`, `discovery`, `same_story`) on Haiku 4.5.
 - **`clustering`** *(optional)* — dedup tuning: `intra_day_threshold` (default 0.85), `cross_day_threshold` (0.80), `cross_day_lookback_days` (5), `title_match_threshold` (0.6), `url_lookback_days` (14), and `grey_zone_llm`/`grey_zone_low` for the optional LLM same-story check on the 0.70–0.85 similarity band.

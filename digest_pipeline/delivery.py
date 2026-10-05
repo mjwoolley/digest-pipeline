@@ -9,6 +9,7 @@ Status notifications and failure alerts go to Telegram and/or Slack — these
 are best-effort and never raise. Long messages are chunked to fit Telegram's
 4096-character cap.
 """
+import html
 import json
 import logging
 import os
@@ -356,7 +357,27 @@ def send_alert(stage: str, error: str, config: dict) -> bool:
         f"Error: {error}\n"
         f"Time: {now}"
     )
+    _send_alert_email(f"\u26a0\ufe0f {digest_name} failed ({stage})", msg, config)
     return send_notification(msg, config)
+
+
+def _send_alert_email(subject: str, message: str, config: dict) -> bool:
+    """Email a failure alert to ``delivery.alert_email.to``, if configured.
+
+    Independent of the notify channel so an alert still lands when Telegram
+    is the thing that's broken. Never raises: this runs on the failure path.
+    """
+    to_addr = config.get("delivery", {}).get("alert_email", {}).get("to", "")
+    if not to_addr:
+        return False
+    try:
+        body = f"<pre style=\"white-space:pre-wrap\">{html.escape(message)}</pre>"
+        send_email(subject, body, config, to_override=to_addr)
+        logger.info(f"[DELIVER] Failure alert emailed to {to_addr}")
+        return True
+    except Exception as e:
+        logger.error(f"[DELIVER] Failure alert email failed: {e}")
+        return False
 
 
 def send_audio(file_path: str, caption: str, config: dict) -> bool:
