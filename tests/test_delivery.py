@@ -1,4 +1,9 @@
 """Tests for digest_pipeline.delivery — pure helpers, no network calls."""
+import io
+import json
+import urllib.error
+
+from digest_pipeline import delivery
 from digest_pipeline.delivery import _split_message, _fmt_tokens, MAX_MSG_LEN
 
 
@@ -62,3 +67,50 @@ def test_fmt_tokens_medium():
 def test_fmt_tokens_large():
     assert _fmt_tokens(10000) == "10K"
     assert _fmt_tokens(100000) == "100K"
+
+
+# ── _post_telegram_message ───────────────────────────────────────────────────
+
+class _FakeResp:
+    status = 200
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+def _http_400():
+    return urllib.error.HTTPError(
+        "https://api.telegram.org", 400, "Bad Request", None,
+        io.BytesIO(b'{"ok":false,"description":"can\'t parse entities"}'))
+
+
+def test_post_telegram_retries_plain_text_on_400(monkeypatch):
+    sent = []
+
+    def fake_urlopen(req, timeout=None):
+        body = json.loads(req.data)
+        sent.append(body)
+        if "parse_mode" in body:
+            raise _http_400()
+        return _FakeResp()
+
+    monkeypatch.setattr(delivery.urllib.request, "urlopen", fake_urlopen)
+    text = "FAILED: lower max_tokens (limit_source: openrouter_credits)"
+    assert delivery._post_telegram_message(text, "tok", "chat") is True
+    assert [b.get("parse_mode") for b in sent] == ["Markdown", None]
+    assert sent[1]["text"] == text
+
+
+def test_post_telegram_gives_up_when_plain_text_also_400(monkeypatch):
+    calls = []
+
+    def fake_urlopen(req, timeout=None):
+        calls.append(1)
+        raise _http_400()
+
+    monkeypatch.setattr(delivery.urllib.request, "urlopen", fake_urlopen)
+    assert delivery._post_telegram_message("x", "tok", "chat") is False
+    assert len(calls) == 2
