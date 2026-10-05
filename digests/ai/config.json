@@ -116,6 +116,9 @@
         "from": "The AI Daily Roundup <digest@aidailyroundup.com>"
       }
     },
+    "alert_email": {
+      "to": "mwoolley2@gmail.com"
+    },
     "notify": {
       "method": "telegram",
       "telegram": {

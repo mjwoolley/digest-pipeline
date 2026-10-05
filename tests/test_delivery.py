@@ -114,3 +114,39 @@ def test_post_telegram_gives_up_when_plain_text_also_400(monkeypatch):
     monkeypatch.setattr(delivery.urllib.request, "urlopen", fake_urlopen)
     assert delivery._post_telegram_message("x", "tok", "chat") is False
     assert len(calls) == 2
+
+
+# ── send_alert email ─────────────────────────────────────────────────────────
+
+def _alert_cfg(**delivery_extra):
+    return {"digest": {"name": "Test Digest"},
+            "delivery": {"notify": {"method": "none"}, **delivery_extra}}
+
+
+def test_send_alert_emails_configured_address(monkeypatch):
+    sent = []
+    monkeypatch.setattr(delivery, "send_email",
+                        lambda subject, body, config, to_override=None, **kw:
+                        sent.append((subject, body, to_override)))
+    cfg = _alert_cfg(alert_email={"to": "ops@example.com"})
+    assert delivery.send_alert("Pipeline", "boom <b>", cfg) is True
+    assert len(sent) == 1
+    subject, body, to = sent[0]
+    assert to == "ops@example.com"
+    assert "Test Digest failed (Pipeline)" in subject
+    assert "boom &lt;b&gt;" in body
+
+
+def test_send_alert_without_alert_email_sends_no_email(monkeypatch):
+    sent = []
+    monkeypatch.setattr(delivery, "send_email", lambda *a, **kw: sent.append(a))
+    assert delivery.send_alert("Pipeline", "boom", _alert_cfg()) is True
+    assert sent == []
+
+
+def test_send_alert_survives_email_failure(monkeypatch):
+    def boom(*a, **kw):
+        raise RuntimeError("Resend down")
+    monkeypatch.setattr(delivery, "send_email", boom)
+    cfg = _alert_cfg(alert_email={"to": "ops@example.com"})
+    assert delivery.send_alert("Pipeline", "boom", cfg) is True
