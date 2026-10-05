@@ -22,6 +22,7 @@ import urllib.error
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
+from typing import Optional
 
 logger = logging.getLogger("digest")
 
@@ -396,15 +397,24 @@ def _send_telegram(message: str, notify_cfg: dict) -> bool:
     return True
 
 
-def _post_telegram_message(text: str, bot_token: str, chat_id: str) -> bool:
-    """POST a single message to Telegram."""
+def _post_telegram_message(text: str, bot_token: str, chat_id: str,
+                           parse_mode: Optional[str] = "Markdown") -> bool:
+    """POST a single message to Telegram.
+
+    Telegram rejects the whole message (HTTP 400) when the text has unbalanced
+    Markdown entities, which failure alerts routinely do: they embed raw API
+    error bodies full of underscores (max_tokens, limit_source, ...). So on a
+    400 with Markdown on, retry once as plain text rather than drop the alert.
+    """
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    payload = json.dumps({
+    body = {
         "chat_id": chat_id,
         "text": text,
-        "parse_mode": "Markdown",
         "disable_web_page_preview": True,
-    }).encode()
+    }
+    if parse_mode:
+        body["parse_mode"] = parse_mode
+    payload = json.dumps(body).encode()
     req = urllib.request.Request(url, data=payload,
                                 headers={"Content-Type": "application/json"})
     try:
@@ -419,7 +429,15 @@ def _post_telegram_message(text: str, bot_token: str, chat_id: str) -> bool:
                 logger.error(f"[TELEGRAM] Unexpected status {resp.status} (expected 200)")
                 return False
     except urllib.error.HTTPError as e:
-        logger.error(f"[TELEGRAM] HTTP error {e.code}: {e.reason}")
+        try:
+            detail = e.read().decode("utf-8", errors="replace")[:300]
+        except Exception:
+            detail = ""
+        if e.code == 400 and parse_mode:
+            logger.warning(f"[TELEGRAM] HTTP 400 with parse_mode={parse_mode} "
+                           f"({detail}); retrying as plain text")
+            return _post_telegram_message(text, bot_token, chat_id, parse_mode=None)
+        logger.error(f"[TELEGRAM] HTTP error {e.code}: {e.reason} {detail}")
         return False
     except urllib.error.URLError as e:
         logger.error(f"[TELEGRAM] Network error: {e.reason}")
