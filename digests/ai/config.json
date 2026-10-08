@@ -214,6 +214,32 @@
       }
     },
     "blogs": {
+      "anthropic_engineering": {
+        "name": "Anthropic Engineering",
+        "url": "https://www.anthropic.com/engineering",
+        "strategy": "html_scrape",
+        "scrape_parser": "anthropic_engineering",
+        "stale_after_days": 21,
+        "description": "AI-native SDLC: Anthropic's engineering blog — agent harnesses, Claude Code internals, eval and tooling practice"
+      },
+      "anthropic_blog": {
+        "name": "Anthropic Blog",
+        "feed_url": "https://claude.dev/rss.xml",
+        "stale_after_days": 10,
+        "description": "AI-native SDLC: official Claude/Anthropic product blog (claude.com/blog posts are served from claude.dev)"
+      },
+      "pragmatic_engineer": {
+        "name": "Pragmatic Engineer",
+        "feed_url": "https://blog.pragmaticengineer.com/rss",
+        "stale_after_days": 10,
+        "description": "AI-native SDLC: Gergely Orosz on how engineering orgs actually build software, incl. AI tooling adoption"
+      },
+      "github_blog_ai": {
+        "name": "GitHub Blog (AI & ML)",
+        "feed_url": "https://github.blog/ai-and-ml/feed/",
+        "stale_after_days": 7,
+        "description": "AI-native SDLC: GitHub's AI & ML category — Copilot, agentic workflows, AI in the developer lifecycle"
+      },
       "simon_willison": {
         "name": "Simon Willison",
         "feed_url": "https://simonwillison.net/atom/everything/",

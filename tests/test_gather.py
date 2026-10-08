@@ -421,3 +421,37 @@ def test_fetch_blog_research_source_type():
     _assert_provenance_fields(result)
     assert result["source_key"] == "research:arxiv"
     assert result["source_type"] == "research"
+
+
+# ── Anthropic Engineering scrape parser ──────────────────────────────────────
+
+ENGINEERING_HTML = """
+<html><body>
+<a href="/engineering">All posts</a>
+<article><a href="/engineering/featured-post">
+  <img alt="art"/><h2>Featured: Containing Agents</h2>
+  <p>Teaser copy that must not leak into the title. Apr 23, 2026</p>
+</a></article>
+<article><a href="/engineering/list-post">
+  <h3>A List Card Title</h3><p>More teaser. Apr 08, 2026</p>
+</a></article>
+<article><a href="/engineering/list-post">
+  <h3>A List Card Title</h3>
+</a></article>
+<a href="/engineering/no-heading-post">Bare Anchor Title</a>
+</body></html>
+"""
+
+
+def test_anthropic_engineering_parser_titles_from_headings():
+    from digest_pipeline.gather import parse_anthropic_engineering
+    out = parse_anthropic_engineering(ENGINEERING_HTML)
+    assert "TITLE: Featured: Containing Agents" in out       # h2 featured card
+    assert "TITLE: A List Card Title" in out                 # h3 list card
+    assert "Teaser copy" not in out
+    assert "Apr 23, 2026" not in out
+    # duplicate URL collapsed; bare anchor falls back to anchor text
+    assert out.count("LINK: https://www.anthropic.com/engineering/list-post") == 1
+    assert "TITLE: Bare Anchor Title" in out
+    # the index link itself is not an article
+    assert "LINK: https://www.anthropic.com/engineering\n" not in out

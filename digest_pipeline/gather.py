@@ -396,6 +396,67 @@ def parse_anthropic_news(html: str) -> str:
     return "\n".join(entries)
 
 
+class AnthropicEngineeringParser(HTMLParser):
+    """Parse the Anthropic /engineering landing page into article links/titles.
+
+    The page has no RSS feed. Unlike /news there is no "News" heading to
+    anchor on, so every /engineering/<slug> link with anchor text is
+    collected; per-source seen-IDs suppress previously-ingested posts, so
+    after the first run only new posts flow through.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.articles = []  # list of (title, url)
+        self._in_link = False
+        self._current_href = ""
+        self._text_buf = ""
+        self._in_h3 = False
+        self._h3_buf = ""
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "a":
+            href = dict(attrs).get("href", "")
+            if (href.startswith("/engineering/")
+                    and href.rstrip("/") != "/engineering"):
+                self._in_link = True
+                self._current_href = href
+                self._text_buf = ""
+                self._h3_buf = ""
+        elif tag in ("h2", "h3") and self._in_link:
+            # list cards title with <h3>, the featured card with <h2>
+            self._in_h3 = True
+
+    def handle_endtag(self, tag):
+        if tag in ("h2", "h3"):
+            self._in_h3 = False
+        elif tag == "a" and self._in_link:
+            # The card's heading holds the clean title; the anchor's full
+            # text also carries teaser copy and a date, so it's a fallback.
+            title = " ".join((self._h3_buf or self._text_buf).split())
+            if title and self._current_href:
+                url = f"https://www.anthropic.com{self._current_href}"
+                if not any(u == url for _, u in self.articles):
+                    self.articles.append((title, url))
+            self._in_link = False
+
+    def handle_data(self, data):
+        if self._in_link:
+            self._text_buf += data
+            if self._in_h3:
+                self._h3_buf += data
+
+
+def parse_anthropic_engineering(html: str) -> str:
+    """Parse the Anthropic /engineering page HTML into formatted entries."""
+    parser = AnthropicEngineeringParser()
+    parser.feed(html)
+    entries = []
+    for title, url in parser.articles[:15]:
+        entries.append(f"TITLE: {title}\nLINK: {url}\n---")
+    return "\n".join(entries)
+
+
 class AddeparBlogParser(HTMLParser):
     """Parse the Addepar /blog page to extract article links, titles, and descriptions."""
 
@@ -492,6 +553,8 @@ def _fetch_blog_html_scrape(key: str, blog: dict,
 
         if scrape_parser == "anthropic_news":
             content = parse_anthropic_news(result.stdout)
+        elif scrape_parser == "anthropic_engineering":
+            content = parse_anthropic_engineering(result.stdout)
         elif scrape_parser == "addepar_blog":
             content = parse_addepar_blog(result.stdout)
         else:
